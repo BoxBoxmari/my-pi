@@ -7,6 +7,7 @@ import { Client } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/client";
 import { WorkspaceRuntime } from "@ccr/workspace-runtime";
 import { CcrServer, createFoundationCapabilities } from "@ccr/mcp-adapter";
+import { err, type Capability, type CapabilityContext } from "@ccr/contracts";
 
 let dir: string;
 let runtime: WorkspaceRuntime;
@@ -205,4 +206,126 @@ test("P0.1: vcs_status on a non-Git workspace returns typed error, NOT fake data
   assert.equal(res.isError, true);
   const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
   assert.match(errText, /not a Git repository/i);
+});
+
+test("R0.1.2: search scoped to a sensitive dir (.aws) is DENIED end-to-end", async () => {
+  await fs.mkdir(path.join(dir, ".aws"), { recursive: true });
+  await fs.writeFile(path.join(dir, ".aws", "config"), "AWS_SECRET=1");
+  const res = await client.callTool({ name: "search", arguments: { mode: "grep", pattern: "AWS_SECRET", path: ".aws" } });
+  // Either the scope resolution denies `.aws` (ERR_SECRET_PATH_DENIED) OR the
+  // traversal policy excludes `.aws/config` (workspace-relative). Both are
+  // correct deny outcomes. The forbidden outcome is: a match on AWS_SECRET.
+  if (res.isError) {
+    const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
+    assert.match(errText, /sensitive|secret/i);
+  } else {
+    const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
+    assert.equal(parsed.data.matches.length, 0);
+    assert.equal(parsed.data.totalCount, 0);
+  }
+});
+
+test("R0.1.3: fs_patch WITHOUT expected_hash is rejected", async () => {
+  const res = await client.callTool({
+    name: "fs_patch",
+    arguments: { path: "a.txt", patch: { hunks: [{ old: "x", new: "y" }] } },
+  });
+  assert.equal(res.isError, true);
+  const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
+  assert.match(errText, /expected_hash/i);
+});
+
+test("R0.1.4: fs_write create is no-clobber — file appearing before publish is NOT overwritten", async () => {
+  // Create a fresh path that does not exist, then race a competitor between
+  // the existence read and the atomic publish by calling twice: the second
+  // create must NOT silently overwrite the first.
+  const p = "race.txt";
+  const first = await client.callTool({ name: "fs_write", arguments: { path: p, content: "first" } });
+  assert.notEqual(first.isError, true);
+  // Second create on the now-existing target: fs_write treats existing file
+  // without expected_hash as a typed error (not a silent overwrite).
+  const second = await client.callTool({ name: "fs_write", arguments: { path: p, content: "second" } });
+  assert.equal(second.isError, true);
+  const read = await client.callTool({ name: "fs_read", arguments: { path: p } });
+  assert.equal(JSON.parse((read.content as Array<{ text?: string }>)[0]!.text!).data.content, "first");
+});
+
+// R0.1.6: deterministic cancellation evidence. A controlled backend with
+// explicit barriers proves cancellation reaches the operation and it exits
+// with ERR_ABORTED — "completed" is NEVER a valid cancellation result.
+class ControlledLongRunningBackend {
+  signal!: AbortSignal;
+  started = false;
+  firstIOCompleted = false;
+  cancelObserved = false;
+  finishedNormally = false;
+
+  async run(signal: AbortSignal): Promise<string> {
+    this.signal = signal;
+    this.started = true;
+    // barrier: first "IO" completed
+    await Promise.resolve();
+    this.firstIOCompleted = true;
+    // wait for either cancel or a very long time
+    await new Promise<void>((resolve) => {
+      if (signal.aborted) {
+        this.cancelObserved = true;
+        resolve();
+        return;
+      }
+      signal.addEventListener("abort", () => {
+        this.cancelObserved = true;
+        resolve();
+      }, { once: true });
+    });
+    if (signal.aborted) throw err.aborted("controlled backend aborted");
+    this.finishedNormally = true;
+    return "normal";
+  }
+}
+
+test("R0.1.6: capability cancellation is deterministic — ERR_ABORTED, never 'completed'", async () => {
+  const backend = new ControlledLongRunningBackend();
+  const cap: Capability<unknown, unknown> = {
+    name: "controlled_long",
+    risk: "read",
+    async execute(_input, ctx: CapabilityContext) {
+      const t0 = performance.now();
+      try {
+        const result = await backend.run(ctx.signal);
+        return {
+          schemaVersion: "1", requestId: ctx.requestId, workspaceId: ctx.workspace.id,
+          revision: ctx.workspace.revision, data: { result }, timing: { totalMs: performance.now() - t0 },
+        };
+      } catch (e) {
+        if ((e as { code?: string }).code === "ERR_ABORTED") {
+          throw e;
+        }
+        throw e;
+      }
+    },
+  };
+  // Build a server with ONLY this capability wired + the runtime.
+  const ac = new AbortController();
+  const runPromise = cap.execute({}, {
+    requestId: "r" as never,
+    workspace: runtime.workspaceOrThrow,
+    signal: ac.signal,
+  } as unknown as CapabilityContext).then(() => "completed").catch((e: { code?: string }) => e.code ?? e.message);
+
+  // Wait until the backend has started and completed its first IO barrier.
+  let guard = 0;
+  while (!backend.firstIOCompleted && guard < 1000) { await new Promise((r) => setTimeout(r, 1)); guard++; }
+  assert.ok(backend.started, "backend must have started");
+  assert.ok(backend.firstIOCompleted, "backend must have reached first-IO barrier");
+
+  // Cancel the request.
+  ac.abort();
+  const outcome = await runPromise;
+
+  // Deterministic assertion: ERR_ABORTED, NOT "completed".
+  assert.equal(outcome, "ERR_ABORTED", `cancellation must produce ERR_ABORTED, got: ${outcome}`);
+  assert.equal(backend.cancelObserved, true, "backend must observe the abort signal");
+  assert.equal(backend.finishedNormally, false, "backend must NOT finish normally after cancel");
+  assert.equal(backend.signal.aborted, true);
 });

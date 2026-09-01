@@ -49,14 +49,22 @@ jobs:
       - name: Install (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
-      - name: Build + typecheck
-        run: pnpm build
+      - name: Project-reference validation (R0.1.1)
+        run: node scripts/check-project-references.mjs
+
+      - name: Architecture boundary check (R0.1.8)
+        run: node scripts/architecture-check.mjs
+
+      - name: Build + typecheck (from clean dist)
+        run: |
+          powershell -Command "Get-ChildItem packages -Recurse -Directory -Filter dist -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; Get-ChildItem packages -Recurse -Filter *.tsbuildinfo -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue"
+          pnpm build
 
       - name: Unit + integration tests
         run: pnpm test
 
-      - name: Architecture boundary check
-        run: node scripts/architecture-check.mjs
+      - name: Gate evidence consistency (R0.1.10)
+        run: node scripts/verify-gates.mjs
 
       - name: Stdio subprocess integration tests
         run: node --experimental-strip-types --test packages/mcp-adapter/test/stdio-subprocess.test.ts

@@ -15,6 +15,7 @@
     { "path": "../native-ports" },
     { "path": "../hashline" },
     { "path": "../search" },
-    { "path": "../vcs" }
+    { "path": "../vcs" },
+    { "path": "../fs" }
   ]
 }

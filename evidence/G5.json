@@ -1,0 +1,9 @@
+{
+  "id": "G5",
+  "commit": "f9fa933",
+  "status": "BLOCKED",
+  "environment": { "os": "win32", "node": "v26.7.0" },
+  "criteria": [
+    { "id": "lsp-lifecycle", "status": "BLOCKED", "evidence": ["no LSP spike; needs G1 + language server"] }
+  ]
+}

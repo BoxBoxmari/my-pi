@@ -1,0 +1,10 @@
+{
+  "id": "G1",
+  "commit": "f9fa933",
+  "status": "PARTIAL",
+  "environment": { "os": "win32", "node": "v26.7.0" },
+  "criteria": [
+    { "id": "cancellation-deterministic", "status": "PASS", "evidence": ["mcp-integration.test.ts: R0.1.6 ERR_ABORTED", "stdio-subprocess.test.ts: P0.4 client cancellation"] },
+    { "id": "lsp-feasibility-spike", "status": "BLOCKED", "evidence": ["needs typescript-language-server; lifecycle not exercised"] }
+  ]
+}

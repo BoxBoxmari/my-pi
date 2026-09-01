@@ -6,6 +6,7 @@ import path from "node:path";
 import {
   WorkspaceRuntime,
   atomicReplaceBytes,
+  atomicCreateNoReplace,
   withWorkspaceLock,
   SnapshotStore,
 } from "@ccr/workspace-runtime";
@@ -119,6 +120,36 @@ test("P0.9: writable-file replacement keeps ordinary mode bits", async () => {
   const after = (await fs.stat(target)).mode & 0o7777;
   assert.equal(after, before, "ordinary mode bits changed by replacement");
   assert.equal(await fs.readFile(target, "utf8"), "second");
+});
+
+test("R0.1.4: atomicCreateNoReplace creates a new file atomically", async () => {
+  const target = path.join(dir, "create-new.txt");
+  const res = await atomicCreateNoReplace(target, new TextEncoder().encode("created"));
+  assert.equal(res.digest, fingerprintBytes(new TextEncoder().encode("created")).digest);
+  assert.equal(await fs.readFile(target, "utf8"), "created");
+});
+
+test("R0.1.4: atomicCreateNoReplace does NOT clobber an existing target (no-clobber)", async () => {
+  const target = path.join(dir, "create-existing.txt");
+  await fs.writeFile(target, "existing");
+  await assert.rejects(
+    atomicCreateNoReplace(target, new TextEncoder().encode("clobber")),
+    (e: unknown) => (e as { code?: string }).code === "ERR_STALE_RESOURCE",
+  );
+  // Original content must be untouched.
+  assert.equal(await fs.readFile(target, "utf8"), "existing");
+});
+
+test("R0.1.4: atomicCreateNoReplace is no-clobber even if target appears between temp and publish", async () => {
+  const target = path.join(dir, "create-race.txt");
+  // Simulate: an external writer creates the target just before publish by
+  // pre-creating it. atomicCreateNoReplace must refuse (link -> EEXIST).
+  await fs.writeFile(target, "external-writer");
+  await assert.rejects(
+    atomicCreateNoReplace(target, new TextEncoder().encode("ccr-create")),
+    (e: unknown) => (e as { code?: string }).code === "ERR_STALE_RESOURCE",
+  );
+  assert.equal(await fs.readFile(target, "utf8"), "external-writer");
 });
 
 test("SnapshotStore: anchor ambiguity rejection", () => {

@@ -13,6 +13,7 @@
   "dependencies": {
     "@ccr/contracts": "workspace:*",
     "@ccr/native-ports": "workspace:*",
-    "@ccr/policy": "workspace:*"
+    "@ccr/policy": "workspace:*",
+    "@ccr/workspace-runtime": "workspace:*"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "id": "G0",
+  "commit": "f9fa933",
+  "status": "BLOCKED",
+  "environment": { "os": "win32", "node": "v26.7.0", "platforms": ["windows-x64 only"] },
+  "criteria": [
+    { "id": "native-napi-spike", "status": "BLOCKED", "evidence": ["no .node built; needs Linux/macOS CI lanes"] },
+    { "id": "supply-chain-audit", "status": "BLOCKED", "evidence": ["cargo-audit/cargo-deny/SBOM not run"] },
+    { "id": "era-probe", "status": "PASS", "evidence": ["probe-era.mjs: negotiated 2025-11-25", "docs/protocol-evidence.json"] },
+    { "id": "supplier-qualification", "status": "BLOCKED", "evidence": ["pi-walker/pi-ast/pi-vcs not qualified"] }
+  ]
+}

@@ -61,16 +61,21 @@ export function matchesSensitivePattern(path: string, pattern: string): boolean 
 
 function globToRegex(pattern: string): string {
   const segments = pattern.split("/");
+  const last = segments[segments.length - 1];
+  const trailingDoubleStar = last === "**";
+  const body = trailingDoubleStar ? segments.slice(0, -1) : segments;
   const out: string[] = [];
-  for (const seg of segments) {
-    if (seg === "**") {
-      out.push("(?:[^/]+/)*[^/]*");
-    } else if (seg === "") {
-    } else {
-      out.push(segmentToRegex(seg));
-    }
+  for (const seg of body) {
+    if (seg === "") continue;
+    if (seg === "**") out.push("(?:[^/]+/)*[^/]*");
+    else out.push(segmentToRegex(seg));
   }
-  return out.join("/");
+  let re = out.join("/");
+  if (trailingDoubleStar) {
+    // `dir/**` matches `dir` AND `dir/...` (R0.1.2: `.aws` root is sensitive).
+    re = `${re}(?:/.*)?`;
+  }
+  return re;
 }
 
 export class SensitivePathPolicy {

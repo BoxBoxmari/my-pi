@@ -11,6 +11,9 @@ importers:
       '@modelcontextprotocol/client':
         specifier: 2.0.0
         version: 2.0.0
+      '@modelcontextprotocol/server':
+        specifier: 2.0.0
+        version: 2.0.0
       '@types/node':
         specifier: ^24.0.0
         version: 24.13.3
@@ -157,6 +160,9 @@ importers:
       '@ccr/policy':
         specifier: workspace:*
         version: link:../policy
+      '@ccr/workspace-runtime':
+        specifier: workspace:*
+        version: link:../workspace-runtime
 
   packages/testing:
     dependencies:
@@ -172,6 +178,9 @@ importers:
       '@ccr/native-ports':
         specifier: workspace:*
         version: link:../native-ports
+      '@ccr/workspace-runtime':
+        specifier: workspace:*
+        version: link:../workspace-runtime
 
   packages/workspace-runtime:
     dependencies:

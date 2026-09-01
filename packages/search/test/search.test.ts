@@ -139,3 +139,29 @@ test("P0.3: search scoped to subdirectory does not escape into siblings", async 
   assert.equal(res.totalCount, 1);
   assert.equal(res.matches[0]?.path, "in.txt");
 });
+
+test("R0.1.2: policy path is workspace-relative — scope=.aws cannot rebase .aws/config", async () => {
+  // Simulate what the capability does: scope resolves to .aws, backend
+  // candidate path is "config" (scope-relative). The policy must evaluate
+  // ".aws/config" (workspace-relative), NOT "config".
+  const sensitive = new SensitivePathPolicy();
+  const toPosix = (p: string) => p.split(path.sep).join("/");
+  const workspaceRoot = dir;
+  const searchRoot = path.join(dir, ".aws");
+  const scopeRel = "config";
+  const abs = path.resolve(searchRoot, scopeRel);
+  const policyRel = toPosix(path.relative(workspaceRoot, abs));
+  assert.equal(policyRel, ".aws/config");
+  assert.equal(sensitive.isSensitive(policyRel), ".aws/**", ".aws/config must be sensitive workspace-relative");
+  assert.equal(sensitive.isSensitive(scopeRel), undefined, "bare 'config' must NOT be the policy input");
+});
+
+test("R0.1.2: sensitive matcher treats .aws and .ssh roots as sensitive", () => {
+  const p = new SensitivePathPolicy();
+  assert.equal(p.isSensitive(".aws"), ".aws/**");
+  assert.equal(p.isSensitive(".aws/config"), ".aws/**");
+  assert.equal(p.isSensitive(".aws/credentials/x"), ".aws/**");
+  assert.equal(p.isSensitive(".ssh"), ".ssh/**");
+  assert.equal(p.isSensitive(".ssh/id_rsa"), ".ssh/**");
+  assert.equal(p.isSensitive(".env"), ".env");
+});

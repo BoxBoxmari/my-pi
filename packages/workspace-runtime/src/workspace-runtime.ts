@@ -26,12 +26,36 @@ export interface WorkspaceInfo {
   additionalRoots: string[];
   revision: number;
   policyMode: WorkspacePolicy["mode"];
-  capabilities: WorkspaceCapabilities;
+  /** R0.1.9: CATALOG capabilities (advertised tool surface, stable). */
+  catalogCapabilities: WorkspaceCapabilities;
+  /** R0.1.9: OPERATIONAL capabilities (healthy providers, may lag catalog). */
+  operationalCapabilities: WorkspaceCapabilities;
   backendHealth: {
     native: boolean;
     nodeFallback: boolean;
   };
 }
+
+/** R0.1.9: the full V1 catalog (all 13 advertised tools). */
+export const CATALOG_CAPABILITIES: WorkspaceCapabilities = {
+  read: true,
+  write: true,
+  search: true,
+  ast: true,
+  lsp: true,
+  vcs: true,
+};
+
+/** R0.1.9: what is ACTUALLY operational today (8 tools). AST/LSP are false
+ * until their gates (G4/G5) pass and a healthy provider is registered. */
+export const OPERATIONAL_CAPABILITIES: WorkspaceCapabilities = {
+  read: true,
+  write: true,
+  search: true,
+  ast: false,
+  lsp: false,
+  vcs: true,
+};
 
 export class WorkspaceRuntime {
   private workspace?: Workspace;
@@ -46,12 +70,7 @@ export class WorkspaceRuntime {
       ...opts.policy,
     };
     const capabilities: WorkspaceCapabilities = {
-      read: true,
-      write: true,
-      search: true,
-      ast: true,
-      lsp: true,
-      vcs: true,
+      ...OPERATIONAL_CAPABILITIES,
       ...opts.capabilities,
     };
     const additionalRoots = (opts.additionalRoots ?? []).map((r) => path.resolve(r));
@@ -83,11 +102,13 @@ export class WorkspaceRuntime {
       additionalRoots: ws.additionalRoots,
       revision: ws.revision,
       policyMode: ws.policy.mode,
-      capabilities: ws.capabilities,
+      // R0.1.9: catalog = full advertised surface; operational = healthy
+      // providers actually available right now.
+      catalogCapabilities: CATALOG_CAPABILITIES,
+      operationalCapabilities: ws.capabilities,
       backendHealth: {
         // P1.3: truthful operational health. No native addon exists yet
-        // (napi-rs not activated), and the Node fallback IS active — these
-        // reflect reality, not the catalog.
+        // (napi-rs not activated), and the Node fallback IS active.
         native: false,
         nodeFallback: true,
       },

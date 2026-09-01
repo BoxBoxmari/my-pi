@@ -19,7 +19,7 @@ import {
   type CapabilityContext,
   type CapabilityResult,
 } from "@ccr/contracts";
-import { atomicReplaceBytes, type WorkspaceRuntime } from "@ccr/workspace-runtime";
+import { atomicCreateNoReplace, atomicReplaceBytes, type WorkspaceRuntime } from "@ccr/workspace-runtime";
 import { applyHunks, parsePatch } from "@ccr/hashline";
 
 type Ctx = CapabilityContext;
@@ -147,13 +147,11 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
         }
         // P0.8 (create): verify non-existence immediately before commit.
         if (!existed && expected_hash === undefined) {
-          try {
-            await fs.access(resolved.absolute);
-            throw err.staleResource(`target appeared before create commit: ${resolved.relPosix}`);
-          } catch (e) {
-            if ((e as { code?: string }).code === "ERR_STALE_RESOURCE") throw e;
-            if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
-          }
+          // R0.1.4: no-clobber atomic create — link() fails with EEXIST if a
+          // target appeared since the read. This replaces the TOCTOU-prone
+          // access()-then-rename flow.
+          await atomicCreateNoReplace(resolved.absolute, encodeText(content, detected.encoding), { signal: ctx.signal });
+          return;
         }
         const newBytes = encodeText(content, detected.encoding);
         await atomicReplaceBytes(resolved.absolute, newBytes, { signal: ctx.signal });
@@ -185,11 +183,16 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
     risk: "write",
     async execute(input: unknown, ctx: Ctx) {
       const t0 = performance.now();
+      // R0.1.3: expected_hash is MANDATORY — fs_patch only operates on an
+      // existing file the caller has observed, and CAS is required.
       const { path: p, patch, expected_hash } = input as {
         path: string;
         patch: { hunks: Array<{ old: string; new: string }> };
         expected_hash?: string;
       };
+      if (expected_hash === undefined || expected_hash === "") {
+        throw err.invalidArgument("fs_patch requires expected_hash (read the file first)");
+      }
       const resolved = await runtime.pathPolicy.resolveForWrite(ctx.workspace, p);
       const parsed = parsePatch(patch);
       let newDigest = "";
@@ -209,7 +212,7 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
           throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
         }
         const cur = fingerprintBytes(raw);
-        if (expected_hash !== undefined && !digestMatches(expected_hash, cur.digest)) {
+        if (!digestMatches(expected_hash, cur.digest)) {
           throw err.staleResource(`stale patch for ${resolved.relPosix}`);
         }
         const newText = applyHunks(text, parsed.hunks);
