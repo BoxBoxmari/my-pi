@@ -16,6 +16,9 @@
       "path": "../native-ports"
     },
     {
+      "path": "../native-loader"
+    },
+    {
       "path": "../policy"
     },
     {

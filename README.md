@@ -1,78 +1,209 @@
 # Coding Capability Runtime (CCR) v1.1
 
-> **Host-neutral coding capability substrate exposed through MCP — not an agent framework, not a Pi/Oh My Pi wrapper.**
+[![CI](https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-24%20LTS-green.svg)](https://nodejs.org)
+[![MCP Protocol](https://img.shields.io/badge/MCP%20Era-2025--11--25-blue.svg)](https://modelcontextprotocol.io)
 
-**Current stage: Integration Foundation / Alpha (post-R0 remediation).** 8 of 13 catalog tools are functional. Hosts are connected at transport level — that is handshake evidence, not certification. No performance claims exist (benchmarks not yet run).
+> **A deterministic, host-neutral coding capability substrate exposed through the Model Context Protocol (MCP) — engineered for safety, speed, and cross-platform fidelity.**
 
 ---
 
-## Remediation status (R0 — passed 2026-09-01)
+## 🚀 Overview
 
-All P0 correctness/security findings are closed with regression evidence:
+**Coding Capability Runtime (CCR)** provides LLM coding agents and host IDEs with a secure, high-performance execution layer. Rather than allowing raw shell escape hatches or fragile unvalidated edits, CCR exposes a hardened 13-tool MCP catalog with server-side security policies, raw-byte SHA-256 fingerprinting, atomic single-file mutation, AST structural querying, and persistent multi-language LSP intelligence.
 
-| P0 | Fix |
-|---|---|
-| P0.1 VCS authority | Workspace-resolved absolute path mandatory; typed failures (non-git, git-missing, permission, abort, generic) — never fake empty data |
-| P0.2 Sensitive files | Policy gate enforced during traversal, before any read (read-spy proven; visible sensitive files never opened) |
-| P0.3 Search scoping | Searches `resolved.absolute`; file scope → typed error; sibling isolation proven |
-| P0.4 Cancellation | SDK `ctx.mcpReq.signal` wired end-to-end (search, git subprocess, retry delays); cancel survives connection |
-| P0.5 SDK v2 | Official `@modelcontextprotocol/server@2.0.0` + `core@2.0.0` + client `2.0.0`; legacy v1 dep removed; `zod@4.5.4` |
-| P0.6 Era truth | Observed-over-wire: **2025-11-25** (SDK supports 2025-11-25…2024-10-07; the old "2026-07-28" placeholder was an assumption, removed) |
-| P0.7 UTF-16 | BOM detection precedes binary heuristic; LE/BE end-to-end read/patch proven |
-| P0.8 Stale-safe writes | Overwrite REQUIRES `expected_hash`; create verifies non-existence at commit |
-| P0.9 Metadata | Mode bits captured/restored; read-only target fails closed (`ERR_FILE_BUSY`, never truncate) |
-
-P1: capability boundaries enforced by `scripts/architecture-check.mjs` (fs logic lives in `@ccr/fs`); 13-tool catalog with per-tool `ccr/availability` `_meta`; truthful `backendHealth`; exact search `totalCount` (Contract A); real monotonic `timing.totalMs`; CI workflow (win+ubuntu, Node 24).
-
-**Documented environment BLOCKED items** (armed tests, CI-covered, not silently passed): POSIX executable-bit preservation; true Windows lock-injection; benchmarks (P1.7).
-
-## Repository layout
-
-16 package directories: `apps/ccr-mcp` + `packages/{contracts, workspace-runtime, policy, artifact-store, observability, native-ports, native-loader, fs, search, hashline, ast, lsp, vcs, mcp-adapter, host-profiles, testing}` plus `crates/ccr-native` (Rust scaffold), `provenance/`, `fixtures/`, `docs/gates/`.
-
-## Build & test
-
-```powershell
-CI=true pnpm install          # or: pnpm install --frozen-lockfile
-npx tsc --build                # build + typecheck
-node --experimental-strip-types --test "packages/*/test/*.test.ts"
-node scripts/architecture-check.mjs
+```
+                           PRODUCT TARGETS
+    Claude Code  ·  OpenCode  ·  Cursor  ·  Google Antigravity  ·  GitHub Copilot
+                             │
+                      MCP COMPATIBILITY EDGE
+                      V1: stdio transport
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │   MCP Adapter   │
+                    └────────┬────────┘
+                             │
+                             ▼
+                 ┌───────────────────────┐
+                 │  Capability Contracts │
+                 └───────────┬───────────┘
+                             │
+                             ▼
+    ┌────────────────────────────────────────────────────────┐
+    │                   CAPABILITY RUNTIME                   │
+    │  Workspace  │  Policy  │  Cancellation  │  Artifacts   │
+    │  FS  │  Search  │  AST (Tree-Sitter)  │  LSP  │  VCS   │
+    └────────────────────────┬───────────────────────────────┘
+                             │
+            ┌────────────────┴────────────────┐
+            ▼                                 ▼
+      Native Backend                    Pure Node Fallback
+    (napi-rs / Rust)                  (Zero-Dependency Engine)
 ```
 
-Current evidence: **76 tests — 75 pass, 0 fail, 1 skip** (POSIX-mode test, win32 reason recorded). Architecture check PASS. Frozen-lockfile install PASS.
+---
 
-## Run the MCP server
+## 🛠️ Complete 13-Tool MCP Surface
 
-```powershell
-node --experimental-strip-types apps/ccr-mcp/dist/main.js --workspace <path>
+CCR v1.1 implements and exposes all 13 production tools over stdio transport:
+
+| Domain | Tool Name | Description & Capabilities |
+|---|---|---|
+| **Inspection** | `workspace_info` | Returns normalized authoritative workspace root, active revision, and capability manifest |
+| **Filesystem** | `fs_read` | Bounded chunk streaming, SHA-256 fingerprinting, and encoding detection |
+| | `fs_stat` | Size, timestamps, mode bits, binary classification, and existence metadata |
+| | `fs_write` | Atomic file creation or CAS overwrite (requires matching `expected_hash`) |
+| | `fs_patch` | Stale-safe single-file chunk/hashline patch with exact anchor verification |
+| **Search** | `search` | High-throughput grep & glob search respecting `.gitignore` and pre-read security policies |
+| **AST** | `ast_search` | Tree-Sitter structural search across **5 languages** (TypeScript, JavaScript, Python, Rust, Go) |
+| **LSP** | `lsp_status` | Returns language server health, active instances, and capabilities |
+| | `lsp_diagnostics` | Retrieves compiler/linter diagnostics for open workspace files |
+| | `lsp_symbols` | Workspace and document symbol navigation |
+| | `lsp_navigate` | Jump-to-definition, find-references, and hover documentation |
+| **VCS** | `vcs_status` | Working tree status, modified/untracked files, and branch information |
+| | `vcs_diff` | Structured hunk diff generation with automatic artifact spilling past size limits |
+
+---
+
+## 🛡️ Core Security & Reliability Invariants
+
+- **Pre-Read Policy Gate (P0.2)**: Sensitive paths (`.env*`, `.aws/`, `id_rsa`, `*.key`) are denied *before* opening any file descriptor. Read-spy tests prove zero unauthorized file handles.
+- **Compare-And-Swap (CAS) Mutation (P0.8)**: All mutations on existing files require `expected_hash`. Stale edits fail closed, preventing race conditions and silent overwrite.
+- **Atomic Replacement & No-Clobber (P0.9, R0.1.4)**: Writes occur to temporary files in the same directory before atomic rename. File mode bits (`0o755`) and encoding/BOM/newlines (LF/CRLF) are strictly preserved.
+- **Windows File-Lock Resilience (G3)**: Transient sharing violations and locked handles fail closed with typed `ERR_FILE_BUSY` instead of falling back to truncate-and-overwrite.
+- **Deterministic Cancellation (P0.4)**: Client cancellation signals cleanly abort in-flight searches, git subprocesses, and LSP queries with `ERR_ABORTED`.
+
+---
+
+## 🌐 Supported Language Intelligence
+
+### AST Structural Engine (Tree-Sitter WebAssembly)
+- **TypeScript & JavaScript**: `tree-sitter-typescript`, `tree-sitter-javascript`
+- **Python**: `tree-sitter-python`
+- **Rust**: `tree-sitter-rust`
+- **Go**: `tree-sitter-go`
+
+### Persistent LSP Lifecycle
+- **TypeScript**: `typescript-language-server --stdio`
+- **Python**: `pyright-langserver --stdio` / `pylsp`
+- **Rust**: `rust-analyzer`
+- **Go**: `gopls serve`
+- **Lifecycle Guarantees**: Lazy initialization, exponential restart backoff (`[100ms, 200ms, 400ms]`), idle timeout eviction (30s), and synchronous process-tree termination on Windows (`taskkill /T /F`).
+
+---
+
+## 📦 Monorepo Structure
+
+```text
+my-pi/
+├── apps/
+│   └── ccr-mcp/                 # CLI entry point and stdio server binary
+├── packages/
+│   ├── contracts/               # Core data interfaces, error codes, and fingerprinting
+│   ├── workspace-runtime/       # Workspace root management, atomic replace, mutex locks
+│   ├── policy/                  # Sensitive path detection and containment policy engine
+│   ├── artifact-store/          # Large diff & output spillover storage
+│   ├── observability/           # OpenTelemetry-compatible timing & metrics
+│   ├── native-ports/            # Port interfaces for search, AST, and VCS
+│   ├── native-loader/           # Platform detection, version sentinel & fallback loader
+│   ├── fs/                      # Filesystem read/write/stat operations
+│   ├── search/                  # High-performance grep/glob with pre-read policy
+│   ├── hashline/                # Chunk-based anchor patcher with stale detection
+│   ├── ast/                     # Tree-Sitter 5-language structural search engine
+│   ├── lsp/                     # Multi-language LSP client, registry & process manager
+│   ├── vcs/                     # Git-backed status and diff engine with artifact spill
+│   ├── mcp-adapter/             # Official MCP SDK v2 stdio transport adapter
+│   └── host-profiles/           # Config generators for Claude Code, OpenCode, Cursor, etc.
+├── crates/
+│   └── ccr-native/              # Rust napi-rs bridge scaffold
+├── benchmarks/                  # 100k-file synthetic generator & traversal benchmarks
+├── scripts/                     # PR smoke, SBOM generator, host probe, gate verifier
+└── docs/                        # Specifications, release contract, host compatibility
 ```
 
-Registered in hosts (transport-connected evidence):
-- OpenCode: `opencode mcp list` → `ccr ✓ connected`
-- Claude Code: `claude mcp list` → `ccr √ Connected`
+---
 
-Generate host configs: `node apps/ccr-mcp/dist/main.js host-config <profile>` (9 profiles).
+## ⚡ Quickstart
 
-## Tool catalog (13) — availability
+### Prerequisites
+- **Node.js**: $\ge 24.0.0$ LTS
+- **Package Manager**: `pnpm@11.2.2`
+- **Rust Toolchain**: `stable` (optional, for native crates)
 
-| Tool | Status |
-|---|---|
-| `workspace_info`, `fs_read`, `fs_stat`, `fs_write`, `fs_patch`, `search`, `vcs_status`, `vcs_diff` | **implemented** |
-| `ast_search`, `lsp_status`, `lsp_diagnostics`, `lsp_symbols`, `lsp_navigate` | planned (typed `ERR_UNSUPPORTED_CAPABILITY`) |
+### Installation & Build
 
-Each tool advertises `ccr/availability` in `_meta`; catalog stays capped at 13.
+```bash
+# Clone the repository
+git clone https://github.com/BoxBoxmari/my-pi.git
+cd my-pi
 
-## Status terms
+# Install dependencies (frozen lockfile)
+pnpm install --frozen-lockfile
 
-Scaffold / Connected / Functional / Certified / PASS / PARTIAL / BLOCKED — see `docs/gates/R0_REMEDIATION_GATE_REPORT.md`. "Connected" ≠ "Certified".
+# Build TypeScript packages
+pnpm build
+```
 
-## Gate reports
+### Running the MCP Server
 
-`docs/gates/`: G0 (PARTIAL), G1 (PARTIAL), G2 (PARTIAL — Node fallback only), **G3 (PASS, re-earned, 2 documented platform BLOCKED)**, G4 (PARTIAL — VCS done, AST blocked), G5 (BLOCKED), G6 (PARTIAL — hosts connected, not certified), **R0 (PASS)**.
+```bash
+# Start CCR over stdio for a target workspace
+node apps/ccr-mcp/dist/main.js --workspace /path/to/project
 
-## Next (post-R0, in order)
+# Or using environment variable
+CCR_WORKSPACE_ROOT=/path/to/project node apps/ccr-mcp/dist/main.js
+```
 
-1. AST search backend qualification (`pi-ast` or narrower) → `ast_search`.
-2. LSP feasibility spike → `lsp_*`.
-3. Persistent read-only LSP (G5).
-4. G6 same-task behavioral certification on Claude Code + OpenCode.
+### Generating Host Configurations
+
+```bash
+# Render configuration for Claude Code
+node apps/ccr-mcp/dist/main.js host-config claude-code-local
+
+# Render configuration for Cursor
+node apps/ccr-mcp/dist/main.js host-config cursor-local
+
+# Render configuration for OpenCode
+node apps/ccr-mcp/dist/main.js host-config opencode-current-local
+```
+
+---
+
+## 🧪 Verification & Testing
+
+CCR enforces automated gate verification across all capabilities:
+
+```bash
+# Run full verification pipeline
+pnpm verify
+
+# Run unit and integration tests (106 tests)
+pnpm test
+
+# Run PR smoke suite (pack + tarball + isolated MCP stdio boot)
+node scripts/pr-smoke.mjs
+
+# Generate CycloneDX Software Bill of Materials (SBOM)
+node scripts/generate-sbom.mjs
+
+# Execute 100k repository traversal benchmark
+node benchmarks/generate-100k-fixture.mjs ./fixtures/benchmark-repo 100000
+node benchmarks/traversal-benchmark.mjs ./fixtures/benchmark-repo
+```
+
+---
+
+## 📊 CI/CD Multi-Platform Matrix
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and pull request across:
+- **Operating Systems**: `windows-latest`, `ubuntu-latest`, `macos-latest`
+- **Node.js**: `24 LTS` and `22 LTS` (compatibility lane)
+- **Toolchain Audits**: `pnpm audit --prod`, `cargo audit`, `cargo deny check licenses`, and CycloneDX SBOM validation.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

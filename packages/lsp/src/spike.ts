@@ -9,7 +9,7 @@
  * This is a SPIKE: it proves the lifecycle contract with a real language
  * server, and freezes that contract. It is intentionally self-contained.
  */
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { err, type ArtifactRef } from "@ccr/contracts";
 
 const LSP_TIMEOUT_MS = 30_000;
@@ -37,13 +37,14 @@ export class LspJsonRpcConnection {
   private pending = new Map<number, Pending>();
   private buffer = "";
   private handlers = new Map<string, (params: unknown) => void>();
+  private isKilled = false;
 
   get pid(): number | undefined {
     return this.proc?.pid;
   }
 
   get running(): boolean {
-    return this.proc !== null && this.proc.exitCode === null;
+    return this.proc !== null && this.proc.exitCode === null && !this.isKilled && !this.proc.killed;
   }
 
   async spawnServer(command: string, args: string[], cwd: string): Promise<void> {
@@ -135,16 +136,21 @@ export class LspJsonRpcConnection {
   }
 
   forceKill(): void {
-    if (process.platform === "win32" && this.proc?.pid) {
-      // Windows: SIGKILL does not reliably kill the child TREE (npx wrapper
-      // spawns node which spawns tsserver). taskkill /T kills the whole tree.
-      try {
-        spawn("taskkill", ["/PID", String(this.proc.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" });
-      } catch {
-        this.proc.kill("SIGKILL");
+    this.isKilled = true;
+    if (this.proc) {
+      if (process.platform === "win32" && this.proc.pid) {
+        try {
+          spawnSync("taskkill", ["/PID", String(this.proc.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" });
+        } catch {
+          // ignore
+        }
       }
-    } else {
-      this.proc?.kill("SIGKILL");
+      try {
+        this.proc.kill("SIGKILL");
+      } catch {
+        // ignore
+      }
+      this.proc = null;
     }
   }
 }

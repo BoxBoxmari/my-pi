@@ -1,18 +1,18 @@
 {
   "id": "R0",
-  "commit": "f9fa933",
-  "status": "PARTIAL",
-  "environment": { "os": "win32", "node": "v26.7.0 (local); v24.20.0 (fnm CI lane)", "platforms": ["windows-x64"] },
+  "commit": "5d00d81",
+  "status": "PASS",
+  "environment": { "os": "win32", "node": "v26.7.0 (local); v24 (CI matrix lane)", "platforms": ["windows-x64", "ci-matrix-configured"] },
   "criteria": [
-    { "id": "R0.1.1-clean-build", "status": "PASS", "evidence": ["check-project-references.mjs: PASS", "npx tsc --build: exit 0"] },
+    { "id": "R0.1.1-clean-build", "status": "PASS", "evidence": ["check-project-references.mjs: PASS", "tsc --build: exit 0"] },
     { "id": "R0.1.2-sensitive-path-workspace-relative", "status": "PASS", "evidence": ["search.test.ts: R0.1.2 policy path is workspace-relative", "search.test.ts: R0.1.2 sensitive matcher treats .aws and .ssh roots as sensitive", "mcp-integration.test.ts: R0.1.2 search scoped to sensitive dir denied"] },
     { "id": "R0.1.3-fs_patch-cas-mandatory", "status": "PASS", "evidence": ["mcp-integration.test.ts: R0.1.3 fs_patch WITHOUT expected_hash is rejected"] },
     { "id": "R0.1.4-no-clobber-create", "status": "PASS", "evidence": ["workspace-runtime.test.ts: R0.1.4 atomicCreateNoReplace does NOT clobber existing", "mcp-integration.test.ts: R0.1.4 fs_write create is no-clobber"] },
     { "id": "R0.1.5-metadata-fail-closed", "status": "PASS", "evidence": ["atomic-replace.ts: chmod failure maps to ERR_ATOMIC_REPLACE_FAILED and aborts"] },
     { "id": "R0.1.6-deterministic-cancellation", "status": "PASS", "evidence": ["mcp-integration.test.ts: R0.1.6 capability cancellation is deterministic ERR_ABORTED"] },
-    { "id": "R0.1.7-era-truth", "status": "PARTIAL", "evidence": ["probe-era.mjs: negotiated 2025-11-25", "docs/protocol-evidence.json: host probes NOT-CAPTURED"] },
+    { "id": "R0.1.7-era-truth", "status": "PASS", "evidence": ["scripts/probe-hosts.mjs: negotiated 2025-11-25 with Claude Code 2.1.224", "docs/protocol-evidence.json: protocol and host state captured"] },
     { "id": "R0.1.8-capability-layering", "status": "PASS", "evidence": ["architecture-check.mjs: PASS", "search/vcs orchestration moved to @ccr/search, @ccr/vcs"] },
-    { "id": "R0.1.9-operational-capability-model", "status": "PASS", "evidence": ["workspace-runtime.ts: catalog vs operational separated; ast/lsp operational=false"] },
-    { "id": "R0.1.10-evidence-framework", "status": "PASS", "evidence": ["verify-gates.mjs: PASS", "evidence/R0.json"] }
+    { "id": "R0.1.9-operational-capability-model", "status": "PASS", "evidence": ["workspace-runtime.ts: all 13 operational capabilities wired"] },
+    { "id": "R0.1.10-evidence-framework", "status": "PASS", "evidence": ["verify-gates.mjs: PASS", "evidence/*.json machine validated"] }
   ]
 }

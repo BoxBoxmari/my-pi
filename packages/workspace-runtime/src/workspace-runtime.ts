@@ -52,8 +52,8 @@ export const OPERATIONAL_CAPABILITIES: WorkspaceCapabilities = {
   read: true,
   write: true,
   search: true,
-  ast: false,
-  lsp: false,
+  ast: true,
+  lsp: true,
   vcs: true,
 };
 

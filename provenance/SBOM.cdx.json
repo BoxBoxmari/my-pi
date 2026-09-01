@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:3f4dce11-df6d-46d9-905f-dc40e222bc38",
+  "serialNumber": "urn:uuid:f001f9f4-f93a-4da1-a589-5d6e04c53a27",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-01T12:20:32.654Z",
+    "timestamp": "2026-09-01T16:30:29.173Z",
     "component": {
       "type": "application",
       "name": "coding-capability-runtime",
@@ -19,7 +19,7 @@
     "properties": [
       {
         "name": "ccr:commit",
-        "value": "4d9007ab85c59efcd97f6c13c686283e59cb6a23"
+        "value": "5d00d8170a68c7ba60cc668d4a3d6483e9c07839"
       },
       {
         "name": "ccr:source",
@@ -51,6 +51,13 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/fsevents@2.3.3",
+      "name": "fsevents",
+      "version": "2.3.3",
+      "purl": "pkg:npm/fsevents@2.3.3"
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/isexe@2.0.0",
       "name": "isexe",
       "version": "2.0.0",
@@ -79,6 +86,13 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/pyright@1.1.413",
+      "name": "pyright",
+      "version": "1.1.413",
+      "purl": "pkg:npm/pyright@1.1.413"
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/shebang-command@2.0.0",
       "name": "shebang-command",
       "version": "2.0.0",
@@ -93,6 +107,20 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/tree-sitter-wasms@0.1.13",
+      "name": "tree-sitter-wasms",
+      "version": "0.1.13",
+      "purl": "pkg:npm/tree-sitter-wasms@0.1.13"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/typescript-language-server@4.4.1",
+      "name": "typescript-language-server",
+      "version": "4.4.1",
+      "purl": "pkg:npm/typescript-language-server@4.4.1"
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/typescript@5.9.3",
       "name": "typescript",
       "version": "5.9.3",
@@ -104,6 +132,41 @@
       "name": "undici-types",
       "version": "7.18.2",
       "purl": "pkg:npm/undici-types@7.18.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vscode-jsonrpc@5.0.1",
+      "name": "vscode-jsonrpc",
+      "version": "5.0.1",
+      "purl": "pkg:npm/vscode-jsonrpc@5.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vscode-jsonrpc@9.0.2",
+      "name": "vscode-jsonrpc",
+      "version": "9.0.2",
+      "purl": "pkg:npm/vscode-jsonrpc@9.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vscode-languageserver-protocol@3.18.3",
+      "name": "vscode-languageserver-protocol",
+      "version": "3.18.3",
+      "purl": "pkg:npm/vscode-languageserver-protocol@3.18.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vscode-languageserver-types@3.18.3",
+      "name": "vscode-languageserver-types",
+      "version": "3.18.3",
+      "purl": "pkg:npm/vscode-languageserver-types@3.18.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/web-tree-sitter@0.22.6",
+      "name": "web-tree-sitter",
+      "version": "0.22.6",
+      "purl": "pkg:npm/web-tree-sitter@0.22.6"
     },
     {
       "type": "library",

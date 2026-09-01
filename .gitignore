@@ -5,5 +5,32 @@ dist/
 coverage/
 .cache/
 
+target/
+fixtures/
+benchmarks/results/
 docs/RUNTIME_CONTRACT.md
 docs/VERIFY_GATE.md
+
+# Agent & Harness metadata (local only, do not leak to public repo)
+.agent/
+.agents/
+.agt/
+.claude/
+.codegraph/
+.codex/
+.cursor/
+.grok/
+.knowns/
+.opencode/
+.x-harness/
+AGENTS.md
+CLAUDE.md
+STACK.md
+X_HARNESS.md
+completion-card.yaml
+governance/
+policies/
+schemas/
+templates/
+
+

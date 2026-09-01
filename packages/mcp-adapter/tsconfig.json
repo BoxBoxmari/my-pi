@@ -16,6 +16,8 @@
     { "path": "../hashline" },
     { "path": "../search" },
     { "path": "../vcs" },
-    { "path": "../fs" }
+    { "path": "../fs" },
+    { "path": "../ast" },
+    { "path": "../lsp" }
   ]
 }

@@ -84,11 +84,16 @@ test("G1: sensitive path is denied end-to-end", async () => {
   assert.match(errText, /sensitive path denied/i);
 });
 
-test("G1: unimplemented tool returns typed unsupported error", async () => {
-  const res = await client.callTool({ name: "ast_search", arguments: { pattern: "x", paths: ["src"] } });
-  assert.equal(res.isError, true);
-  const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
-  assert.match(errText, /not implemented in the G1 foundation/);
+test("G4/G5: ast_search and lsp_status are fully operational over MCP", async () => {
+  const astRes = await client.callTool({ name: "ast_search", arguments: { pattern: "calculate", paths: ["a.txt"] } });
+  assert.ok(!astRes.isError);
+  const parsedAst = JSON.parse((astRes.content as Array<{ text?: string }>)[0]!.text!);
+  assert.equal(typeof parsedAst.data.totalCount, "number");
+
+  const lspRes = await client.callTool({ name: "lsp_status", arguments: {} });
+  assert.ok(!lspRes.isError);
+  const parsedLsp = JSON.parse((lspRes.content as Array<{ text?: string }>)[0]!.text!);
+  assert.ok(Array.isArray(parsedLsp.data.servers));
 });
 
 // ============ P0 REGRESSION TESTS ============

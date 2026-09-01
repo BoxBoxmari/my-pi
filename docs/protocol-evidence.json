@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-01T10:32:26.256Z",
-  "commit": "f9fa933143acfa8a68c662b86e821ef2d6a1245d",
+  "generatedAt": "2026-09-01T16:34:05.997Z",
+  "commit": "5d00d8170a68c7ba60cc668d4a3d6483e9c07839",
   "sdk": {
     "serverPackage": "2.0.0",
     "clientPackage": "2.0.0",
@@ -13,12 +13,22 @@
     ]
   },
   "observed": {
-    "clientNegotiatedEra": "2025-11-25"
+    "clientNegotiatedEra": "2025-11-25",
+    "transport": "stdio",
+    "platform": "win32",
+    "nodeVersion": "v26.7.0"
   },
   "hostProbe": {
-    "claudeCode": "NOT-CAPTURED",
-    "openCode": "NOT-CAPTURED"
-  },
-  "nodeVersion": "v26.7.0",
-  "platform": "win32"
+    "claudeCode": {
+      "installed": true,
+      "version": "2.1.224 (Claude Code)"
+    },
+    "openCode": {
+      "installed": false,
+      "version": null,
+      "note": "OpenCode CLI not found on local PATH"
+    },
+    "verificationStatus": "ERA_NEGOTIATION_CAPTURED",
+    "note": "Live host CLI invocation is performed in CI lanes where hosts are pre-installed; stdio protocol handshake is verified locally."
+  }
 }

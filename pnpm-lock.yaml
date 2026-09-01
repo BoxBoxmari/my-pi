@@ -17,6 +17,9 @@ importers:
       '@types/node':
         specifier: ^24.0.0
         version: 24.13.3
+      pyright:
+        specifier: ^1.1.413
+        version: 1.1.413
       typescript:
         specifier: ^5.6.0
         version: 5.9.3
@@ -53,6 +56,15 @@ importers:
       '@ccr/native-ports':
         specifier: workspace:*
         version: link:../native-ports
+      '@ccr/workspace-runtime':
+        specifier: workspace:*
+        version: link:../workspace-runtime
+      tree-sitter-wasms:
+        specifier: ^0.1.13
+        version: 0.1.13
+      web-tree-sitter:
+        specifier: ^0.22.6
+        version: 0.22.6
 
   packages/contracts: {}
 
@@ -85,12 +97,18 @@ importers:
       '@ccr/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@ccr/workspace-runtime':
+        specifier: workspace:*
+        version: link:../workspace-runtime
 
   packages/mcp-adapter:
     dependencies:
       '@ccr/artifact-store':
         specifier: workspace:*
         version: link:../artifact-store
+      '@ccr/ast':
+        specifier: workspace:*
+        version: link:../ast
       '@ccr/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -100,6 +118,9 @@ importers:
       '@ccr/hashline':
         specifier: workspace:*
         version: link:../hashline
+      '@ccr/lsp':
+        specifier: workspace:*
+        version: link:../lsp
       '@ccr/native-ports':
         specifier: workspace:*
         version: link:../native-ports
@@ -157,6 +178,9 @@ importers:
       '@ccr/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@ccr/native-loader':
+        specifier: workspace:*
+        version: link:../native-loader
       '@ccr/native-ports':
         specifier: workspace:*
         version: link:../native-ports
@@ -232,6 +256,11 @@ packages:
     resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
     engines: {node: '>=18.0.0'}
 
+  fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
@@ -246,6 +275,11 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
+  pyright@1.1.413:
+    resolution: {integrity: sha512-1lpxKrh0DHHpfAQOfciZo2ojua2jase3wwO9at8kldc+F/p1PBscxA5CQ3G1qg5lMOMhXo6ZaiMLMXEAqADIAg==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+
   shebang-command@2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}
     engines: {node: '>=8'}
@@ -253,6 +287,9 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
+
+  tree-sitter-wasms@0.1.13:
+    resolution: {integrity: sha512-wT+cR6DwaIz80/vho3AvSF0N4txuNx/5bcRKoXouOfClpxh/qqrF4URNLQXbbt8MaAxeksZcZd1j8gcGjc+QxQ==}
 
   typescript-language-server@4.4.1:
     resolution: {integrity: sha512-vEvDw+cjY75afMN2rhx0z8sQtFDAUHoBniksBmB6NUZlDt0rEIwQq01VMiqyXFm9uZwcED2475cmDeXxoDHleg==}
@@ -280,6 +317,9 @@ packages:
 
   vscode-languageserver-types@3.18.3:
     resolution: {integrity: sha512-XIlzJ7Qp/jzSI1ds7/FwPAWrPeTZA7pAtlW4hdJ1J6xXWJL6dR9QYnDhJOdLzdKhUQ5Mm6mvUMw+3DcOQQasPw==}
+
+  web-tree-sitter@0.22.6:
+    resolution: {integrity: sha512-hS87TH71Zd6mGAmYCvlgxeGDjqd9GTeqXNqTT+u0Gs51uIozNIaaq/kUAbV/Zf56jb2ZOyG8BxZs2GG9wbLi6Q==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -326,6 +366,9 @@ snapshots:
     dependencies:
       eventsource-parser: 3.1.1
 
+  fsevents@2.3.3:
+    optional: true
+
   isexe@2.0.0: {}
 
   jose@6.2.10: {}
@@ -334,11 +377,17 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
+  pyright@1.1.413:
+    optionalDependencies:
+      fsevents: 2.3.3
+
   shebang-command@2.0.0:
     dependencies:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  tree-sitter-wasms@0.1.13: {}
 
   typescript-language-server@4.4.1:
     dependencies:
@@ -359,6 +408,8 @@ snapshots:
       vscode-languageserver-types: 3.18.3
 
   vscode-languageserver-types@3.18.3: {}
+
+  web-tree-sitter@0.22.6: {}
 
   which@2.0.2:
     dependencies:

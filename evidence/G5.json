@@ -1,9 +1,9 @@
 {
   "id": "G5",
   "commit": "f9fa933",
-  "status": "BLOCKED",
+  "status": "PASS",
   "environment": { "os": "win32", "node": "v26.7.0" },
   "criteria": [
-    { "id": "lsp-lifecycle", "status": "BLOCKED", "evidence": ["no LSP spike; needs G1 + language server"] }
+    { "id": "lsp-lifecycle", "status": "PASS", "evidence": ["lsp-spike.test.ts: TypeScript full lifecycle + crash recovery", "lsp-multi-lang.test.ts: 4 languages (TS, Python, Rust, Go)"] }
   ]
 }

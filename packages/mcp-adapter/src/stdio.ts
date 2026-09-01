@@ -55,7 +55,19 @@ const SCHEMAS: Record<string, StandardSchemaWithJSON> = {
 
 /** P1.2: operational availability, distinct from the 13-tool CATALOG. */
 const IMPLEMENTED_TOOLS = new Set([
-  "workspace_info", "fs_read", "fs_stat", "fs_write", "fs_patch", "search", "vcs_status", "vcs_diff",
+  "workspace_info",
+  "fs_read",
+  "fs_stat",
+  "fs_write",
+  "fs_patch",
+  "search",
+  "ast_search",
+  "lsp_status",
+  "lsp_diagnostics",
+  "lsp_symbols",
+  "lsp_navigate",
+  "vcs_status",
+  "vcs_diff",
 ]);
 
 export function toolAvailability(name: string): "implemented" | "planned" {

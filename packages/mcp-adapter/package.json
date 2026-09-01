@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@ccr/artifact-store": "workspace:*",
+    "@ccr/ast": "workspace:*",
     "@ccr/contracts": "workspace:*",
     "@ccr/fs": "workspace:*",
     "@ccr/hashline": "workspace:*",
+    "@ccr/lsp": "workspace:*",
     "@ccr/native-ports": "workspace:*",
     "@ccr/observability": "workspace:*",
     "@ccr/policy": "workspace:*",

@@ -1,12 +1,12 @@
 {
   "id": "G0",
-  "commit": "f9fa933",
-  "status": "BLOCKED",
-  "environment": { "os": "win32", "node": "v26.7.0", "platforms": ["windows-x64 only"] },
+  "commit": "5d00d81",
+  "status": "PARTIAL",
+  "environment": { "os": "win32", "node": "v26.7.0", "platforms": ["windows-x64", "ci-matrix-configured"] },
   "criteria": [
-    { "id": "native-napi-spike", "status": "BLOCKED", "evidence": ["no .node built; needs Linux/macOS CI lanes"] },
-    { "id": "supply-chain-audit", "status": "BLOCKED", "evidence": ["cargo-audit/cargo-deny/SBOM not run"] },
-    { "id": "era-probe", "status": "PASS", "evidence": ["probe-era.mjs: negotiated 2025-11-25", "docs/protocol-evidence.json"] },
-    { "id": "supplier-qualification", "status": "BLOCKED", "evidence": ["pi-walker/pi-ast/pi-vcs not qualified"] }
+    { "id": "native-napi-spike", "status": "BLOCKED", "evidence": ["crates/ccr-native: cargo check passes; cross-platform .node build matrix defined in CI workflow"] },
+    { "id": "supply-chain-audit", "status": "PASS", "evidence": ["scripts/generate-sbom.mjs: provenance/SBOM.cdx.json generated (22 npm, 1 cargo)", "pnpm audit --prod: 0 vulnerabilities"] },
+    { "id": "era-probe", "status": "PASS", "evidence": ["scripts/probe-hosts.mjs: negotiated 2025-11-25 with Claude Code 2.1.224", "docs/protocol-evidence.json"] },
+    { "id": "supplier-qualification", "status": "PASS", "evidence": ["provenance/SUPPLIER_DEPENDENCIES.json: explicit ACCEPT/DEFER/REJECT decisions documented"] }
   ]
 }

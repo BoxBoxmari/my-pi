@@ -25,14 +25,28 @@ function segmentToRegex(segment: string): string {
 }
 
 export function globToRegex(pattern: string): RegExp {
-  const segments = pattern.split("/");
-  const out: string[] = [];
-  for (const seg of segments) {
-    if (seg === "**") out.push("(?:[^/]+/)*[^/]*");
-    else if (seg === "") continue;
-    else out.push(segmentToRegex(seg));
+  const norm = pattern.replace(/\\/g, "/");
+  if (!norm.includes("/")) {
+    const r = segmentToRegex(norm);
+    return new RegExp(`(?:^|/)${r}$`);
   }
-  return new RegExp(`^${out.join("/")}$`);
+  const segments = norm.split("/");
+  const out: string[] = [];
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i]!;
+    if (seg === "**") {
+      if (i === segments.length - 1) {
+        out.push(".*");
+      } else {
+        out.push("(?:.+/)?");
+      }
+    } else if (seg === "") {
+      continue;
+    } else {
+      out.push(segmentToRegex(seg) + (i < segments.length - 1 ? "/" : ""));
+    }
+  }
+  return new RegExp(`^${out.join("")}$`);
 }
 
 async function loadGitignore(root: string): Promise<string[]> {

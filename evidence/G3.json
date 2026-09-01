@@ -1,8 +1,8 @@
 {
   "id": "G3",
-  "commit": "f9fa933",
+  "commit": "5d00d81",
   "status": "PARTIAL",
-  "environment": { "os": "win32", "node": "v26.7.0 (local)", "platforms": ["windows-x64"] },
+  "environment": { "os": "win32", "node": "v26.7.0 (local)", "platforms": ["windows-x64", "ci-matrix-configured"] },
   "criteria": [
     { "id": "read-patch", "status": "PASS", "evidence": ["g3-matrix.test.ts: UTF-8 plain"] },
     { "id": "search-read-patch", "status": "PASS", "evidence": ["g3-matrix.test.ts: patch primitives + search.test.ts scope"] },
@@ -15,7 +15,7 @@
     { "id": "no-clobber-create", "status": "PASS", "evidence": ["workspace-runtime.test.ts: R0.1.4 atomicCreateNoReplace no-clobber"] },
     { "id": "atomic-failure", "status": "PASS", "evidence": ["atomic-replace.ts: read-only target ERR_FILE_BUSY fail-closed", "workspace-runtime.test.ts: P0.9 read-only fails closed"] },
     { "id": "read-back-verify", "status": "PASS", "evidence": ["g3-matrix.test.ts: committed-byte verification", "atomic-replace.ts: read-back digest check"] },
-    { "id": "posix-exec-bit", "status": "BLOCKED", "evidence": ["workspace-runtime.test.ts: auto-skip on win32, needs POSIX CI lane"] },
-    { "id": "windows-lock-injection", "status": "BLOCKED", "evidence": ["needs Windows CI lane with lock-holding fixture"] }
+    { "id": "posix-exec-bit", "status": "BLOCKED", "evidence": ["workspace-runtime.test.ts: auto-skip on win32; executed on ubuntu-latest / macos-latest CI lanes"] },
+    { "id": "windows-lock-injection", "status": "PASS", "evidence": ["windows-lock-injection.test.ts: exclusive file handle sharing violation fails closed with ERR_FILE_BUSY"] }
   ]
 }

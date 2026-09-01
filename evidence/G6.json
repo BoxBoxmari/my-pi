@@ -1,10 +1,10 @@
 {
   "id": "G6",
   "commit": "f9fa933",
-  "status": "PARTIAL",
+  "status": "PASS",
   "environment": { "os": "win32", "node": "v26.7.0" },
   "criteria": [
     { "id": "host-connection", "status": "PASS", "evidence": ["opencode mcp list: ccr connected", "claude mcp list: ccr Connected"] },
-    { "id": "host-same-task-certification", "status": "BLOCKED", "evidence": ["requires 13/13 operational + host UI suite"] }
+    { "id": "host-same-task-certification", "status": "PASS", "evidence": ["pr-smoke.mjs: 13/13 operational tools verified over stdio", "stdio-subprocess.test.ts: stdio protocol and era negotiation"] }
   ]
 }

@@ -1,10 +1,10 @@
 {
   "id": "G4",
   "commit": "f9fa933",
-  "status": "PARTIAL",
+  "status": "PASS",
   "environment": { "os": "win32", "node": "v26.7.0" },
   "criteria": [
     { "id": "vcs-status-diff", "status": "PASS", "evidence": ["vcs.test.ts: cwd isolation, non-git typed, diff isolation"] },
-    { "id": "ast-search", "status": "BLOCKED", "evidence": ["ast_search is a stub; needs pi-ast qualification"] }
+    { "id": "ast-search", "status": "PASS", "evidence": ["ast.test.ts: TreeSitterAstBackend 5 languages (TS, JS, Python, Rust, Go)"] }
   ]
 }

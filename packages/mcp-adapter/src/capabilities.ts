@@ -16,6 +16,8 @@ import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
 import { createSearchCapability } from "@ccr/search";
 import { createVcsCapabilities } from "@ccr/vcs";
 import { createFsCapabilities } from "@ccr/fs";
+import { createAstCapabilities } from "@ccr/ast";
+import { createLspCapabilities } from "@ccr/lsp";
 
 type Ctx = CapabilityContext;
 
@@ -87,12 +89,9 @@ export function createFoundationCapabilities(runtime: WorkspaceRuntime): Map<str
   map.set("search", createSearchCapability(runtime));
   for (const [name, cap] of createVcsCapabilities(runtime)) map.set(name, cap);
 
-  // AST + LSP remain planned (typed unsupported until their gates).
-  map.set("ast_search", unsupported("ast_search"));
-  map.set("lsp_status", unsupported("lsp_status"));
-  map.set("lsp_diagnostics", unsupported("lsp_diagnostics"));
-  map.set("lsp_symbols", unsupported("lsp_symbols"));
-  map.set("lsp_navigate", unsupported("lsp_navigate"));
+  // AST + LSP capabilities fully registered for V1
+  for (const [name, cap] of createAstCapabilities(runtime)) map.set(name, cap);
+  for (const [name, cap] of createLspCapabilities(runtime)) map.set(name, cap);
 
   // P1.6: real timing on every capability.
   for (const [name, cap] of map) {
