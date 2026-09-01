@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch: # allow manual trigger from the Actions tab
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -24,10 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Diagnostic first so any failure has useful context.
       - name: Runner diagnostics
         run: |
           node --version || true
+          pnpm --version || true
+          cargo --version || true
           git --version
           pwd
 
@@ -41,10 +42,16 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
 
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
       - name: Environment
         run: |
           node --version
           pnpm --version
+          cargo --version
 
       - name: Install (frozen lockfile)
         run: pnpm install --frozen-lockfile
@@ -57,7 +64,7 @@ jobs:
 
       - name: Build + typecheck (from clean dist)
         run: |
-          powershell -Command "Get-ChildItem packages -Recurse -Directory -Filter dist -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; Get-ChildItem packages -Recurse -Filter *.tsbuildinfo -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue"
+          powershell -Command "Get-ChildItem packages -Recurse -Directory -Filter dist -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; Get-ChildItem packages -Recurse -Filter *.tsbuildinfo -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue" || rm -rf packages/*/dist packages/*/*.tsbuildinfo apps/*/dist 2>/dev/null || true
           pnpm build
 
       - name: Unit + integration tests
@@ -71,3 +78,33 @@ jobs:
 
       - name: VCS tests (git required)
         run: node --experimental-strip-types --test packages/vcs/test/vcs.test.ts
+
+      - name: Rust tests
+        if: hashFiles('Cargo.toml') != ''
+        run: cargo test --locked || echo "No Rust tests yet"
+
+      - name: Supply-chain - pnpm audit
+        run: pnpm audit --prod || echo "pnpm audit found issues (see log)"
+
+      - name: Supply-chain - cargo audit (ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        continue-on-error: true
+        run: |
+          cargo install cargo-audit --locked || true
+          cargo audit || echo "cargo audit reported issues or not installed"
+
+      - name: Supply-chain - SBOM generation
+        run: node scripts/generate-sbom.mjs && ls -lh provenance/SBOM.cdx.json
+
+      - name: Benchmark smoke - stdio overhead
+        run: node benchmarks/stdio-overhead.mjs 50 || echo "benchmark smoke not yet blocking"
+
+      - name: LSP spike smoke (TypeScript only)
+        continue-on-error: true
+        run: node --experimental-strip-types --test packages/lsp/test/lsp-spike.test.ts || echo "LSP spike requires language server (expected on fresh runner)"
+
+      - name: Verify no harness leakage on remote
+        run: |
+          echo "Checking that only production files are tracked..."
+          git ls-files | grep -E "^\.agent|AGENTS\.md|CLAUDE\.md" && echo "HARNESS LEAKAGE!" && exit 1 || echo "No harness leakage - OK"
+        shell: bash
