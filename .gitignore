@@ -4,3 +4,6 @@ dist/
 .upstream/
 coverage/
 .cache/
+
+docs/RUNTIME_CONTRACT.md
+docs/VERIFY_GATE.md
