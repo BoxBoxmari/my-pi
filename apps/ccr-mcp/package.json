@@ -1,0 +1,15 @@
+{
+  "name": "@ccr/app",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/main.js",
+  "bin": {
+    "ccr-mcp": "./dist/main.js"
+  },
+  "dependencies": {
+    "@ccr/contracts": "workspace:*",
+    "@ccr/workspace-runtime": "workspace:*",
+    "@ccr/mcp-adapter": "workspace:*",
+    "@ccr/host-profiles": "workspace:*"
+  }
+}

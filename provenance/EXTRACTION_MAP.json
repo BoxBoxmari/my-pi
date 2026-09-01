@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-01T00:00:00Z",
+  "note": "Source-level inheritance map for targeted audit. Paths must be re-verified against pinned SHAs at G0 before extraction.",
+  "pi_reference": [
+    "packages/coding-agent/src/core/tools/index.ts",
+    "packages/coding-agent/src/core/tools/read.ts",
+    "packages/coding-agent/src/core/tools/edit.ts",
+    "packages/coding-agent/src/core/tools/file-mutation-queue.ts",
+    "packages/agent/",
+    "packages/protocol/",
+    "packages/server/"
+  ],
+  "omp_search": [
+    "crates/pi-walker/",
+    "crates/pi-natives/src/grep.rs",
+    "packages/coding-agent/src/tools/grep.ts",
+    "packages/coding-agent/src/tools/glob.ts"
+  ],
+  "omp_hashline": [
+    "packages/hashline/",
+    "packages/coding-agent/src/edit/hashline/",
+    "packages/coding-agent/src/edit/file-snapshot-store.ts"
+  ],
+  "omp_ast": [
+    "crates/pi-ast/",
+    "crates/pi-natives/src/ast.rs",
+    "packages/coding-agent/src/tools/ast-grep.ts"
+  ],
+  "omp_lsp": [
+    "packages/coding-agent/src/lsp/index.ts",
+    "packages/coding-agent/src/lsp/client.ts",
+    "packages/coding-agent/src/lsp/config.ts",
+    "packages/coding-agent/src/lsp/utils.ts",
+    "packages/coding-agent/src/lsp/types.ts",
+    "packages/coding-agent/src/lsp/defaults.json",
+    "packages/coding-agent/src/lsp/mux/"
+  ],
+  "omp_vcs": [
+    "crates/pi-vcs/",
+    "crates/pi-natives/src/vcs.rs"
+  ],
+  "rule": "Prefer qualified leaf dependencies over re-transcription when clean. If a subsystem is coupled to pi-natives/ToolSession/harness state, adapt the minimum behavior behind CCR-owned contracts. Never import OMP agent/harness/provider/ToolSession layers into core."
+}

@@ -1,0 +1,56 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/contracts"
+    },
+    {
+      "path": "packages/policy"
+    },
+    {
+      "path": "packages/observability"
+    },
+    {
+      "path": "packages/artifact-store"
+    },
+    {
+      "path": "packages/native-ports"
+    },
+    {
+      "path": "packages/workspace-runtime"
+    },
+    {
+      "path": "packages/hashline"
+    },
+    {
+      "path": "packages/search"
+    },
+    {
+      "path": "packages/vcs"
+    },
+    {
+      "path": "packages/mcp-adapter"
+    },
+    {
+      "path": "packages/host-profiles"
+    },
+    {
+      "path": "apps/ccr-mcp"
+    },
+    {
+      "path": "packages/native-loader"
+    },
+    {
+      "path": "packages/fs"
+    },
+    {
+      "path": "packages/ast"
+    },
+    {
+      "path": "packages/lsp"
+    },
+    {
+      "path": "packages/testing"
+    }
+  ]
+}

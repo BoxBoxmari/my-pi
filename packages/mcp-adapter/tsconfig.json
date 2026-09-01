@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../contracts" },
+    { "path": "../workspace-runtime" },
+    { "path": "../policy" },
+    { "path": "../observability" },
+    { "path": "../artifact-store" },
+    { "path": "../native-ports" },
+    { "path": "../hashline" },
+    { "path": "../search" },
+    { "path": "../vcs" }
+  ]
+}

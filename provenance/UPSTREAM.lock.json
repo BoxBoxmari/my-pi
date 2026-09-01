@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-01T00:00:00Z",
+  "note": "Immutable reference baselines. Neither repo is a production dependency. See G0_BASELINE_REPORT.md for evidence status.",
+  "references": [
+    {
+      "name": "pi",
+      "repository": "https://github.com/earendil-works/pi",
+      "tag": "v0.84.4",
+      "commit": "b79e4cc834970cca69daebffab7df1da7d1e52c4",
+      "license": "MIT",
+      "role": "architecture/reference source (ports, cancellation, mutation serialization lessons)"
+    },
+    {
+      "name": "omp",
+      "repository": "https://github.com/can1357/oh-my-pi",
+      "tag": "v18.0.11",
+      "commit": "b8ce33a58911c26bed1d84f0db9a5e2e727c49a2",
+      "license": "MIT",
+      "role": "technology/reference/supplier source (walker, search, Hashline, AST, LSP, VCS)"
+    }
+  ],
+  "updatePolicy": "Never auto pull-and-merge. Classify diffs; review only relevant capability/performance/security changes; update supplier/provenance/SBOM evidence; run regression/parity/benchmark. No baseline or supplier rev moves silently."
+}

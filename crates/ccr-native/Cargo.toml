@@ -1,0 +1,13 @@
+[package]
+name = "ccr-native"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Intentionally empty in the scaffold. napi-rs and any qualified OMP supplier
+# crates are added only after the G0 native spike qualifies the toolchain.
+# See docs/gates/G0_NATIVE_SPIKE_REPORT.md for the blocking matrix.

@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["crates/ccr-native"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+# NOTE: Native architecture is scaffold-only until the G0 napi-rs platform spike
+# passes (Windows x64 / macOS arm64 / Linux x64 + Node 24). No OMP supplier crate
+# is yet resolved into production. Do not add supplier deps without qualification.
