@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { Client } from "@modelcontextprotocol/client";
+import { InMemoryTransport } from "@modelcontextprotocol/client";
 import { WorkspaceRuntime } from "@ccr/workspace-runtime";
 import { CcrServer, createFoundationCapabilities } from "@ccr/mcp-adapter";
 
@@ -90,59 +90,119 @@ test("G1: unimplemented tool returns typed unsupported error", async () => {
   assert.match(errText, /not implemented in the G1 foundation/);
 });
 
-test("G3: fs_write creates/overwrites a single file atomically", async () => {
+// ============ P0 REGRESSION TESTS ============
+
+test("P0.8: fs_write creates a new file without expected_hash", async () => {
   const res = await client.callTool({
     name: "fs_write",
-    arguments: { path: "new.txt", content: "fresh content" },
+    arguments: { path: "created.txt", content: "fresh" },
   });
   const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
-  assert.equal(parsed.data.path, "new.txt");
+  assert.equal(parsed.data.path, "created.txt");
   assert.ok(parsed.data.content_hash.startsWith("sha256:"));
-  const back = await client.callTool({ name: "fs_read", arguments: { path: "new.txt" } });
-  const read = JSON.parse((back.content as Array<{ text?: string }>)[0]!.text!);
-  assert.equal(read.data.content, "fresh content");
 });
 
-test("G3: fs_patch applies a hashline-style single-file patch", async () => {
+test("P0.8: fs_write on EXISTING file WITHOUT expected_hash is rejected", async () => {
   const res = await client.callTool({
-    name: "fs_patch",
-    arguments: { path: "a.txt", patch: { hunks: [{ old: "hello", new: "HELLO" }] } },
-  });
-  assert.notEqual(res.isError, true);
-  const back = await client.callTool({ name: "fs_read", arguments: { path: "a.txt" } });
-  const read = JSON.parse((back.content as Array<{ text?: string }>)[0]!.text!);
-  assert.equal(read.data.content, "HELLO ccr");
-});
-
-test("G3: fs_patch rejects a stale expected_hash", async () => {
-  const stale = "sha256:" + "0".repeat(64);
-  const res = await client.callTool({
-    name: "fs_patch",
-    arguments: { path: "a.txt", patch: { hunks: [{ old: "ccr", new: "runtime" }] }, expected_hash: stale },
+    name: "fs_write",
+    arguments: { path: "a.txt", content: "silent lost update" },
   });
   assert.equal(res.isError, true);
   const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
-  assert.match(errText, /stale patch/i);
+  assert.match(errText, /expected_hash/i);
+  // file unchanged
+  const back = await client.callTool({ name: "fs_read", arguments: { path: "a.txt" } });
+  const read = JSON.parse((back.content as Array<{ text?: string }>)[0]!.text!);
+  assert.equal(read.data.content, "hello ccr");
 });
 
-test("G2: search grep returns matches with degraded backend metadata", async () => {
-  const res = await client.callTool({ name: "search", arguments: { mode: "grep", pattern: "fresh" } });
+test("P0.8: fs_write with correct expected_hash passes", async () => {
+  const read1 = await client.callTool({ name: "fs_read", arguments: { path: "a.txt" } });
+  const hash = JSON.parse((read1.content as Array<{ text?: string }>)[0]!.text!).data.content_hash;
+  const res = await client.callTool({
+    name: "fs_write",
+    arguments: { path: "a.txt", content: "updated via cas", expected_hash: hash },
+  });
+  assert.notEqual(res.isError, true);
+  const back = await client.callTool({ name: "fs_read", arguments: { path: "a.txt" } });
+  assert.equal(JSON.parse((back.content as Array<{ text?: string }>)[0]!.text!).data.content, "updated via cas");
+});
+
+test("P0.8: fs_write with stale expected_hash is rejected", async () => {
+  const stale = "sha256:" + "0".repeat(64);
+  const res = await client.callTool({
+    name: "fs_write",
+    arguments: { path: "a.txt", content: "nope", expected_hash: stale },
+  });
+  assert.equal(res.isError, true);
+});
+
+test("P0.7: fs_read decodes UTF-16 LE BOM text (not classified binary)", async () => {
+  const buf = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from("utf16 text", "utf16le")]);
+  await fs.writeFile(path.join(dir, "u16le.txt"), buf);
+  const res = await client.callTool({ name: "fs_read", arguments: { path: "u16le.txt" } });
+  assert.notEqual(res.isError, true);
   const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
-  assert.equal(parsed.backend, "node-fallback");
-  assert.equal(parsed.degraded, true);
-  assert.ok(parsed.data.matches.some((m: { path: string }) => m.path === "new.txt"));
+  assert.equal(parsed.data.content, "utf16 text");
+  assert.equal(parsed.data.encoding, "utf-16le-bom");
 });
 
-test("G2: search glob finds files by pattern", async () => {
-  const res = await client.callTool({ name: "search", arguments: { mode: "glob", pattern: "*.txt" } });
+test("P0.7: fs_read decodes UTF-16 BE BOM text", async () => {
+  const text = "utf16be ok";
+  const be = Buffer.alloc(text.length * 2);
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    be.writeUInt16BE(code, i * 2);
+  }
+  const buf = Buffer.concat([Buffer.from([0xfe, 0xff]), be]);
+  await fs.writeFile(path.join(dir, "u16be.txt"), buf);
+  const res = await client.callTool({ name: "fs_read", arguments: { path: "u16be.txt" } });
+  assert.notEqual(res.isError, true);
+  const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
+  assert.equal(parsed.data.content, "utf16be ok");
+  assert.equal(parsed.data.encoding, "utf-16be-bom");
+});
+
+test("P0.7: binary fixture is still typed ERR_BINARY_FILE", async () => {
+  const bin = Buffer.alloc(512, 0);
+  await fs.writeFile(path.join(dir, "blob.bin"), bin);
+  const res = await client.callTool({ name: "fs_read", arguments: { path: "blob.bin" } });
+  assert.equal(res.isError, true);
+  const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
+  assert.match(errText, /binary/i);
+});
+
+test("P0.2/P0.3: search scoped to subdir stays in that subdir", async () => {
+  await fs.mkdir(path.join(dir, "services"), { recursive: true });
+  await fs.mkdir(path.join(dir, "other"), { recursive: true });
+  await fs.writeFile(path.join(dir, "services", "svc.ts"), "export const TOKEN = 'svc'");
+  await fs.writeFile(path.join(dir, "other", "oth.ts"), "export const TOKEN = 'other'");
+  const res = await client.callTool({ name: "search", arguments: { mode: "grep", pattern: "TOKEN", path: "services" } });
   const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
   const paths = parsed.data.matches.map((m: { path: string }) => m.path);
-  assert.ok(paths.includes("a.txt"));
-  assert.ok(paths.includes("new.txt"));
+  // Scope is the search root: matches are relative TO that scope, and the
+  // sibling directory must contribute zero matches.
+  assert.equal(parsed.data.totalCount, 1);
+  assert.ok(paths.includes("svc.ts"));
+  assert.ok(!paths.some((p: string) => p.includes("other")));
 });
 
-test("G2: search denies sensitive path results", async () => {
+test("P0.2: search never returns sensitive matches (and does not read them)", async () => {
   const res = await client.callTool({ name: "search", arguments: { mode: "grep", pattern: "SECRET" } });
   const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
   assert.equal(parsed.data.matches.length, 0);
+});
+
+test("P0.3: search scoped to a FILE returns typed invalid-scope error", async () => {
+  const res = await client.callTool({ name: "search", arguments: { mode: "grep", pattern: "x", path: "a.txt" } });
+  assert.equal(res.isError, true);
+  const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
+  assert.match(errText, /file, not a directory/i);
+});
+
+test("P0.1: vcs_status on a non-Git workspace returns typed error, NOT fake data", async () => {
+  const res = await client.callTool({ name: "vcs_status", arguments: {} });
+  assert.equal(res.isError, true);
+  const errText = (res.content as Array<{ text?: string }>)[0]!.text!;
+  assert.match(errText, /not a Git repository/i);
 });

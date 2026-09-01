@@ -84,6 +84,43 @@ test("atomicReplaceBytes round-trips and verifies", async () => {
   assert.equal(res.digest, fingerprintBytes(bytes).digest);
 });
 
+test("P0.9: atomic replacement preserves POSIX mode bits (executable stays executable)", { skip: process.platform === "win32" ? "POSIX mode preservation not verifiable on win32 (NTFS chmod maps read-only only) — requires POSIX CI lane" : false }, async () => {
+  const target = path.join(dir, "script.sh");
+  const original = new TextEncoder().encode("#!/bin/sh\necho v1\n");
+  await fs.writeFile(target, original);
+  await fs.chmod(target, 0o755);
+  assert.equal((await fs.stat(target)).mode & 0o7777, 0o755);
+  const replacement = new TextEncoder().encode("#!/bin/sh\necho v2\n");
+  await atomicReplaceBytes(target, replacement);
+  const after = (await fs.stat(target)).mode & 0o7777;
+  assert.equal(after, 0o755, "executable bit was lost by atomic replacement");
+  assert.equal(await fs.readFile(target, "utf8"), "#!/bin/sh\necho v2\n");
+});
+
+test("P0.9: read-only target fails CLOSED (no silent attribute loss or truncate)", async () => {
+  const target = path.join(dir, "keepreadonly.txt");
+  await fs.writeFile(target, "first");
+  await fs.chmod(target, 0o444); // read-only attribute on win32
+  assert.equal((await fs.stat(target)).mode & 0o7777, 0o444);
+  await assert.rejects(
+    atomicReplaceBytes(target, new TextEncoder().encode("second")),
+    (e: unknown) => (e as { code?: string }).code === "ERR_FILE_BUSY",
+  );
+  // Fail-closed: content and read-only attribute are both untouched.
+  assert.equal(await fs.readFile(target, "utf8"), "first");
+  assert.equal((await fs.stat(target)).mode & 0o7777, 0o444);
+});
+
+test("P0.9: writable-file replacement keeps ordinary mode bits", async () => {
+  const target = path.join(dir, "ordinary.txt");
+  await fs.writeFile(target, "first");
+  const before = (await fs.stat(target)).mode & 0o7777;
+  await atomicReplaceBytes(target, new TextEncoder().encode("second"));
+  const after = (await fs.stat(target)).mode & 0o7777;
+  assert.equal(after, before, "ordinary mode bits changed by replacement");
+  assert.equal(await fs.readFile(target, "utf8"), "second");
+});
+
 test("SnapshotStore: anchor ambiguity rejection", () => {
   const store = new SnapshotStore();
   const make = (digest: string) => ({ algorithm: "sha256" as const, digest, size: 3 });

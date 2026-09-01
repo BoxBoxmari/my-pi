@@ -2,168 +2,77 @@
 
 > **Host-neutral coding capability substrate exposed through MCP — not an agent framework, not a Pi/Oh My Pi wrapper.**
 
-Trạng thái hiện tại: **Production Foundation — 8/13 tools hoạt động, 43/43 tests pass, 2 blocking hosts đã kết nối thật.**
+**Current stage: Integration Foundation / Alpha (post-R0 remediation).** 8 of 13 catalog tools are functional. Hosts are connected at transport level — that is handshake evidence, not certification. No performance claims exist (benchmarks not yet run).
 
 ---
 
-## 1. Trạng thái Production hiện tại (2026-09-01)
+## Remediation status (R0 — passed 2026-09-01)
 
-| Nhóm | Trạng thái | Bằng chứng |
-|---|---|---|
-| **Foundation (G0/G1)** | ✅ PARTIAL — scaffold + provenance hoàn chỉnh | `pnpm-lock.yaml`, `provenance/*`, `tsc --build` exit 0 |
-| **FS (G1/G3)** | ✅ PASS (Node scope) | `fs_read`, `fs_stat`, `fs_write`, `fs_patch` + Hashline CAS, mutex, atomic replace, read-back verify |
-| **Search (G2)** | ✅ PASS (Node fallback) | `search(mode=grep\|glob)` — NodeFallbackSearchBackend, chặn sensitive, `backend=node-fallback` |
-| **VCS (G4)** | ✅ PASS | `vcs_status`, `vcs_diff` qua git CLI read-only |
-| **MCP Adapter** | ✅ 8/13 tools functional | `workspace_info` + 5 FS/search/vcs; 5 còn lại trả `ERR_UNSUPPORTED_CAPABILITY` |
-| **Host Profiles** | ✅ 9 profiles + renderer | `ccr host-config <profile>` |
-| **Host Integration** | ✅ 2 blocking hosts **connected** | `opencode mcp list` → `ccr ✓ connected` · `claude mcp list` → `ccr √ Connected` |
-| **Stdio Conformance** | ✅ Real OS pipe | Test `StdioClientTransport` spawn binary thật → 13 tools discoverable |
-| **Tests** | ✅ 43/43 pass | `node --experimental-strip-types --test "packages/*/test/*.test.ts"` |
-| **Các tool chưa xong** | ⛔ BLOCKED (5) | `ast_search`, `lsp_status/diagnostics/symbols/navigate` — cần supplier native / LSP spike |
-| **Native (N-API)** | ⛔ BLOCKED | Cần Node 24 × 3 OS (hiện chỉ có win32 + Node 26) |
-| **Supply-chain audit** | ⛔ BLOCKED | Cần `cargo-audit`/`cargo-deny` + SBOM từ graph |
+All P0 correctness/security findings are closed with regression evidence:
 
-> **Kết luận:** Đây là **Production Foundation** — có thể chạy như một MCP server thực tế cho 8 thao tác cốt lõi, đã được kiểm chứng end-to-end qua SDK thật và qua 2 host thật. Không tuyên bố V1 freeze; các mục BLOCKED được ghi rõ trong `docs/gates/`.
+| P0 | Fix |
+|---|---|
+| P0.1 VCS authority | Workspace-resolved absolute path mandatory; typed failures (non-git, git-missing, permission, abort, generic) — never fake empty data |
+| P0.2 Sensitive files | Policy gate enforced during traversal, before any read (read-spy proven; visible sensitive files never opened) |
+| P0.3 Search scoping | Searches `resolved.absolute`; file scope → typed error; sibling isolation proven |
+| P0.4 Cancellation | SDK `ctx.mcpReq.signal` wired end-to-end (search, git subprocess, retry delays); cancel survives connection |
+| P0.5 SDK v2 | Official `@modelcontextprotocol/server@2.0.0` + `core@2.0.0` + client `2.0.0`; legacy v1 dep removed; `zod@4.5.4` |
+| P0.6 Era truth | Observed-over-wire: **2025-11-25** (SDK supports 2025-11-25…2024-10-07; the old "2026-07-28" placeholder was an assumption, removed) |
+| P0.7 UTF-16 | BOM detection precedes binary heuristic; LE/BE end-to-end read/patch proven |
+| P0.8 Stale-safe writes | Overwrite REQUIRES `expected_hash`; create verifies non-existence at commit |
+| P0.9 Metadata | Mode bits captured/restored; read-only target fails closed (`ERR_FILE_BUSY`, never truncate) |
 
----
+P1: capability boundaries enforced by `scripts/architecture-check.mjs` (fs logic lives in `@ccr/fs`); 13-tool catalog with per-tool `ccr/availability` `_meta`; truthful `backendHealth`; exact search `totalCount` (Contract A); real monotonic `timing.totalMs`; CI workflow (win+ubuntu, Node 24).
 
-## 2. Cấu trúc sau khi dịch chuyển
+**Documented environment BLOCKED items** (armed tests, CI-covered, not silently passed): POSIX executable-bit preservation; true Windows lock-injection; benchmarks (P1.7).
 
-Toàn bộ `coding-capability-runtime/` đã được **dịch chuyển ra thư mục gốc `my-pi/`** và xóa folder trung gian. `my-pi` hiện là monorepo gốc:
+## Repository layout
 
-```
-my-pi/
-├── apps/ccr-mcp/          # CLI + MCP stdio server
-├── packages/              # @ccr/* — contracts, policy, workspace-runtime, hashline, search, vcs, mcp-adapter, ...
-├── crates/ccr-native/     # Scaffold Rust (chưa build native)
-├── provenance/            # UPSTREAM.lock.json, EXTRACTION_MAP.json, SUPPLIER_DEPENDENCIES.json, THIRD_PARTY_NOTICES.md, SBOM.cdx.json
-├── docs/
-│   ├── ARCHITECTURE.md, CONTRACTS.md, SECURITY_MODEL.md, HOST_COMPATIBILITY.md
-│   └── gates/             # 10 báo cáo G0–G6
-├── fixtures/demo/         # Workspace demo
-├── opencode.json          # MCP config cho OpenCode (đã trỏ về my-pi)
-├── Cargo.toml, pnpm-workspace.yaml, tsconfig.*.json
-└── README.md              # (file này)
-```
+16 package directories: `apps/ccr-mcp` + `packages/{contracts, workspace-runtime, policy, artifact-store, observability, native-ports, native-loader, fs, search, hashline, ast, lsp, vcs, mcp-adapter, host-profiles, testing}` plus `crates/ccr-native` (Rust scaffold), `provenance/`, `fixtures/`, `docs/gates/`.
 
-Các folder **có chủ ý để trống** (đã thêm `.gitkeep`):
-- `benchmarks/` — dành cho benchmark suite (G2+)
-- `host-configs/` — output của `ccr host-config` (sinh động, không commit)
-- `upstream/` — checkout bất biến của `earendil-works/pi` và `can1357/oh-my-pi` (sẽ clone khi cần audit)
-
-Các folder `.agent/agent-skills`, `.cursor/.mcp/*` trống là placeholder của harness, không phải lỗi.
-
----
-
-## 3. Yêu cầu hệ thống
-
-- **Node.js ≥ 24** (khuyến nghị 24 LTS; hiện test trên 26.7.0 — Node 24 chưa kiểm chứng)
-- **pnpm ≥ 11**
-- **Rust ≥ 1.90** (chỉ cần khi build native)
-- **Git** (cho `vcs_status`/`vcs_diff`)
-- Windows x64 / macOS arm64 / Linux x64
-
----
-
-## 4. Cài đặt & Kiểm tra toàn vẹn
+## Build & test
 
 ```powershell
-# Cài đặt (sửa lại symlink sau khi di chuyển)
-CI=true pnpm install
-
-# Build (typecheck + emit)
-npx tsc --build
-
-# Tests (43 tests — contracts, policy, workspace-runtime, hashline, vcs, host-profiles, mcp-adapter in-memory + real stdio)
+CI=true pnpm install          # or: pnpm install --frozen-lockfile
+npx tsc --build                # build + typecheck
 node --experimental-strip-types --test "packages/*/test/*.test.ts"
-
-# Kiểm tra empty folders có chủ ý (chỉ còn lại .gitkeep và harness placeholders)
-Get-ChildItem -Recurse -Directory | Where-Object { (Get-ChildItem $_.FullName -Force | Measure-Object).Count -eq 0 }
+node scripts/architecture-check.mjs
 ```
 
-Toàn vẹn sau di chuyển đã được kiểm chứng: `packages/*` đã được khôi phục đầy đủ (11 packages, 43 tests pass), `opencode.json` và `.claude.json` đã được cập nhật đường dẫn từ `coding-capability-runtime` về `my-pi`.
+Current evidence: **76 tests — 75 pass, 0 fail, 1 skip** (POSIX-mode test, win32 reason recorded). Architecture check PASS. Frozen-lockfile install PASS.
 
----
-
-## 5. Chạy MCP Server
-
-### 5.1 Chạy trực tiếp (stdio)
-```powershell
-node --experimental-strip-types apps/ccr-mcp/dist/main.js --workspace C:\path\to\workspace
-# hoặc với APP:  CCR_WORKSPACE_ROOT=C:\path\to\workspace node apps/ccr-mcp/dist/main.js
-```
-
-Server khởi động, log ra `stderr`: `[ccr] workspace=... mode=workspace-write transport=stdio`, `stdout` chỉ chứa MCP protocol.
-
-### 5.2 Tích hợp host
+## Run the MCP server
 
 ```powershell
-# Sinh config cho từng host
-node apps/ccr-mcp/dist/main.js host-config opencode-current-local
-node apps/ccr-mcp/dist/main.js host-config claude-code-local
-node apps/ccr-mcp/dist/main.js host-config cursor-local
-
-# OpenCode — đã wire sẵn trong opencode.json (ccr ✓ connected)
-opencode mcp list
-
-# Claude Code — đã wire
-claude mcp list   # ccr ... √ Connected
+node --experimental-strip-types apps/ccr-mcp/dist/main.js --workspace <path>
 ```
 
-### 5.3 13 Tools
+Registered in hosts (transport-connected evidence):
+- OpenCode: `opencode mcp list` → `ccr ✓ connected`
+- Claude Code: `claude mcp list` → `ccr √ Connected`
 
-| # | Tool | Trạng thái | Mô tả |
-|---|---|---|---|
-| 1 | `workspace_info` | ✅ | Kiểm tra workspace |
-| 2 | `fs_read` | ✅ | Đọc file + fingerprint/snapshot |
-| 3 | `fs_stat` | ✅ | Stat file |
-| 4 | `fs_write` | ✅ | Ghi file nguyên (CAS single-file) |
-| 5 | `fs_patch` | ✅ | Patch Hashline single-file |
-| 6 | `search` | ✅ | Grep/glob (Node fallback) |
-| 7 | `ast_search` | ⛔ | Cần supplier pi-ast |
-| 8 | `lsp_status` | ⛔ | Cần LSP spike |
-| 9 | `lsp_diagnostics` | ⛔ | Cần LSP spike |
-| 10 | `lsp_symbols` | ⛔ | Cần LSP spike |
-| 11 | `lsp_navigate` | ⛔ | Cần LSP spike |
-| 12 | `vcs_status` | ✅ | Trạng thái git |
-| 13 | `vcs_diff` | ✅ | Diff git |
+Generate host configs: `node apps/ccr-mcp/dist/main.js host-config <profile>` (9 profiles).
 
----
+## Tool catalog (13) — availability
 
-## 6. Tính toàn vẹn sau di chuyển — Giải trình
+| Tool | Status |
+|---|---|
+| `workspace_info`, `fs_read`, `fs_stat`, `fs_write`, `fs_patch`, `search`, `vcs_status`, `vcs_diff` | **implemented** |
+| `ast_search`, `lsp_status`, `lsp_diagnostics`, `lsp_symbols`, `lsp_navigate` | planned (typed `ERR_UNSUPPORTED_CAPABILITY`) |
 
-**Thesis ban đầu:** Dịch chuyển `coding-capability-runtime/*` ra `my-pi/` bằng `Move-Item` giữ toàn vẹn; các folder trống là có chủ ý.
+Each tool advertises `ccr/availability` in `_meta`; catalog stays capped at 13.
 
-**Antithesis (kiểm chứng):**
-- `packages/*` sau di chuyển báo 0 file → **mất toàn bộ src** (bug do `Move-Item` với pnpm symlinks trên Windows).
-- `benchmarks`, `host-configs`, `upstream` trống — có phải cũng là bug hay có chủ ý?
+## Status terms
 
-**Synthesis (đã khắc phục và kiểm chứng lại):**
-- `packages/*` đã được **khôi phục đầy đủ từ nguồn** (11 packages, 43/43 tests pass sau `CI=true pnpm install && tsc --build`).
-- `benchmarks`, `host-configs`, `upstream` **có chủ ý để trống** theo `Repository Structure v1.1` (placeholders cho benchmark suite, host-config output, upstream checkout). Đã thêm `.gitkeep` để làm rõ.
-- `opencode.json` và `C:\Users\Admin\.claude.json` đã được **cập nhật đường dẫn** từ `coding-capability-runtime` về `my-pi` và kiểm chứng `*mcp list` vẫn `connected`.
+Scaffold / Connected / Functional / Certified / PASS / PARTIAL / BLOCKED — see `docs/gates/R0_REMEDIATION_GATE_REPORT.md`. "Connected" ≠ "Certified".
 
-**Bằng chứng cuối:** `node --experimental-strip-types --test` → 43 pass, `opencode mcp list` → `ccr ✓ connected`, `claude mcp list` → `ccr √ Connected`.
+## Gate reports
 
----
+`docs/gates/`: G0 (PARTIAL), G1 (PARTIAL), G2 (PARTIAL — Node fallback only), **G3 (PASS, re-earned, 2 documented platform BLOCKED)**, G4 (PARTIAL — VCS done, AST blocked), G5 (BLOCKED), G6 (PARTIAL — hosts connected, not certified), **R0 (PASS)**.
 
-## 7. Báo cáo Gate
+## Next (post-R0, in order)
 
-Xem `docs/gates/`:
-- `G0_BASELINE_REPORT.md` — PARTIAL (scaffold + provenance; native/host/supply-chain blocked)
-- `G0_NATIVE_SPIKE_REPORT.md`, `G0_MCP_ERA_DECISION.md`, `G0_SUPPLY_CHAIN_REPORT.md` — BLOCKED có lý do
-- `G1_RUNTIME_FOUNDATION_REPORT.md` — PARTIAL (Node foundation pass; LSP spike blocked)
-- `G2_SEARCH_TRACER_BULLET_REPORT.md`, `G3_SAFE_SINGLE_FILE_MUTATION_REPORT.md`, `G4_AST_VCS_READ_REPORT.md` — PASS/PARTIAL
-- `G6_HOST_CERTIFICATION_REPORT.md` — PARTIAL (2 hosts connected, V1 freeze chưa đạt)
-
----
-
-## 8. Bước tiếp theo
-
-1. Cài `typescript-language-server` và thực hiện **LSP feasibility spike** → đưa 4 `lsp_*` tool lên hoạt động.
-2. Thêm `ast_search` qua `@ast-grep/napi` (cùng engine, win32) hoặc hoàn thành supplier `pi-ast`.
-3. Chạy `cargo-audit`/`cargo-deny` và sinh SBOM thật khi `crates/ccr-native` được kích hoạt.
-
----
-
-*Generated: 2026-09-01 — CCR v1.1 Production Foundation*
+1. AST search backend qualification (`pi-ast` or narrower) → `ast_search`.
+2. LSP feasibility spike → `lsp_*`.
+3. Persistent read-only LSP (G5).
+4. G6 same-task behavioral certification on Claude Code + OpenCode.

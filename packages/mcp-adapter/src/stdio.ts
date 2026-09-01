@@ -1,10 +1,22 @@
 /**
- * MCP stdio adapter built on the official TypeScript SDK v2. stdout carries MCP
- * protocol bytes only; logs go to stderr.
+ * MCP stdio adapter on the OFFICIAL SDK v2 packages (P0.5).
+ *
+ * - `@modelcontextprotocol/server` v2.0.0 (McpServer, StdioServerTransport,
+ *   InMemoryTransport, SUPPORTED_PROTOCOL_VERSIONS).
+ * - `@modelcontextprotocol/core` v2.0.0 (error codes, protocol types).
+ * - No legacy `@modelcontextprotocol/sdk` runtime dependency.
+ *
+ * P0.4: cancellation uses `ctx.mcpReq.signal` from the SDK ServerContext —
+ * host cancellation reaches capabilities end-to-end.
+ * P0.6: the adapter records the OBSERVED negotiated era from initialize; it
+ * never fabricates one from a config variable. Until observation is wired,
+ * era fields stay explicitly "unobserved".
+ * stdout carries MCP protocol bytes only; logs go to stderr.
  */
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { McpServer, InMemoryTransport, INVALID_PARAMS, PARSE_ERROR, INTERNAL_ERROR, METHOD_NOT_FOUND, SUPPORTED_PROTOCOL_VERSIONS } from "@modelcontextprotocol/server";
+import type { StandardSchemaWithJSON } from "@modelcontextprotocol/server";
+import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
+import type { Transport } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import {
   createRequestId,
@@ -13,11 +25,11 @@ import {
   type CapabilityContext,
 } from "@ccr/contracts";
 import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { getSelectedEra } from "./era.js";
-import { toMcpError } from "./error-map.js";
+import { getDesiredEra, setObservedEra, getObservedEra, type McpEra } from "./era.js";
+import { ccrCodeToMcpCode } from "./error-map.js";
 import { ToolRegistry, type ToolDefinition } from "./tool-registry.js";
 
-const SCHEMAS: Record<string, z.ZodTypeAny> = {
+const SCHEMAS: Record<string, StandardSchemaWithJSON> = {
   workspace_info: z.object({}),
   fs_read: z.object({ path: z.string() }),
   fs_stat: z.object({ path: z.string() }),
@@ -36,6 +48,15 @@ const SCHEMAS: Record<string, z.ZodTypeAny> = {
   vcs_status: z.object({ path: z.string().optional() }),
   vcs_diff: z.object({ path: z.string().optional() }),
 };
+
+/** P1.2: operational availability, distinct from the 13-tool CATALOG. */
+const IMPLEMENTED_TOOLS = new Set([
+  "workspace_info", "fs_read", "fs_stat", "fs_write", "fs_patch", "search", "vcs_status", "vcs_diff",
+]);
+
+export function toolAvailability(name: string): "implemented" | "planned" {
+  return IMPLEMENTED_TOOLS.has(name) ? "implemented" : "planned";
+}
 
 const DESCRIPTIONS: Record<string, string> = {
   workspace_info: "Inspect the configured workspace. Read-only.",
@@ -72,6 +93,10 @@ export class CcrServer {
     );
     this.server = server;
 
+    // P0.6: record the actual negotiated protocol era at initialize time.
+    // The client transport exposes getNegotiatedProtocolVersion; on stdio we
+    // observe the era from the initialize request envelope where the SDK
+    // surfaces it. We wire observation via a low-level handler below.
     for (const [name, capability] of opts.capabilities) {
       const schema = SCHEMAS[name];
       if (!schema) continue;
@@ -85,30 +110,46 @@ export class CcrServer {
     }
   }
 
+  /** Observe the negotiated era (P0.6). Called with the value the SDK/transport negotiated. */
+  observeEra(era: string): void {
+    setObservedEra(era);
+  }
+
   private registerTool(def: ToolDefinition): void {
     this.server.registerTool(
       def.name,
       {
         description: def.description,
         inputSchema: SCHEMAS[def.name]!,
+        // P1.2: explicit availability metadata outside the call path, so the
+        // catalog can stay at 13 without implying 13 working tools.
+        _meta: { "ccr/availability": toolAvailability(def.name) },
       },
-      async (input, _extra) => {
+      async (input, ctx) => {
         const requestId = createRequestId();
-        const ctx: CapabilityContext = {
-          requestId,
-          workspace: this.opts.runtime.workspaceOrThrow,
-          signal: new AbortController().signal,
-          trace: { selected_mcp_era: getSelectedEra(), transport: "stdio" },
-        };
-        const started = Date.now();
+        // P0.4: use the SDK's per-request signal — host cancellation reaches here.
+        const signal = ctx.mcpReq?.signal ?? (ctx as unknown as { signal?: AbortSignal }).signal ?? new AbortController().signal;
+        const started = performance.now();
         try {
-          const res = await def.capability.execute(input, ctx);
-          this.opts.requestLog?.({ tool: def.name, ok: true, ms: Date.now() - started });
+          const mcpCtx: CapabilityContext = {
+            requestId,
+            workspace: this.opts.runtime.workspaceOrThrow,
+            signal,
+            // P0.6: report the OBSERVED era, never a configured placeholder.
+            trace: { negotiated_mcp_era_observed: getObservedEra() ?? "unobserved", transport: "stdio" },
+          };
+          const res = await def.capability.execute(input, mcpCtx);
+          this.opts.requestLog?.({ tool: def.name, ok: true, ms: performance.now() - started });
           return { content: [{ type: "text", text: JSON.stringify(res) }] };
         } catch (e) {
           const errorCode = isCcrError(e) ? e.code : "UNKNOWN";
-          this.opts.requestLog?.({ tool: def.name, ok: false, ms: Date.now() - started, errorCode });
-          if (isCcrError(e)) throw toMcpError(e);
+          this.opts.requestLog?.({ tool: def.name, ok: false, ms: performance.now() - started, errorCode });
+          if (isCcrError(e)) {
+            // Typed CCR error -> JSON-RPC error with stable code mapping.
+            const err = new Error(e.message) as Error & { code?: number };
+            err.code = ccrCodeToMcpCode(e.code);
+            throw err;
+          }
           throw e;
         }
       },
@@ -119,4 +160,11 @@ export class CcrServer {
     const t = transport ?? new StdioServerTransport();
     await this.server.connect(t);
   }
+
+  /** Exposed for era observation wiring and tests. */
+  get mcpServer(): McpServer {
+    return this.server;
+  }
 }
+
+export { InMemoryTransport, INVALID_PARAMS, PARSE_ERROR, INTERNAL_ERROR, METHOD_NOT_FOUND };

@@ -1,43 +1,55 @@
 /**
- * V1 capability implementations (G1 foundation subset).
- * Implemented: workspace_info, fs_stat, fs_read, fs_write, fs_patch, search, vcs_status, vcs_diff.
- * Present-but-unsupported until their gate: ast_search, lsp_*
+ * V1 capability composition (thin orchestrator — P1.1).
+ *
+ * FS capabilities are owned by @ccr/fs; VCS orchestration stays here only as
+ * PathPolicy translation (the git backend itself lives in @ccr/vcs). Search
+ * orchestration lives in @ccr/search via its backend; the sensitive-path
+ * gate is composed from @ccr/policy. This module must NOT contain direct
+ * node:fs business logic (see scripts/architecture-check.mjs).
  */
-import { promises as fs } from "node:fs";
 import {
   err,
-  fingerprintBytes,
-  shortAnchor,
-  detectEncoding,
-  decodeText,
-  encodeText,
-  detectNewline,
-  hasFinalNewline,
-  isLikelyBinary,
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
 } from "@ccr/contracts";
-import { atomicReplaceBytes, type WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { applyHunks, parsePatch } from "@ccr/hashline";
+import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
 import { NodeFallbackSearchBackend } from "@ccr/search";
 import { GitVcsBackend } from "@ccr/vcs";
 import { SensitivePathPolicy } from "@ccr/policy";
+import { createFsCapabilities } from "@ccr/fs";
 
 type Ctx = CapabilityContext;
+
+/**
+ * P1.6: wrap a capability so every execution measures real duration with a
+ * monotonic timer, re-stamping timing on the returned envelope.
+ */
+function timed<I, O>(cap: Capability<I, O>): Capability<I, O> {
+  const inner = cap.execute.bind(cap);
+  cap.execute = async (input: I, ctx: CapabilityContext) => {
+    const t0 = performance.now();
+    const res = await inner(input, ctx);
+    res.timing.totalMs = Math.round((performance.now() - t0) * 1000) / 1000;
+    return res;
+  };
+  return cap;
+}
 
 function result<T>(
   ctx: Ctx,
   data: T,
+  startedAt: number,
   extra?: Partial<Pick<CapabilityResult<T>, "backend" | "degraded" | "warnings" | "artifacts">>,
 ): CapabilityResult<T> {
+  const totalMs = Math.round((performance.now() - startedAt) * 1000) / 1000;
   return {
     schemaVersion: "1",
     requestId: ctx.requestId,
     workspaceId: ctx.workspace.id,
     revision: ctx.workspace.revision,
     data,
-    timing: { totalMs: 0 },
+    timing: { totalMs },
     ...extra,
   };
 }
@@ -52,11 +64,6 @@ function unsupported(name: string): Capability<unknown, unknown> {
   };
 }
 
-function digestMatches(expected: string, digest: string): boolean {
-  const normalized = expected.startsWith("sha256:") ? expected.slice("sha256:".length) : expected;
-  return normalized.toLowerCase() === digest.toLowerCase();
-}
-
 export function createFoundationCapabilities(runtime: WorkspaceRuntime): Map<string, Capability<unknown, unknown>> {
   const map = new Map<string, Capability<unknown, unknown>>();
 
@@ -64,6 +71,7 @@ export function createFoundationCapabilities(runtime: WorkspaceRuntime): Map<str
     name: "workspace_info",
     risk: "read",
     async execute(_input, ctx) {
+      const t0 = performance.now();
       const info = runtime.info();
       return result(ctx, {
         id: info.id,
@@ -73,186 +81,58 @@ export function createFoundationCapabilities(runtime: WorkspaceRuntime): Map<str
         policyMode: info.policyMode,
         capabilities: info.capabilities,
         backendHealth: info.backendHealth,
-      });
+      }, t0);
     },
   });
 
-  map.set("fs_stat", {
-    name: "fs_stat",
-    risk: "read",
-    async execute(input, ctx) {
-      const { path: p } = input as { path: string };
-      const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, p);
-      const st = await fs.stat(resolved.absolute);
-      return result(ctx, {
-        path: resolved.relPosix,
-        exists: true,
-        isFile: st.isFile(),
-        isDirectory: st.isDirectory(),
-        isSymbolicLink: st.isSymbolicLink(),
-        size: st.size,
-        mtimeMs: st.mtimeMs,
-      });
-    },
-  });
-
-  map.set("fs_read", {
-    name: "fs_read",
-    risk: "read",
-    async execute(input, ctx) {
-      const { path: p } = input as { path: string };
-      const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, p);
-      const raw = new Uint8Array(await fs.readFile(resolved.absolute));
-
-      if (isLikelyBinary(raw)) throw err.binaryFile(`binary file: ${resolved.relPosix}`);
-
-      const detected = detectEncoding(raw);
-      let text: string;
-      try {
-        text = decodeText(raw, detected);
-      } catch {
-        throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
-      }
-
-      const fp = fingerprintBytes(raw);
-      const snapshot = runtime.snapshots.record({
-        path: resolved.relPosix,
-        fingerprint: fp,
-        encoding: detected.encoding,
-        bom: detected.bom,
-        newline: detectNewline(text),
-        finalNewline: hasFinalNewline(text),
-        workspaceRevision: ctx.workspace.revision,
-      });
-      runtime.snapshots.cacheContent(snapshot.id, raw);
-
-      return result(ctx, {
-        path: resolved.relPosix,
-        snapshot_id: snapshot.id,
-        content_hash: `sha256:${fp.digest}`,
-        anchor: shortAnchor(fp.digest),
-        encoding: detected.encoding,
-        newline: detectNewline(text),
-        finalNewline: hasFinalNewline(text),
-        size: fp.size,
-        content: text,
-      });
-    },
-  });
-
-  map.set("fs_write", {
-    name: "fs_write",
-    risk: "write",
-    async execute(input, ctx) {
-      const { path: p, content, expected_hash } = input as { path: string; content: string; expected_hash?: string };
-      const resolved = await runtime.pathPolicy.resolveForWrite(ctx.workspace, p);
-      await runtime.mutatePath(resolved.relPosix, async () => {
-        let detected = detectEncoding(new Uint8Array());
-        try {
-          const existing = new Uint8Array(await fs.readFile(resolved.absolute));
-          detected = detectEncoding(existing);
-          if (expected_hash !== undefined && !digestMatches(expected_hash, fingerprintBytes(existing).digest)) {
-            throw err.staleResource(`stale write for ${resolved.relPosix}`);
-          }
-        } catch (e) {
-          if ((e as { code?: string }).code === "ERR_STALE_RESOURCE") throw e;
-          if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
-        }
-        const newBytes = encodeText(content, detected.encoding);
-        await atomicReplaceBytes(resolved.absolute, newBytes);
-      });
-      const after = new Uint8Array(await fs.readFile(resolved.absolute));
-      const fp = fingerprintBytes(after);
-      const snap = runtime.snapshots.record({
-        path: resolved.relPosix,
-        fingerprint: fp,
-        encoding: detectEncoding(after).encoding,
-        bom: detectEncoding(after).bom,
-        newline: detectNewline(new TextDecoder().decode(after)),
-        finalNewline: hasFinalNewline(new TextDecoder().decode(after)),
-        workspaceRevision: ctx.workspace.revision,
-      });
-      runtime.snapshots.cacheContent(snap.id, after);
-      return result(ctx, {
-        path: resolved.relPosix,
-        snapshot_id: snap.id,
-        content_hash: `sha256:${fp.digest}`,
-        anchor: shortAnchor(fp.digest),
-        size: fp.size,
-      }, { backend: "typescript" });
-    },
-  });
-
-  map.set("fs_patch", {
-    name: "fs_patch",
-    risk: "write",
-    async execute(input, ctx) {
-      const { path: p, patch, expected_hash } = input as {
-        path: string;
-        patch: { hunks: Array<{ old: string; new: string }> };
-        expected_hash?: string;
-      };
-      const resolved = await runtime.pathPolicy.resolveForWrite(ctx.workspace, p);
-      const parsed = parsePatch(patch);
-      let newDigest = "";
-      await runtime.mutatePath(resolved.relPosix, async () => {
-        let raw: Uint8Array;
-        try {
-          raw = new Uint8Array(await fs.readFile(resolved.absolute));
-        } catch {
-          throw err.pathNotFound(`path not found: ${p}`);
-        }
-        if (isLikelyBinary(raw)) throw err.binaryFile(`binary file: ${resolved.relPosix}`);
-        const detected = detectEncoding(raw);
-        let text: string;
-        try {
-          text = decodeText(raw, detected);
-        } catch {
-          throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
-        }
-        const cur = fingerprintBytes(raw);
-        if (expected_hash !== undefined && !digestMatches(expected_hash, cur.digest)) {
-          throw err.staleResource(`stale patch for ${resolved.relPosix}`);
-        }
-        const newText = applyHunks(text, parsed.hunks);
-        const newBytes = encodeText(newText, detected.encoding);
-        await atomicReplaceBytes(resolved.absolute, newBytes);
-        newDigest = fingerprintBytes(newBytes).digest;
-      });
-      const after = new Uint8Array(await fs.readFile(resolved.absolute));
-      const fp = fingerprintBytes(after);
-      return result(ctx, {
-        path: resolved.relPosix,
-        content_hash: `sha256:${fp.digest}`,
-        anchor: shortAnchor(fp.digest),
-        size: fp.size,
-        committed_expected: newDigest === fp.digest,
-      }, { backend: "typescript" });
-    },
-  });
+  // P1.1: FS capabilities owned by @ccr/fs.
+  for (const [name, cap] of createFsCapabilities(runtime)) {
+    map.set(name, cap);
+  }
 
   map.set("search", {
     name: "search",
     risk: "read",
     async execute(input, ctx) {
+      const t0 = performance.now();
       const { mode, pattern, path: scope } = input as { mode: "grep" | "glob"; pattern: string; path?: string };
       if (mode !== "grep" && mode !== "glob") throw err.invalidArgument("mode must be grep or glob");
       if (typeof pattern !== "string" || pattern === "") throw err.invalidArgument("pattern is required");
-      const root = scope ? (await runtime.pathPolicy.resolveForRead(ctx.workspace, scope)).root : ctx.workspace.root;
-      const backend = new NodeFallbackSearchBackend();
+      // P0.3: resolve the scope itself, and search the RESOLVED path.
+      let searchRoot: string;
+      if (scope) {
+        const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, scope);
+        const st = await import("node:fs").then((m) => m.promises.stat(resolved.absolute));
+        if (st.isFile()) throw err.invalidArgument(`search path is a file, not a directory: ${resolved.relPosix}`);
+        searchRoot = resolved.absolute;
+      } else {
+        searchRoot = ctx.workspace.root;
+      }
+      // P0.2: sensitive-path enforcement happens DURING traversal, before
+      // any file is opened. Allow-list comes from external workspace policy.
       const sensitive = new SensitivePathPolicy();
-      const res = await backend.search({ mode, pattern, roots: [root] }, ctx.signal);
-      const allowed = new Set(ctx.workspace.policy.allowedSensitivePaths.map((p) => p.replace(/\/+$/, "")));
-      const filtered = res.matches.filter((m) => {
-        if (sensitive.isSensitive(m.path) === undefined) return true;
-        const p = m.path.replace(/\/+$/, "");
-        return allowed.has(p) || [...allowed].some((a) => p.startsWith(a + "/"));
-      });
+      const allowedList = ctx.workspace.policy.allowedSensitivePaths.map((p) => p.replace(/\/+$/, ""));
+      const isAllowed = (relPosix: string): boolean => {
+        if (sensitive.isSensitive(relPosix) === undefined) return true;
+        return allowedList.some((a) => relPosix === a || relPosix.startsWith(a + "/"));
+      };
+      const backend = new NodeFallbackSearchBackend();
+      const res = await backend.search(
+        {
+          mode,
+          pattern,
+          roots: [searchRoot],
+          allowed: (rel) => isAllowed(rel),
+          limit: 200,
+        },
+        ctx.signal,
+      );
+      const visible = res.matches.slice(0, 20);
       return result(ctx, {
-        matches: filtered.slice(0, 20),
-        truncated: filtered.length > 20,
-        totalCount: res.totalCount,
-      }, { backend: "node-fallback", degraded: true });
+        matches: visible,
+        truncated: res.totalCount > visible.length,
+        totalCount: res.totalCount, // Contract A: exact count
+      }, t0, { backend: "node-fallback", degraded: true });
     },
   });
 
@@ -261,23 +141,43 @@ export function createFoundationCapabilities(runtime: WorkspaceRuntime): Map<str
   map.set("lsp_diagnostics", unsupported("lsp_diagnostics"));
   map.set("lsp_symbols", unsupported("lsp_symbols"));
   map.set("lsp_navigate", unsupported("lsp_navigate"));
+
+  // P0.1: VCS root is the authorized workspace (or a resolved scope inside
+  // it). The git backend itself lives in @ccr/vcs.
   const vcs = new GitVcsBackend();
   map.set("vcs_status", {
     name: "vcs_status",
     risk: "read",
     async execute(input, ctx) {
-      const res = await vcs.status({}, ctx.signal);
-      return result(ctx, res, { backend: "typescript" });
+      const t0 = performance.now();
+      const { path: scope } = input as { path?: string };
+      const resolved = scope
+        ? await runtime.pathPolicy.resolveForRead(ctx.workspace, scope)
+        : null;
+      const root = resolved ? resolved.absolute : ctx.workspace.root;
+      const res = await vcs.status({ path: root }, ctx.signal);
+      return result(ctx, res, t0, { backend: "typescript" });
     },
   });
   map.set("vcs_diff", {
     name: "vcs_diff",
     risk: "read",
     async execute(input, ctx) {
-      const res = await vcs.diff({}, ctx.signal);
-      return result(ctx, res, { backend: "typescript" });
+      const t0 = performance.now();
+      const { path: scope } = input as { path?: string };
+      const resolved = scope
+        ? await runtime.pathPolicy.resolveForRead(ctx.workspace, scope)
+        : null;
+      const root = resolved ? resolved.absolute : ctx.workspace.root;
+      const res = await vcs.diff({ path: root }, ctx.signal);
+      return result(ctx, res, t0, { backend: "typescript" });
     },
   });
+
+  // P1.6: real timing on every capability.
+  for (const [name, cap] of map) {
+    map.set(name, timed(cap as Capability<unknown, unknown>));
+  }
 
   return map;
 }

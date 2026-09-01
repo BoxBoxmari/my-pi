@@ -11,6 +11,19 @@ export interface SearchRequest {
   contextBefore?: number;
   contextAfter?: number;
   limit?: number;
+  /**
+   * P0.2: policy gate invoked during traversal, BEFORE any file is opened.
+   * Receives the POSIX-relative path of the candidate file/dir; return false
+   * to skip it (and skip descending into denied directories where possible).
+   * This is the enforcement boundary — output filtering alone is forbidden.
+   */
+  allowed?: (relPosixPath: string, isDirectory: boolean) => boolean;
+  /**
+   * Test instrumentation hook: invoked immediately before a file is opened
+   * for reading. Used by regression tests to PROVE denied sensitive files
+   * cause zero protected read operations. Not used for production logic.
+   */
+  onFileRead?: (relPosixPath: string) => void;
 }
 
 export interface SearchMatch {

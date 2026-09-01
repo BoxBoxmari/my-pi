@@ -43,6 +43,16 @@ export async function atomicReplaceBytes(
   const temp = path.join(dir, `.${base}.ccr-tmp-${randomBytes(6).toString("hex")}`);
 
   let attempts = 0;
+  // P0.9: capture existing file mode before creating the temp file so
+  // atomic replacement preserves permission/mode bits (executable scripts
+  // stay executable).
+  let mode: number | undefined;
+  try {
+    const st = await fs.stat(target);
+    mode = st.mode & 0o7777;
+  } catch {
+    // New file: default mode from open() below.
+  }
   for (;;) {
     try {
       const fh = await fs.open(temp, "wx", 0o644);
@@ -51,6 +61,9 @@ export async function atomicReplaceBytes(
         await fh.sync();
       } finally {
         await fh.close();
+      }
+      if (mode !== undefined) {
+        await fs.chmod(temp, mode).catch(() => undefined);
       }
       await fs.rename(temp, target);
       break;

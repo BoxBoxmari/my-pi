@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@ccr/contracts": "workspace:*",
-    "@ccr/policy": "workspace:*",
-    "@ccr/observability": "workspace:*"
+    "@ccr/hashline": "workspace:*",
+    "@ccr/observability": "workspace:*",
+    "@ccr/policy": "workspace:*"
   }
 }

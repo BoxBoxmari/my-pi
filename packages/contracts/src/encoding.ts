@@ -116,8 +116,19 @@ function concatBytes(a: Uint8Array, b: Uint8Array): Uint8Array {
   return out;
 }
 
-/** Very light heuristic: reject obvious NUL-heavy binary content for text tools. */
+/**
+ * Very light heuristic: reject obvious NUL-heavy binary content for text tools.
+ * P0.7: BOM-based encodings are recognized FIRST — a valid UTF-16 BOM file
+ * contains expected NUL bytes and must NOT be classified as binary merely
+ * because of them. Only content with no recognized BOM is NUL-heuristically
+ * checked.
+ */
 export function isLikelyBinary(bytes: Uint8Array): boolean {
+  const detected = detectEncoding(bytes);
+  if (detected.bom) {
+    // Recognized BOM (UTF-8/16LE/16BE): never binary-classify on NUL density.
+    return false;
+  }
   const sample = Math.min(bytes.byteLength, 1024);
   if (sample === 0) return false;
   let nul = 0;

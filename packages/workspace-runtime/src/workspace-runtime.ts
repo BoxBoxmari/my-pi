@@ -84,7 +84,13 @@ export class WorkspaceRuntime {
       revision: ws.revision,
       policyMode: ws.policy.mode,
       capabilities: ws.capabilities,
-      backendHealth: { native: false, nodeFallback: true },
+      backendHealth: {
+        // P1.3: truthful operational health. No native addon exists yet
+        // (napi-rs not activated), and the Node fallback IS active — these
+        // reflect reality, not the catalog.
+        native: false,
+        nodeFallback: true,
+      },
     };
   }
 

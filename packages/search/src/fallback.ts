@@ -1,6 +1,11 @@
 /**
- * Pure Node correctness fallback for walk/glob/grep (A14). May be slower than
- * native; results are semantically equivalent for the required corpus.
+ * Pure Node correctness fallback for walk/glob/grep (A14).
+ *
+ * P0.2: `request.allowed` is enforced during traversal, BEFORE any file is
+ * opened. A denied path is never read; denied directories are not descended
+ * into when detectable from the path shape.
+ * P1.5 (Contract A): totalCount is exact — counting continues past the
+ * inline result limit; `truncated` reflects the exact overflow.
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -50,11 +55,16 @@ function isIgnored(relPosix: string, rules: string[]): boolean {
 
 async function walkFiles(
   root: string,
-  opts: { signal?: AbortSignal; skipHidden: boolean; gitignore: boolean },
+  opts: {
+    signal?: AbortSignal;
+    skipHidden: boolean;
+    gitignore: boolean;
+    allowed?: (relPosix: string, isDirectory: boolean) => boolean;
+  },
 ): Promise<string[]> {
   const rules = opts.gitignore ? await loadGitignore(root) : [];
   const out: string[] = [];
-  const seen = new Set<string>();
+
   async function walk(dir: string, rel: string): Promise<void> {
     opts.signal?.throwIfAborted();
     let entries;
@@ -70,38 +80,48 @@ async function walkFiles(
       if (isIgnored(relPath, rules)) continue;
       const abs = path.join(dir, name);
       if (e.isDirectory()) {
+        // P0.2: deny directory before descent when a rule matches the dir path.
+        if (opts.allowed && !opts.allowed(relPath, true)) continue;
         await walk(abs, relPath);
       } else if (e.isFile()) {
-        if (!seen.has(relPath)) {
-          seen.add(relPath);
-          out.push(relPath);
-        }
+        // P0.2: deny file before it is ever opened.
+        if (opts.allowed && !opts.allowed(relPath, false)) continue;
+        out.push(relPath);
       }
     }
   }
+
   await walk(root, "");
   return out;
 }
 
 export class NodeFallbackSearchBackend implements SearchBackend {
   readonly kind = "node-fallback" as const;
+
   async search(request: SearchRequest, signal: AbortSignal): Promise<SearchResult> {
-    const root = request.roots?.[0] ?? ".";
+    const root = request.roots?.[0];
+    if (root === undefined || root === "" || root === ".") {
+      throw new Error("NodeFallbackSearchBackend requires a resolved absolute root");
+    }
     const files = await walkFiles(root, {
       signal,
-      skipHidden: request.ignoreGitignore !== undefined ? true : false,
+      skipHidden: true,
       gitignore: !(request.ignoreGitignore ?? false),
+      allowed: request.allowed,
     });
+
     if (request.mode === "glob") {
       const re = globToRegex(request.pattern);
-      const matches = files.filter((f) => re.test(f)).slice(0, request.limit ?? 100);
-      const totalCount = files.filter((f) => re.test(f)).length;
+      const all = files.filter((f) => re.test(f));
+      const limit = request.limit ?? 100;
       return {
-        matches: matches.map((f) => ({ path: f, text: f })),
-        truncated: totalCount > (request.limit ?? 100),
-        totalCount,
+        matches: all.slice(0, limit).map((f) => ({ path: f, text: f })),
+        truncated: all.length > limit,
+        totalCount: all.length, // Contract A: exact
       };
     }
+
+    // grep — exact counting past the inline limit (Contract A).
     const flags = request.caseSensitive ? "" : "i";
     let re: RegExp;
     try {
@@ -114,6 +134,7 @@ export class NodeFallbackSearchBackend implements SearchBackend {
     let totalCount = 0;
     for (const rel of files) {
       signal.throwIfAborted();
+      request.onFileRead?.(rel); // instrumentation: prove what is about to be read
       const abs = path.join(root, rel);
       let raw: Buffer;
       try {
@@ -133,18 +154,18 @@ export class NodeFallbackSearchBackend implements SearchBackend {
         const line = lines[i]!;
         const m = re.exec(line);
         if (!m) continue;
-        totalCount++;
-        if (matches.length >= limit) break;
-        matches.push({
-          path: rel,
-          line: i + 1,
-          column: (m.index ?? 0) + 1,
-          text: line,
-          before: request.contextBefore ? lines.slice(Math.max(0, i - request.contextBefore), i) : undefined,
-          after: request.contextAfter ? lines.slice(i + 1, i + 1 + request.contextAfter) : undefined,
-        });
+        totalCount++; // exact: count continues past inline limit
+        if (matches.length < limit) {
+          matches.push({
+            path: rel,
+            line: i + 1,
+            column: (m.index ?? 0) + 1,
+            text: line,
+            before: request.contextBefore ? lines.slice(Math.max(0, i - request.contextBefore), i) : undefined,
+            after: request.contextAfter ? lines.slice(i + 1, i + 1 + request.contextAfter) : undefined,
+          });
+        }
       }
-      if (matches.length >= limit) break;
     }
     return { matches, truncated: totalCount > limit, totalCount };
   }

@@ -1,5 +1,4 @@
-/** Map a CCR error to a structured MCP error. */
-import { McpError } from "@modelcontextprotocol/sdk/types.js";
+/** Map a CCR error to a structured MCP error (SDK v2 line). */
 import { isCcrError, type CcrErrorCode } from "@ccr/contracts";
 
 export function ccrCodeToMcpCode(code: CcrErrorCode): number {
@@ -38,10 +37,19 @@ function codeToOffset(code: CcrErrorCode): number {
   return idx === -1 ? KNOWN_CODES.length : idx;
 }
 
-export function toMcpError(e: unknown): McpError {
+/** Typed MCP error shape without importing the legacy SDK class. */
+export interface MappedMcpError extends Error {
+  code: number;
+}
+
+export function toMcpError(e: unknown): MappedMcpError {
   if (isCcrError(e)) {
-    return new McpError(ccrCodeToMcpCode(e.code), e.message);
+    const err = new Error(e.message) as MappedMcpError;
+    err.code = ccrCodeToMcpCode(e.code);
+    return err;
   }
   const message = e instanceof Error ? e.message : String(e);
-  return new McpError(-32000, message);
+  const err = new Error(message) as MappedMcpError;
+  err.code = -32000;
+  return err;
 }
