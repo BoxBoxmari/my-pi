@@ -329,3 +329,40 @@ test("R0.1.6: capability cancellation is deterministic — ERR_ABORTED, never 'c
   assert.equal(backend.finishedNormally, false, "backend must NOT finish normally after cancel");
   assert.equal(backend.signal.aborted, true);
 });
+
+// G2 output budget: fs_read windowing (offset/max_bytes, truncated/next_offset).
+test("G2: fs_read defaults to a bounded window and reports truncated/next_offset", async () => {
+  const big = "line\n".repeat(2000); // ~10KB, larger than default 48KiB? no — keep smaller than 48KiB
+  await fs.writeFile(path.join(dir, "big.txt"), big);
+  const res = await client.callTool({ name: "fs_read", arguments: { path: "big.txt", max_bytes: 100 } });
+  const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
+  assert.equal(parsed.data.content.length, 100, "window should be bounded to max_bytes");
+  assert.equal(parsed.data.truncated, true, "big file with small window must be truncated");
+  assert.ok(parsed.data.next_offset === 100, "next_offset should continue the window");
+  // Full-file hash must still be the raw-byte authority, not the window.
+  assert.ok(parsed.data.content_hash.startsWith("sha256:"));
+  assert.equal(parsed.data.offset, 0);
+});
+
+test("G2: fs_read window continues at next_offset and reaches the end", async () => {
+  const text = "abcdefghij";
+  await fs.writeFile(path.join(dir, "small.txt"), text);
+  const r1 = await client.callTool({ name: "fs_read", arguments: { path: "small.txt", max_bytes: 4 } });
+  const p1 = JSON.parse((r1.content as Array<{ text?: string }>)[0]!.text!);
+  assert.equal(p1.data.content, "abcd");
+  assert.equal(p1.data.truncated, true);
+  assert.equal(p1.data.next_offset, 4);
+  const r2 = await client.callTool({ name: "fs_read", arguments: { path: "small.txt", max_bytes: 4, offset: p1.data.next_offset } });
+  const p2 = JSON.parse((r2.content as Array<{ text?: string }>)[0]!.text!);
+  assert.equal(p2.data.content, "efgh");
+  const r3 = await client.callTool({ name: "fs_read", arguments: { path: "small.txt", max_bytes: 4, offset: p2.data.next_offset } });
+  const p3 = JSON.parse((r3.content as Array<{ text?: string }>)[0]!.text!);
+  assert.equal(p3.data.content, "ij");
+  assert.equal(p3.data.truncated, false, "last window must not be truncated");
+  assert.equal(p3.data.next_offset, undefined, "no next_offset at EOF");
+});
+
+test("G2: fs_read invalid offset is a typed error", async () => {
+  const res = await client.callTool({ name: "fs_read", arguments: { path: "a.txt", offset: -1 } });
+  assert.equal(res.isError, true);
+});

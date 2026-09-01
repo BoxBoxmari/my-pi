@@ -10,6 +10,7 @@ import {
   type CapabilityResult,
 } from "@ccr/contracts";
 import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
+import { LocalArtifactStore } from "@ccr/artifact-store";
 import { GitVcsBackend } from "./fallback.js";
 
 type Ctx = CapabilityContext;
@@ -68,7 +69,15 @@ export function createVcsCapabilities(runtime: WorkspaceRuntime): Map<string, Ca
       const t0 = performance.now();
       const { path: scope } = input as VcsInput;
       const root = await resolveRoot(scope, ctx);
-      const res = await vcs.diff({ path: root }, ctx.signal);
+      // G2/VCS hardening: large diffs spill to an artifact instead of being
+      // dropped. Artifacts live in a process-scoped temp store.
+      const artifactDir = await import("node:os").then((os) => os.tmpdir());
+      const artifactStore = new LocalArtifactStore(artifactDir);
+      const res = await vcs.diff(
+        { path: root },
+        ctx.signal,
+        { spillTo: (data) => artifactStore.put("text/plain", new TextEncoder().encode(data)) },
+      );
       return result(ctx, res, t0, { backend: "typescript" });
     },
   });

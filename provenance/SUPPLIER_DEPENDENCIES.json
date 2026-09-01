@@ -1,73 +1,72 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedAt": "2026-09-01T00:00:00Z",
-  "note": "Supplier inventory. Promotion is provisional pending G0 qualification evidence (transitive licenses, advisories, build/binary size, portability, API subset). None is yet a resolved production dependency in this scaffold.",
+  "commit": "4d9007ab85c59efcd97f6c13c686383e59cb6a23",
+  "auditEvidence": {
+    "pnpmAudit": {
+      "command": "pnpm audit --prod",
+      "result": "No known vulnerabilities found",
+      "exitCode": 0,
+      "timestamp": "2026-09-01"
+    },
+    "cargoAudit": {
+      "command": "cargo audit",
+      "status": "BLOCKED",
+      "reason": "cargo-audit v0.22.2 fails to compile on this toolchain (windows-sys error); requires a CI lane with working Rust advisory tooling. No critical advisories are claimed."
+    },
+    "sbom": {
+      "command": "node scripts/generate-sbom.mjs",
+      "status": "GENERATED",
+      "source": "pnpm-lock.yaml + Cargo.lock",
+      "components": 14
+    }
+  },
   "suppliers": [
     {
       "name": "pi-walker",
       "upstream": "omp",
-      "path": "crates/pi-walker/",
-      "initialAction": "qualify_as_direct_pinned_supplier",
-      "v1Use": "search backend (walker/glob)",
-      "status": "candidate - not yet qualified"
+      "decision": "DEFER",
+      "reason": "native supplier qualification requires a working napi-rs build + cargo-audit on the pinned rev; both blocked on this environment. Node fallback satisfies the required corpus today.",
+      "promotionRequirements": ["exact immutable rev", "cargo graph + lock evidence", "transitive licenses", "advisories", "build/binary size delta", "platform build evidence", "API subset used", "replacement strategy"]
     },
     {
       "name": "pi-ast",
       "upstream": "omp",
-      "path": "crates/pi-ast/",
-      "initialAction": "qualify_build_size_grammar_surface_and_transitives",
-      "v1Use": "ast_search (read-only)",
-      "status": "candidate - not yet qualified"
+      "decision": "DEFER",
+      "reason": "same as pi-walker; ast_search stays a typed stub until qualification passes"
     },
     {
       "name": "pi-vcs",
       "upstream": "omp",
-      "path": "crates/pi-vcs/",
-      "initialAction": "qualify_jj_lib_and_transitive_cost",
-      "v1Use": "vcs_status / vcs_diff (prefer narrower gix if jj-lib cost excessive)",
-      "status": "candidate - not yet qualified"
+      "decision": "DEFER",
+      "reason": "git CLI backend already satisfies the V1 read-only contract; library backend only if jj-lib cost proves better"
     },
     {
       "name": "pi-natives",
       "upstream": "omp",
-      "path": "crates/pi-natives/",
-      "initialAction": "reject_wholesale_dependency",
-      "v1Use": "none",
-      "status": "rejected (monolith: unrelated domains, coupling)"
-    },
-    {
-      "name": "OMP grep.rs",
-      "upstream": "omp",
-      "path": "crates/pi-natives/src/grep.rs",
-      "initialAction": "behavior_source_or_minimal_owned_search_crate",
-      "v1Use": "native search (source/behavior reference; implement minimal owned crate if not reusable cleanly)",
-      "status": "reference only"
+      "decision": "REJECT",
+      "reason": "monolith with unrelated domains; excluded by architecture invariant A15"
     },
     {
       "name": "OMP Hashline",
       "upstream": "omp",
-      "path": "packages/hashline/",
-      "initialAction": "minimal_single_file_adaptation",
-      "v1Use": "single-file patch semantics only",
-      "status": "adapt under CCR interfaces"
+      "decision": "ACCEPT",
+      "reason": "behavior adapted under CCR-owned @ccr/hashline (single-file parser/applier); no runtime dependency on OMP package",
+      "evidence": ["packages/hashline tests: 5/5 pass", "G3 matrix patch cases"]
     },
     {
-      "name": "OMP LSP TypeScript",
-      "upstream": "omp",
-      "path": "packages/coding-agent/src/lsp/",
-      "initialAction": "adapt_behavior_under_CCR_interfaces",
-      "v1Use": "persistent read-only LSP",
-      "status": "adapt under CCR interfaces"
+      "name": "@modelcontextprotocol/server+client+core@2.0.0",
+      "upstream": "official SDK",
+      "decision": "ACCEPT",
+      "reason": "official MCP TS SDK v2 line; pinned exact 2.0.0",
+      "evidence": ["pnpm-lock.yaml exact pins", "protocol-evidence.json: negotiated 2025-11-25"]
+    },
+    {
+      "name": "zod@4.5.4",
+      "upstream": "npm",
+      "decision": "ACCEPT",
+      "reason": "Standard Schema with jsonSchema required by SDK v2 registerTool",
+      "evidence": ["pnpm-lock.yaml exact pin"]
     }
-  ],
-  "promotionEvidence": [
-    "exact immutable rev",
-    "Cargo graph and lock evidence",
-    "transitive licenses",
-    "advisories",
-    "build/binary size delta",
-    "platform build evidence",
-    "API subset used",
-    "documented replacement/upgrade path"
   ]
 }

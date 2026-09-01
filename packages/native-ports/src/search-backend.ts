@@ -1,4 +1,4 @@
-import type { CapabilityResult, SnapshotId } from "@ccr/contracts";
+import type { ArtifactRef, CapabilityResult, SnapshotId } from "@ccr/contracts";
 
 export interface SearchRequest {
   mode: "grep" | "glob";
@@ -85,6 +85,8 @@ export interface VcsDiffRequest {
 export interface VcsDiffResult {
   summary: { additions: number; deletions: number; files: number };
   hunks: string[];
+  truncated?: boolean;
+  diffArtifact?: ArtifactRef;
 }
 
 export interface VcsBackend {

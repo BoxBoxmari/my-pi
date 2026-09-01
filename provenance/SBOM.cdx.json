@@ -1,17 +1,130 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:ccr-g0-sbom-placeholder-0000-0000-0000-000000000000",
+  "serialNumber": "urn:uuid:3f4dce11-df6d-46d9-905f-dc40e222bc38",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-01T00:00:00Z",
+    "timestamp": "2026-09-01T12:20:32.654Z",
     "component": {
       "type": "application",
       "name": "coding-capability-runtime",
       "version": "0.1.0"
     },
-    "tools": []
+    "tools": [
+      {
+        "name": "ccr-generate-sbom",
+        "version": "1.0.0"
+      }
+    ],
+    "properties": [
+      {
+        "name": "ccr:commit",
+        "value": "4d9007ab85c59efcd97f6c13c686283e59cb6a23"
+      },
+      {
+        "name": "ccr:source",
+        "value": "generated from pnpm-lock.yaml + Cargo.lock"
+      }
+    ]
   },
-  "components": [],
-  "note": "PLACEHOLDER. SBOM must be regenerated from resolved pnpm-lock.yaml and Cargo.lock during G0. Not a completed dependency inventory."
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/cross-spawn@7.0.6",
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "purl": "pkg:npm/cross-spawn@7.0.6"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/eventsource-parser@3.1.1",
+      "name": "eventsource-parser",
+      "version": "3.1.1",
+      "purl": "pkg:npm/eventsource-parser@3.1.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/eventsource@3.0.7",
+      "name": "eventsource",
+      "version": "3.0.7",
+      "purl": "pkg:npm/eventsource@3.0.7"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/isexe@2.0.0",
+      "name": "isexe",
+      "version": "2.0.0",
+      "purl": "pkg:npm/isexe@2.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/jose@6.2.10",
+      "name": "jose",
+      "version": "6.2.10",
+      "purl": "pkg:npm/jose@6.2.10"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/path-key@3.1.1",
+      "name": "path-key",
+      "version": "3.1.1",
+      "purl": "pkg:npm/path-key@3.1.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/pkce-challenge@5.0.1",
+      "name": "pkce-challenge",
+      "version": "5.0.1",
+      "purl": "pkg:npm/pkce-challenge@5.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/shebang-command@2.0.0",
+      "name": "shebang-command",
+      "version": "2.0.0",
+      "purl": "pkg:npm/shebang-command@2.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/shebang-regex@3.0.0",
+      "name": "shebang-regex",
+      "version": "3.0.0",
+      "purl": "pkg:npm/shebang-regex@3.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/typescript@5.9.3",
+      "name": "typescript",
+      "version": "5.9.3",
+      "purl": "pkg:npm/typescript@5.9.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/undici-types@7.18.2",
+      "name": "undici-types",
+      "version": "7.18.2",
+      "purl": "pkg:npm/undici-types@7.18.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/which@2.0.2",
+      "name": "which",
+      "version": "2.0.2",
+      "purl": "pkg:npm/which@2.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/zod@4.5.4",
+      "name": "zod",
+      "version": "4.5.4",
+      "purl": "pkg:npm/zod@4.5.4"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/ccr-native@0.1.0",
+      "name": "ccr-native",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/ccr-native@0.1.0"
+    }
+  ]
 }

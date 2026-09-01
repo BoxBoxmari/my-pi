@@ -31,7 +31,11 @@ import { ToolRegistry, type ToolDefinition } from "./tool-registry.js";
 
 const SCHEMAS: Record<string, StandardSchemaWithJSON> = {
   workspace_info: z.object({}),
-  fs_read: z.object({ path: z.string() }),
+  fs_read: z.object({
+    path: z.string(),
+    offset: z.number().int().min(0).optional(),
+    max_bytes: z.number().int().positive().optional(),
+  }),
   fs_stat: z.object({ path: z.string() }),
   fs_write: z.object({ path: z.string(), content: z.string(), expected_hash: z.string().optional() }),
   fs_patch: z.object({

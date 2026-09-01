@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-09-01T14:37:15.051Z",
+  "node": "v26.7.0",
+  "platform": "win32",
+  "iterations": 150,
+  "warmup": 25,
+  "directCapabilityC": {
+    "medianMs": 2.176,
+    "p95Ms": 3.137,
+    "p99Ms": 3.995,
+    "minMs": 1.445,
+    "maxMs": 4.143,
+    "samples": 150
+  },
+  "mcpStdioD": {
+    "medianMs": 4.047,
+    "p95Ms": 6.186,
+    "p99Ms": 12.275,
+    "minMs": 2.663,
+    "maxMs": 14.404,
+    "samples": 150
+  },
+  "rssDeltaBytes": 3493888,
+  "targets": {
+    "stdioP50MaxMs": 5,
+    "stdioP95MaxMs": 15
+  },
+  "mcpOverheadP50Ms": 1.871,
+  "mcpOverheadP95Ms": 4.01
+}

@@ -17,6 +17,9 @@
     },
     {
       "path": "../workspace-runtime"
+    },
+    {
+      "path": "../artifact-store"
     }
   ]
 }

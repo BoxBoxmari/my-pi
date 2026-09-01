@@ -75,31 +75,47 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
     risk: "read",
     async execute(input: unknown, ctx: Ctx) {
       const t0 = performance.now();
-      const { path: p } = input as { path: string };
+      // G2 output budget: optional window over the file. Default 48 KiB.
+      const { path: p, offset = 0, max_bytes } = input as {
+        path: string;
+        offset?: number;
+        max_bytes?: number;
+      };
+      const windowBytes = max_bytes !== undefined ? max_bytes : 48 * 1024;
+      if (offset < 0 || windowBytes <= 0) throw err.invalidArgument("offset>=0 and max_bytes>0 required");
+
       const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, p);
       const raw = new Uint8Array(await fs.readFile(resolved.absolute));
 
       if (isLikelyBinary(raw)) throw err.binaryFile(`binary file: ${resolved.relPosix}`);
 
       const detected = detectEncoding(raw);
-      let text: string;
+      let fullText: string;
       try {
-        text = decodeText(raw, detected);
+        fullText = decodeText(raw, detected);
       } catch {
         throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
       }
 
+      // Fingerprint + snapshot are over the FULL file (raw-byte authority),
+      // never the window.
       const fp = fingerprintBytes(raw);
       const snapshot = runtime.snapshots.record({
         path: resolved.relPosix,
         fingerprint: fp,
         encoding: detected.encoding,
         bom: detected.bom,
-        newline: detectNewline(text),
-        finalNewline: hasFinalNewline(text),
+        newline: detectNewline(fullText),
+        finalNewline: hasFinalNewline(fullText),
         workspaceRevision: ctx.workspace.revision,
       });
       runtime.snapshots.cacheContent(snapshot.id, raw);
+
+      // Window the decoded text by CHARACTER offset (not byte), bounded.
+      const clampedOffset = Math.max(0, Math.min(offset, fullText.length));
+      const window = fullText.slice(clampedOffset, clampedOffset + windowBytes);
+      const truncated = clampedOffset + window.length < fullText.length;
+      const nextOffset = truncated ? clampedOffset + window.length : undefined;
 
       return result(ctx, {
         path: resolved.relPosix,
@@ -107,10 +123,14 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
         content_hash: `sha256:${fp.digest}`,
         anchor: shortAnchor(fp.digest),
         encoding: detected.encoding,
-        newline: detectNewline(text),
-        finalNewline: hasFinalNewline(text),
+        newline: detectNewline(fullText),
+        finalNewline: hasFinalNewline(fullText),
         size: fp.size,
-        content: text,
+        offset: clampedOffset,
+        max_bytes: windowBytes,
+        truncated,
+        next_offset: nextOffset,
+        content: window,
       }, t0);
     },
   });

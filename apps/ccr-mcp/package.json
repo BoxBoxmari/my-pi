@@ -2,10 +2,14 @@
   "name": "@ccr/app",
   "version": "0.1.0",
   "type": "module",
+  "description": "ccr-mcp — Coding Capability Runtime MCP server (stdio)",
   "main": "./dist/main.js",
   "bin": {
     "ccr-mcp": "./dist/main.js"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@ccr/contracts": "workspace:*",
     "@ccr/workspace-runtime": "workspace:*",

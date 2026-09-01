@@ -7,10 +7,10 @@
  * a failed Git command is NEVER converted into apparently-valid empty data.
  */
 import { spawn } from "node:child_process";
-import { err } from "@ccr/contracts";
+import { err, type ArtifactRef } from "@ccr/contracts";
 import type { VcsBackend, VcsDiffRequest, VcsDiffResult, VcsStatusRequest, VcsStatusResult } from "@ccr/native-ports";
 
-const MAX_DIFF_BYTES = 8 * 1024 * 1024; // 8 MiB inline cap; larger diffs truncate with a flag
+const INLINE_HUNK_LINES = 500; // model-facing inline cap; remainder spills to artifact
 
 type GitOutcome =
   | { kind: "ok"; stdout: string }
@@ -60,7 +60,8 @@ function runGit(root: string, args: string[], signal: AbortSignal): Promise<GitO
       resolve(classify(root, args, signal, e, errOut, undefined));
     });
     child.stdout?.on("data", (d) => {
-      if (out.length < MAX_DIFF_BYTES) out += d.toString();
+      // Keep full stdout; large-diff spill is decided by the caller.
+      out += d.toString();
     });
     child.stderr?.on("data", (d) => {
       errOut += d.toString();
@@ -140,9 +141,16 @@ export class GitVcsBackend implements VcsBackend {
 
   /**
    * @param request.path REQUIRED absolute resolved path.
+   * @param opts.spillTo optional callback to spill overflow to an artifact store.
+   * @param opts.inlineLimit optional inline hunks cap (default 500).
    */
-  async diff(request: VcsDiffRequest, signal: AbortSignal): Promise<VcsDiffResult> {
+  async diff(
+    request: VcsDiffRequest,
+    signal: AbortSignal,
+    opts: { spillTo?: (data: string) => Promise<ArtifactRef>; inlineLimit?: number } = {},
+  ): Promise<VcsDiffResult> {
     const root = request.path;
+    const inlineLimit = opts.inlineLimit ?? INLINE_HUNK_LINES;
     if (root === undefined || root === "." || !path.isAbsoluteLike(root)) {
       throw err.invalidArgument("vcs_diff requires a resolved absolute workspace path");
     }
@@ -183,11 +191,20 @@ export class GitVcsBackend implements VcsBackend {
           else if (l.startsWith("-") && !l.startsWith("---")) deletions++;
         }
         const files = lines.filter((l) => l.startsWith("diff --git ")).length;
-        const truncated = raw.length >= MAX_DIFF_BYTES;
-        return {
+        const truncated = lines.length > inlineLimit;
+        const inline = lines.slice(0, inlineLimit);
+        // G2/VCS hardening: overflow spills to an artifact instead of being dropped.
+        let artifact: ArtifactRef | undefined;
+        if (truncated && opts.spillTo) {
+          artifact = await opts.spillTo(raw);
+        }
+        const out: VcsDiffResult = {
           summary: { additions, deletions, files },
-          hunks: truncated ? [...lines.slice(0, 500), "... [diff truncated at 8 MiB; use artifact spill]"] : lines.slice(0, 500),
+          hunks: inline,
+          truncated,
         };
+        if (artifact) out.diffArtifact = artifact;
+        return out;
       }
     }
   }
