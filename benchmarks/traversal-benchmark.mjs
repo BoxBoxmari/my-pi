@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
  * Large repository traversal & search benchmark (Plan §27, Workstream B).
  *
@@ -65,6 +65,9 @@ async function runBenchmark() {
   }
 
   console.log(`[benchmark] Target fixture verified: ${observedCount} observed files in ${FIXTURE_DIR}`);
+  if (observedCount < targetCount) {
+    throw new Error(`[benchmark] FATAL: Observed file count (${observedCount}) is less than required target count (${targetCount})`);
+  }
 
   const { WorkspaceRuntime } = await import(pathToFileURL(path.join(repoRoot, "packages", "workspace-runtime", "dist", "index.js")).href);
   const { createSearchCapability } = await import(pathToFileURL(path.join(repoRoot, "packages", "search", "dist", "index.js")).href);

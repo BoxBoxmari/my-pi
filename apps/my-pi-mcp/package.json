@@ -1,8 +1,8 @@
 {
-  "name": "@my-pi/app",
+  "name": "my-pi",
   "version": "0.1.0-alpha.1",
   "type": "module",
-  "description": "my-pi-mcp — my-pi MCP server (stdio)",
+  "description": "my-pi — host-neutral coding capability substrate exposed through Model Context Protocol (MCP)",
   "main": "./dist/main.js",
   "bin": {
     "my-pi-mcp": "./dist/main.js",
@@ -12,6 +12,13 @@
     "dist"
   ],
   "dependencies": {
+    "@modelcontextprotocol/core": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "tree-sitter-wasms": "^0.1.13",
+    "web-tree-sitter": "^0.22.6",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
     "@my-pi/contracts": "workspace:*",
     "@my-pi/workspace-runtime": "workspace:*",
     "@my-pi/mcp-adapter": "workspace:*",

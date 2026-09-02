@@ -1,4 +1,4 @@
-﻿name: Release Qualification & Publishing
+name: Release Qualification & Publishing
 
 on:
   push:
@@ -10,6 +10,9 @@ on:
         description: "Release channel (alpha, beta, rc, stable)"
         required: true
         default: "alpha"
+
+permissions:
+  contents: read
 
 jobs:
   qualify:
@@ -23,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
         with:
@@ -47,7 +52,7 @@ jobs:
           node scripts/check-project-references.mjs
           node scripts/architecture-check.mjs
 
-      - name: TypeScript build
+      - name: TypeScript build & standalone bundle
         run: pnpm build
 
       - name: Unit & Integration tests
@@ -56,23 +61,35 @@ jobs:
       - name: Release verifier test suite
         run: node --test test/release/**/*.test.mjs
 
-      - name: Release admission gate verification
-        run: node scripts/verify-release.mjs
-
-      - name: PR smoke test
+      - name: True clean-install package smoke
         run: node scripts/pr-smoke.mjs
 
-      - name: 100k Traversal Benchmark (Ubuntu only)
+      - name: 100k Release Traversal Benchmark (Ubuntu only)
         if: matrix.os == 'ubuntu-latest'
         run: node benchmarks/traversal-benchmark.mjs --profile release
 
+      - name: Supply-chain - pnpm audit (fail-closed)
+        run: pnpm audit --prod
+
+      - name: Supply-chain - cargo audit & deny (ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cargo install cargo-audit cargo-deny --locked
+          cargo audit
+          cargo deny check licenses advisories bans sources
+
       - name: Generate SBOM
-        run: node scripts/generate-sbom.mjs
+        run: |
+          node scripts/generate-sbom.mjs
+          node -e "import('node:fs/promises').then(fs => fs.access('provenance/SBOM.cdx.json'))"
+
+      - name: Release admission gate verification
+        run: node scripts/verify-release.mjs
 
       - name: Pack release tarball
         run: |
           mkdir -p dist-release
-          pnpm --filter @my-pi/app pack --pack-destination dist-release
+          pnpm --filter my-pi pack --pack-destination dist-release
 
       - name: Generate Checksums
         if: matrix.os == 'ubuntu-latest'

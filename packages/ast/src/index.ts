@@ -15,7 +15,7 @@ import type {
 import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 
 const require = createRequire(import.meta.url);
-const Parser = require("web-tree-sitter");
+let Parser: any = null;
 
 export const AST_LANGUAGES = ["typescript", "javascript", "python", "rust", "go"] as const;
 export type AstLanguage = (typeof AST_LANGUAGES)[number];
@@ -48,6 +48,9 @@ export class TreeSitterAstBackend implements AstBackend {
 
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
+    if (!Parser) {
+      Parser = require("web-tree-sitter");
+    }
     await Parser.init();
     this.parser = new Parser();
     this.initialized = true;

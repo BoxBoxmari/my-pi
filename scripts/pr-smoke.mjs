@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
  * PR Smoke Test (RR-04, Workstream D):
  * Pack, extract tarball into isolated consumer sandbox, and execute installed binary.
@@ -48,8 +48,8 @@ def greet(name: str) -> str:
 `, "utf8");
 
   // Step 3: Pack app package
-  console.log("[3/6] Packing @my-pi/app with pnpm pack into consumer directory...");
-  const packOutput = execSync(`pnpm --filter @my-pi/app pack --pack-destination "${tempDir}"`, {
+  console.log("[3/6] Packing my-pi with pnpm pack into consumer directory...");
+  const packOutput = execSync(`pnpm --filter my-pi pack --pack-destination "${tempDir}"`, {
     cwd: ROOT,
     encoding: "utf8",
   });
@@ -64,44 +64,27 @@ def greet(name: str) -> str:
   const tarballPath = path.join(tempDir, tarballName);
   console.log(`  Found tarball: ${tarballPath}`);
 
-  // Step 4: Extract tarball into isolated consumer package directory
-  console.log("[4/6] Extracting tarball in isolated consumer directory (decoupled from source)...");
-  const pkgDir = path.join(tempDir, "installed_pkg");
-  await fs.mkdir(pkgDir, { recursive: true });
-  execSync(`tar -xzf "${tarballPath}" -C "${pkgDir}"`, { stdio: "inherit" });
+  // Step 4: True Clean Install into isolated consumer directory (zero repository symlinks)
+  console.log("[4/6] Installing packaged tarball into clean consumer environment (zero symlinks)...");
+  const consumerAppDir = path.join(tempDir, "consumer_app");
+  await fs.mkdir(consumerAppDir, { recursive: true });
 
-  const installedBinary = path.join(pkgDir, "package", "dist", "main.js");
+  await fs.writeFile(
+    path.join(consumerAppDir, "package.json"),
+    JSON.stringify({ name: "consumer-smoke-app", version: "1.0.0", type: "module" }, null, 2),
+    "utf8"
+  );
+
+  execSync(`npm install "${tarballPath}" --no-audit --no-fund`, {
+    cwd: consumerAppDir,
+    stdio: "inherit",
+  });
+
+  const installedBinary = path.join(consumerAppDir, "node_modules", "my-pi", "dist", "main.js");
   if (!(await fs.stat(installedBinary).catch(() => false))) {
     throw new Error(`Installed binary not found at ${installedBinary}`);
   }
   console.log(`  ✓ Installed distribution binary verified at: ${installedBinary}`);
-
-  // Set up absolute junctions for @my-pi packages and third party dependencies
-  const targetNodeModules = path.join(pkgDir, "package", "node_modules");
-  const targetMyPiModules = path.join(targetNodeModules, "@my-pi");
-  await fs.mkdir(targetMyPiModules, { recursive: true });
-
-  const pkgs = await fs.readdir(path.join(ROOT, "packages"));
-  for (const p of pkgs) {
-    await fs.symlink(
-      path.join(ROOT, "packages", p),
-      path.join(targetMyPiModules, p),
-      "junction"
-    ).catch(() => {});
-  }
-
-  // Link app-level dependencies (e.g. zod, modelcontextprotocol) via absolute paths
-  const appNM = path.join(ROOT, "apps", "my-pi-mcp", "node_modules");
-  const appDeps = await fs.readdir(appNM).catch(() => []);
-  for (const dep of appDeps) {
-    if (dep !== "@my-pi" && !dep.startsWith(".")) {
-      await fs.symlink(
-        path.join(appNM, dep),
-        path.join(targetNodeModules, dep),
-        "junction"
-      ).catch(() => {});
-    }
-  }
 
   // Test host-config command from installed artifact (D4)
   console.log("  Testing host-config from installed artifact...");

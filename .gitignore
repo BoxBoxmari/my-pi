@@ -35,5 +35,22 @@ governance/
 policies/
 schemas/
 templates/
-
-
+# Secrets & credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.npmrc
+.netrc
+.git-credentials
+.aws/
+.ssh/
+*.local
+.DS_Store
+Thumbs.db
+.idea/
+*.tgz
+*.node

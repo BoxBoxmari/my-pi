@@ -121,8 +121,14 @@ pnpm build
 
 ### 2. Start MCP Server Locally
 ```bash
+# Global installation from npm
+npm install -g my-pi
+
 # Launch stdio MCP server for a target workspace
-node apps/my-pi-mcp/dist/main.js --workspace /path/to/your/project
+my-pi-mcp --workspace /path/to/your/project
+
+# Or directly via npx
+npx my-pi --workspace /path/to/your/project
 ```
 
 ### 3. Generate Host IDE Configurations
@@ -130,13 +136,13 @@ node apps/my-pi-mcp/dist/main.js --workspace /path/to/your/project
 
 ```bash
 # Generate configuration snippet for Claude Code
-node apps/my-pi-mcp/dist/main.js host-config claude-code-local
+my-pi-mcp host-config claude-code-local
 
 # Generate configuration snippet for Cursor
-node apps/my-pi-mcp/dist/main.js host-config cursor-local
+my-pi-mcp host-config cursor-local
 
 # Generate configuration snippet for OpenCode
-node apps/my-pi-mcp/dist/main.js host-config opencode-current-local
+my-pi-mcp host-config opencode-current-local
 ```
 
 ---
@@ -151,10 +157,12 @@ node apps/my-pi-mcp/dist/main.js host-config opencode-current-local
 
 ## 📈 Benchmarks & Performance
 
-Deterministic synthetic benchmarks run automatically in CI across 100,000 generated repository structures:
+Deterministic synthetic benchmarks run automatically across generated repository structures:
 
-- **MCP Stdio Latency**: Overhead $p_{50} \le 3.5\text{ms}$, $p_{95} \le 6.0\text{ms}$ over direct capability calls.
-- **Grep & Glob Throughput**: Searches over 5,000+ files resolve in under $400\text{ms}$.
+- **MCP Stdio Latency**: Overhead $p_{50} \le 3.5\text{ms}$ (measured $\approx 0.80\text{ms}$ in CI), $p_{95} \le 6.0\text{ms}$ over direct capability calls.
+- **Glob Throughput**: Glob over 5,000+ files resolves in under $400\text{ms}$ ($<15\text{ms}$ on Linux).
+- **Grep Throughput**: Grep over 5,000+ files resolves in $\approx 1.25\text{s}$ (Linux) to $6.2\text{s}$ (Windows NTFS) with pure Node.js fallback (native acceleration deferred).
+- **Release Scalability**: Validated on up to 100,000 files in tagged release benchmark profile.
 - **Memory Footprint**: Strict RSS delta control with bounded stream buffers.
 
 ---

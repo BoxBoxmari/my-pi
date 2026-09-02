@@ -28,3 +28,19 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          upload: never
+          output: sarif-results
+
+      - name: Upload SARIF report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif-results
+          path: sarif-results
+          retention-days: 14
+
+      - name: Upload SARIF to GitHub Security Tab (optional)
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: sarif-results
