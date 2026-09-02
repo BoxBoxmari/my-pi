@@ -30,13 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Runner diagnostics
-        run: |
-          node --version || true
-          pnpm --version || true
-          cargo --version || true
-          git --version
-
       - uses: pnpm/action-setup@v4
         with:
           version: 11.2.2
@@ -48,6 +41,13 @@ jobs:
           cache: pnpm
 
       - uses: dtolnay/rust-toolchain@stable
+
+      - name: Runner diagnostics
+        run: |
+          node --version
+          pnpm --version
+          cargo --version
+          git --version
 
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile

@@ -15,7 +15,7 @@ let server: MyPiServer;
 let client: Client;
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-mcp-"));
+  dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-mcp-")));
   await fs.writeFile(path.join(dir, "a.txt"), "hello my-pi");
   await fs.writeFile(path.join(dir, ".env"), "SECRET=1");
 

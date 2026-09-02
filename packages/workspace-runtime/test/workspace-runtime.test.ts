@@ -21,7 +21,7 @@ import {
 
 let dir: string;
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-ws-"));
+  dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-ws-")));
   await fs.writeFile(path.join(dir, "a.txt"), "hello world");
   await fs.writeFile(path.join(dir, ".env"), "SECRET=1");
   await fs.mkdir(path.join(dir, "sub"));

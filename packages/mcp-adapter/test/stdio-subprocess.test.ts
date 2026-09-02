@@ -14,7 +14,7 @@ let client: Client;
 let transport: StdioClientTransport;
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-stdio-"));
+  dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-stdio-")));
   await fs.writeFile(path.join(dir, "a.txt"), "hello stdio");
   transport = new StdioClientTransport({
     command: process.execPath,
