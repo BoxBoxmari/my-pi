@@ -19,6 +19,15 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const FIXTURE_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(os.tmpdir(), "my-pi-100k-fixture");
 
 async function runBenchmark() {
+  // Auto-generate fixture if missing (e.g. in fresh CI runners)
+  try {
+    await fs.access(FIXTURE_DIR);
+  } catch {
+    console.log(`[benchmark] Fixture not found at ${FIXTURE_DIR}, auto-generating deterministic fixture...`);
+    const { generate100kFixture } = await import(pathToFileURL(path.join(repoRoot, "benchmarks", "generate-100k-fixture.mjs")).href);
+    await generate100kFixture(FIXTURE_DIR, 5000);
+  }
+
   console.log(`[benchmark] Starting traversal benchmark against: ${FIXTURE_DIR}`);
 
   const { WorkspaceRuntime } = await import(pathToFileURL(path.join(repoRoot, "packages", "workspace-runtime", "dist", "index.js")).href);

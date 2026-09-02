@@ -22,7 +22,7 @@ await fs.writeFile(path.join(workspaceDir, "probe.txt"), "era probe");
 
 const transport = new StdioClientTransport({
   command: process.execPath,
-  args: ["--experimental-strip-types", "apps/my-pi-mcp/dist/main.js", "--workspace", workspaceDir],
+  args: ["apps/my-pi-mcp/dist/main.js", "--workspace", workspaceDir],
   cwd: repoRoot,
 });
 const client = new Client({ name: "era-probe", version: "0.0.1" });

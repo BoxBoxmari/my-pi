@@ -18,7 +18,7 @@ before(async () => {
   await fs.writeFile(path.join(dir, "a.txt"), "hello stdio");
   transport = new StdioClientTransport({
     command: process.execPath,
-    args: ["--experimental-strip-types", "apps/my-pi-mcp/dist/main.js", "--workspace", dir],
+    args: ["apps/my-pi-mcp/dist/main.js", "--workspace", dir],
     // P0.1 regression: process cwd is deliberately DIFFERENT from workspace.
     cwd: repoRoot,
   });

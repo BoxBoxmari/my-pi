@@ -98,18 +98,29 @@ test("P0.9: atomic replacement preserves POSIX mode bits (executable stays execu
   assert.equal(await fs.readFile(target, "utf8"), "#!/bin/sh\necho v2\n");
 });
 
-test("P0.9: read-only target fails CLOSED (no silent attribute loss or truncate)", async () => {
+test("P0.9: read-only target handling is platform-correct (fail-closed on win32, directory-governed rename on POSIX)", async () => {
   const target = path.join(dir, "keepreadonly.txt");
   await fs.writeFile(target, "first");
   await fs.chmod(target, 0o444); // read-only attribute on win32
   assert.equal((await fs.stat(target)).mode & 0o7777, 0o444);
-  await assert.rejects(
-    atomicReplaceBytes(target, new TextEncoder().encode("second")),
-    (e: unknown) => (e as { code?: string }).code === "ERR_FILE_BUSY",
-  );
-  // Fail-closed: content and read-only attribute are both untouched.
-  assert.equal(await fs.readFile(target, "utf8"), "first");
-  assert.equal((await fs.stat(target)).mode & 0o7777, 0o444);
+
+  if (process.platform === "win32") {
+    // Windows: renaming over a read-only target fails closed — no silent attribute
+    // loss or truncate. Content and read-only attribute are both untouched.
+    await assert.rejects(
+      atomicReplaceBytes(target, new TextEncoder().encode("second")),
+      (e: unknown) => (e as { code?: string }).code === "ERR_FILE_BUSY",
+    );
+    assert.equal(await fs.readFile(target, "utf8"), "first");
+    assert.equal((await fs.stat(target)).mode & 0o7777, 0o444);
+  } else {
+    // POSIX: rename(2) over a read-only file is legal (governed by directory
+    // write permission), so the replacement succeeds — but the atomic replacer
+    // must preserve the source mode bits exactly (no silent attribute loss).
+    await atomicReplaceBytes(target, new TextEncoder().encode("second"));
+    assert.equal(await fs.readFile(target, "utf8"), "second");
+    assert.equal((await fs.stat(target)).mode & 0o7777, 0o444);
+  }
 });
 
 test("P0.9: writable-file replacement keeps ordinary mode bits", async () => {

@@ -5,7 +5,7 @@
   "description": "my-pi (formerly Coding Capability Runtime (CCR)) v1.1 - host-neutral coding capability substrate exposed through MCP",
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=22.6.0"
   },
   "packageManager": "pnpm@11.2.2",
   "workspaces": [
@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test --experimental-strip-types \"packages/*/test/**/*.test.ts\" \"apps/*/test/**/*.test.ts\"",
     "test:unit": "node --test --experimental-strip-types \"packages/*/test/**/*.test.ts\"",
-    "host-config": "tsx apps/my-pi-mcp/src/cli.ts host-config",
+    "host-config": "node apps/my-pi-mcp/dist/main.js host-config",
     "verify:gates": "node scripts/verify-gates.mjs",
     "check:refs": "node scripts/check-project-references.mjs",
     "check:arch": "node scripts/architecture-check.mjs",

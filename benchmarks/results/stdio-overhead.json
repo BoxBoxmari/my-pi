@@ -1,30 +1,30 @@
 {
-  "generatedAt": "2026-09-01T14:37:15.051Z",
+  "generatedAt": "2026-09-02T11:35:16.655Z",
   "node": "v26.7.0",
   "platform": "win32",
-  "iterations": 150,
+  "iterations": 50,
   "warmup": 25,
   "directCapabilityC": {
-    "medianMs": 2.176,
-    "p95Ms": 3.137,
-    "p99Ms": 3.995,
-    "minMs": 1.445,
-    "maxMs": 4.143,
-    "samples": 150
+    "medianMs": 1.439,
+    "p95Ms": 1.94,
+    "p99Ms": 2.095,
+    "minMs": 1.16,
+    "maxMs": 2.095,
+    "samples": 50
   },
   "mcpStdioD": {
-    "medianMs": 4.047,
-    "p95Ms": 6.186,
-    "p99Ms": 12.275,
-    "minMs": 2.663,
-    "maxMs": 14.404,
-    "samples": 150
+    "medianMs": 2.067,
+    "p95Ms": 2.816,
+    "p99Ms": 3.052,
+    "minMs": 1.703,
+    "maxMs": 3.052,
+    "samples": 50
   },
-  "rssDeltaBytes": 3493888,
+  "rssDeltaBytes": 1323008,
   "targets": {
     "stdioP50MaxMs": 5,
     "stdioP95MaxMs": 15
   },
-  "mcpOverheadP50Ms": 1.871,
-  "mcpOverheadP95Ms": 4.01
+  "mcpOverheadP50Ms": 0.628,
+  "mcpOverheadP95Ms": 1.377
 }

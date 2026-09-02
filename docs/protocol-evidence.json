@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-02T09:47:27.508Z",
-  "commit": "cf948f9f1cab9a7452c8818095f9a7129a47c622",
+  "generatedAt": "2026-09-02T11:35:51.547Z",
+  "commit": "5afa28627c9da5138ffab29de760c2e233d1c822",
   "sdk": {
     "serverPackage": "2.0.0",
     "clientPackage": "2.0.0",
@@ -24,9 +24,8 @@
       "version": "2.1.224 (Claude Code)"
     },
     "openCode": {
-      "installed": false,
-      "version": null,
-      "note": "OpenCode CLI not found on local PATH"
+      "installed": true,
+      "version": "1.18.21"
     },
     "verificationStatus": "ERA_NEGOTIATION_CAPTURED",
     "note": "Live host CLI invocation is performed in CI lanes where hosts are pre-installed; stdio protocol handshake is verified locally."

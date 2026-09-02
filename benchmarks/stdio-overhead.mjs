@@ -60,7 +60,7 @@ async function main() {
   // ---- MCP stdio (Layer D) ----
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: ["--experimental-strip-types", "apps/my-pi-mcp/dist/main.js", "--workspace", dir],
+    args: ["apps/my-pi-mcp/dist/main.js", "--workspace", dir],
     cwd: repoRoot,
   });
   const client = new Client({ name: "bench", version: "0.0.1" });
