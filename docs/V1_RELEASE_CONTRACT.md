@@ -56,7 +56,7 @@ operation needs one.
 
 ## 5. Verification & Conformance Gates
 
-All verification criteria must pass executable machine checks (`pnpm verify`, `pnpm test`, `node scripts/pr-smoke.mjs`, `node scripts/verify-gates.mjs`):
+All local verification criteria must pass executable machine checks (`pnpm verify`, `pnpm test`, `node scripts/pr-smoke.mjs`, `node scripts/verify-gates.mjs`). Release admission is a separate candidate-bound step: run `pnpm bind:evidence` and then `pnpm verify:release` for the exact commit under qualification:
 - `G0`: Protocol era negotiation (`2025-11-25`)
 - `G1`: 13-tool discovery and JSON-RPC lifecycle
 - `G2`: Search pre-read policy and exact count

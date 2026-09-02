@@ -166,7 +166,7 @@ Deterministic synthetic benchmarks run automatically across generated repository
 Every commit and pull request is checked by the configured multi-platform GitHub Actions workflows:
 
 ```bash
-# Run complete verification suite
+# Run local code, test, evidence, and smoke verification
 pnpm verify
 
 # Run 106 unit & integration tests
@@ -178,6 +178,10 @@ node scripts/verify-gates.mjs
 
 # Validate the candidate SBOM
 pnpm verify:sbom
+
+# Release admission (binds evidence to the exact candidate first)
+pnpm bind:evidence
+pnpm verify:release
 
 # Execute PR smoke test in isolated sandbox
 node scripts/pr-smoke.mjs

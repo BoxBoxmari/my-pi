@@ -22,6 +22,7 @@ async function copyReleaseFixture(tmpDir) {
   await fs.mkdir(path.join(tmpDir, "scripts"), { recursive: true });
   await fs.copyFile(SCRIPT, path.join(tmpDir, "scripts", "verify-release.mjs"));
   await fs.copyFile(IDENTITY_SCRIPT, path.join(tmpDir, "scripts", "release-identity.mjs"));
+  await fs.copyFile(path.join(ROOT, "scripts", "bind-release-evidence.mjs"), path.join(tmpDir, "scripts", "bind-release-evidence.mjs"));
 }
 
 function testEnv() {
@@ -29,9 +30,22 @@ function testEnv() {
 }
 
 test("verify-release: baseline passes with clean exit code 0", async () => {
-  const { stdout } = await execFileAsync(process.execPath, [SCRIPT], { cwd: ROOT });
-  assert.match(stdout, /ADMISSION ADMITTED/);
-  assert.match(stdout, /"status": "PASS"/);
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-rel-baseline-"));
+  try {
+    await copyReleaseFixture(tmpDir);
+    await execFileAsync(process.execPath, [path.join(tmpDir, "scripts", "bind-release-evidence.mjs")], {
+      cwd: tmpDir,
+      env: testEnv(),
+    });
+    const { stdout } = await execFileAsync(process.execPath, [path.join(tmpDir, "scripts", "verify-release.mjs")], {
+      cwd: tmpDir,
+      env: testEnv(),
+    });
+    assert.match(stdout, /ADMISSION ADMITTED/);
+    assert.match(stdout, /"status": "PASS"/);
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
 });
 
 test("verify-release: fails closed when a required criterion is BLOCKED", async () => {

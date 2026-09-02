@@ -34,7 +34,7 @@
     "release:manifest": "node scripts/create-release-manifest.mjs",
     "verify:boundary": "node scripts/check-public-boundary.mjs",
     "verify:release": "node scripts/verify-release.mjs",
-    "verify": "node scripts/check-project-references.mjs && node scripts/architecture-check.mjs && node scripts/check-public-boundary.mjs && pnpm build && pnpm test && node --test test/release/**/*.test.mjs && node scripts/verify-gates.mjs && node scripts/verify-release.mjs && node scripts/pr-smoke.mjs"
+    "verify": "node scripts/check-project-references.mjs && node scripts/architecture-check.mjs && node scripts/check-public-boundary.mjs && pnpm build && pnpm test && node --test test/release/**/*.test.mjs && node scripts/verify-gates.mjs && node scripts/pr-smoke.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.0.0",
