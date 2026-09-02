@@ -1,12 +1,12 @@
-# CCR Architecture (v1.1)
+# my-pi Architecture (v1.1)
 
-CCR is a **host-neutral coding capability substrate** exposed through MCP. It is not an
+my-pi is a **host-neutral coding capability substrate** exposed through MCP. It is not an
 agent framework, not a Pi/Oh My Pi wrapper, and not a client-specific plugin.
 
 ## Layering (dependencies point inward)
 
 ```
-apps/ccr-mcp
+apps/my-pi-mcp
   -> mcp-adapter
   -> capability packages (fs, search, ast, lsp, vcs)
   -> workspace-runtime / policy / contracts
@@ -38,7 +38,7 @@ Forbidden: `workspace-runtime -> mcp-adapter`, `contracts -> host-profiles`, cap
 - Contracts, policy, workspace-runtime, observability, artifact-store, native-ports (ports only).
 - MCP adapter with the 13-tool surface; `workspace_info`, `fs_stat`, `fs_read` functional;
   the remaining 10 tools return typed `ERR_UNSUPPORTED_CAPABILITY` until their gates.
-- Host profiles + `ccr host-config`.
+- Host profiles + `my-pi host-config`.
 
 ## Status
 

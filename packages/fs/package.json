@@ -1,13 +1,13 @@
 {
-  "name": "@ccr/fs",
+  "name": "@my-pi/fs",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
   "dependencies": {
-    "@ccr/contracts": "workspace:*",
-    "@ccr/workspace-runtime": "workspace:*",
-    "@ccr/hashline": "workspace:*"
+    "@my-pi/contracts": "workspace:*",
+    "@my-pi/workspace-runtime": "workspace:*",
+    "@my-pi/hashline": "workspace:*"
   }
 }

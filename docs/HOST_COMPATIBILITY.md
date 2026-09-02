@@ -6,7 +6,7 @@ Host differences belong in config/profile/compatibility evidence, not capability
 - **Blocking**: Claude Code, OpenCode.
 - **Monitoring**: Cursor, Google Antigravity (IDE/CLI), GitHub Copilot (VS Code, CLI, cloud).
 
-## Profiles (`@ccr/host-profiles`, `ccr host-config <id>`)
+## Profiles (`@my-pi/host-profiles`, `my-pi host-config <id>`)
 | Profile | Role | Dialect |
 |---|---|---|
 | claude-code-local | blocking | claude-code (CLI) |
@@ -23,13 +23,13 @@ Host differences belong in config/profile/compatibility evidence, not capability
 - **Negotiated era**: `2025-11-25` (empirically observed over stdio handshake using `@modelcontextprotocol/server` v2.0.0; documented in `docs/protocol-evidence.json`).
 
 ## Config generator
-`ccr host-config <profile>` renders configuration; it never silently mutates host settings.
+`my-pi host-config <profile>` renders configuration; it never silently mutates host settings.
 Verified for `cursor-local` (JSON), `claude-code-local` (CLI), `opencode-current-local` (JSON), and unknown profile error rejection.
 
 ## Compatibility status (updated)
-- **Both blocking hosts connect to ccr-mcp**:
-  - OpenCode `opencode mcp list` → `ccr ✓ connected`.
-  - Claude Code `claude mcp list` → `ccr Connected`.
+- **Both blocking hosts connect to my-pi-mcp**:
+  - OpenCode `opencode mcp list` → `my-pi ✓ connected`.
+  - Claude Code `claude mcp list` → `my-pi Connected`.
 - **All 13 of 13 tools operational over stdio**:
   - Filesystem: `workspace_info`, `fs_read`, `fs_stat`, `fs_write`, `fs_patch`
   - Search: `search` (grep & glob)

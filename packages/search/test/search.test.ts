@@ -3,12 +3,12 @@ import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { NodeFallbackSearchBackend } from "@ccr/search";
-import { SensitivePathPolicy } from "@ccr/policy";
+import { NodeFallbackSearchBackend } from "@my-pi/search";
+import { SensitivePathPolicy } from "@my-pi/policy";
 
 let dir: string;
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-srch-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-srch-"));
   await fs.writeFile(path.join(dir, "readme.md"), "hello search");
   await fs.writeFile(path.join(dir, "notes.md"), "also SECRET here");
   // P0.2 proof files: VISIBLE files that match sensitive RULES (credentials*, secrets*).

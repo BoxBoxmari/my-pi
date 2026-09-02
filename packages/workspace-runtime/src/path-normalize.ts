@@ -4,7 +4,7 @@
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
-import { err } from "@ccr/contracts";
+import { err } from "@my-pi/contracts";
 
 const isWindows = process.platform === "win32";
 

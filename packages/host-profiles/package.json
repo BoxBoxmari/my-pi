@@ -1,5 +1,5 @@
 {
-  "name": "@ccr/host-profiles",
+  "name": "@my-pi/host-profiles",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,6 +11,6 @@
     }
   },
   "dependencies": {
-    "@ccr/contracts": "workspace:*"
+    "@my-pi/contracts": "workspace:*"
   }
 }

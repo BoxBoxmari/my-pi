@@ -4,8 +4,8 @@
  *
  * Fails when packages/mcp-adapter contains direct filesystem or VCS business
  * capability implementation (node:fs usage for capability behavior, direct
- * git invocation) that belongs in capability packages (@ccr/fs, @ccr/vcs,
- * @ccr/search). The adapter may only translate MCP I/O.
+ * git invocation) that belongs in capability packages (@my-pi/fs, @my-pi/vcs,
+ * @my-pi/search). The adapter may only translate MCP I/O.
  *
  * Known-allowed imports in mcp-adapter: SDK, contracts, capability packages,
  * workspace-runtime (context wiring), zod.
@@ -16,8 +16,8 @@ import process from "node:process";
 
 const ADAPTER_SRC = path.resolve("packages/mcp-adapter/src");
 const FORBIDDEN_PATTERNS = [
-  { re: /from\s+"node:fs"/, why: "node:fs business logic belongs in @ccr/fs, not the MCP adapter" },
-  { re: /from\s+"node:child_process"/, why: "subprocess execution belongs in capability packages (e.g. @ccr/vcs git)" },
+  { re: /from\s+"node:fs"/, why: "node:fs business logic belongs in @my-pi/fs, not the MCP adapter" },
+  { re: /from\s+"node:child_process"/, why: "subprocess execution belongs in capability packages (e.g. @my-pi/vcs git)" },
 ];
 // Allowed node builtin imports in the adapter:
 const ALLOWED_BUILTIN = new Set(["node:crypto", "node:module"]);
@@ -54,7 +54,7 @@ async function checkFile(file) {
       }
       continue;
     }
-    if (spec.startsWith("@ccr/")) continue;
+    if (spec.startsWith("@ccr/") || spec.startsWith("@my-pi/")) continue;
     if (spec === "@modelcontextprotocol/server" || spec.startsWith("@modelcontextprotocol/")) continue;
     if (spec === "zod") continue;
     console.error(`ARCHITECTURE VIOLATION: ${rel}\n  unexpected dependency "${spec}" in mcp-adapter`);

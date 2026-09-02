@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyHunks, parsePatch } from "@ccr/hashline";
-import type { CcrError } from "@ccr/contracts";
+import { applyHunks, parsePatch } from "@my-pi/hashline";
+import type { CcrError } from "@my-pi/contracts";
 
 test("applyHunks applies exact anchors and leaves the rest intact", () => {
   const out = applyHunks("const a = 1;\nconst b = 2;\n", [

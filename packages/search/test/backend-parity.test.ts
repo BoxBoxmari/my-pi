@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { NodeFallbackSearchBackend } from "@ccr/search";
-import { tryLoadNative } from "@ccr/native-loader";
+import { NodeFallbackSearchBackend } from "@my-pi/search";
+import { tryLoadNative } from "@my-pi/native-loader";
 
 let dir: string;
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-backend-parity-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-backend-parity-"));
   await fs.writeFile(path.join(dir, "alpha.ts"), "export const ALPHA = 100;\n");
   await fs.writeFile(path.join(dir, "beta.ts"), "export const BETA = 200;\n");
   await fs.writeFile(path.join(dir, "gamma.py"), "GAMMA = 300\n");
@@ -22,7 +22,7 @@ after(async () => {
 });
 
 test("G2: backend parity — loader graceful fallback when native module is absent", async () => {
-  const nativeRes = await tryLoadNative("@ccr/ccr-native", "0.1.0");
+  const nativeRes = await tryLoadNative("@my-pi/my-pi-native", "0.1.0");
   assert.equal(nativeRes.ok, false);
   if (!nativeRes.ok) {
     assert.equal(nativeRes.fallback, "node-fallback");

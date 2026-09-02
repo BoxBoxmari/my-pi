@@ -36,7 +36,7 @@ function stats(arr) {
 }
 
 async function main() {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-bench-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-bench-"));
   await fs.writeFile(path.join(dir, "bench.txt"), "needle here\nplain line\nneedle again\n");
 
   // ---- Direct capability (Layer C) ----
@@ -60,7 +60,7 @@ async function main() {
   // ---- MCP stdio (Layer D) ----
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: ["--experimental-strip-types", "apps/ccr-mcp/dist/main.js", "--workspace", dir],
+    args: ["--experimental-strip-types", "apps/my-pi-mcp/dist/main.js", "--workspace", dir],
     cwd: repoRoot,
   });
   const client = new Client({ name: "bench", version: "0.0.1" });

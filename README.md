@@ -1,4 +1,6 @@
-# Coding Capability Runtime (CCR) v1.1
+# my-pi v1.1
+
+> Formerly known as CCR / Coding Capability Runtime.
 
 [![CI](https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -7,11 +9,13 @@
 
 > **A deterministic, host-neutral coding capability substrate exposed through the Model Context Protocol (MCP) — engineered for safety, speed, and cross-platform fidelity.**
 
+> **Migrating from CCR?** All legacy `ccr` names (binary `ccr-mcp`, `mcp.ccr` config key, `CCR_WORKSPACE_ROOT` / `CCR_MCP_ERA` env vars, `CcrError` class, `@ccr/*` packages) keep working as deprecated aliases for one major version. See the [migration guide](docs/MIGRATION_CCR_TO_MY_PI.md) for the full old → new mapping.
+
 ---
 
 ## 🚀 Overview
 
-**Coding Capability Runtime (CCR)** provides LLM coding agents and host IDEs with a secure, high-performance execution layer. Rather than allowing raw shell escape hatches or fragile unvalidated edits, CCR exposes a hardened 13-tool MCP catalog with server-side security policies, raw-byte SHA-256 fingerprinting, atomic single-file mutation, AST structural querying, and persistent multi-language LSP intelligence.
+**my-pi (formerly Coding Capability Runtime (CCR))** provides LLM coding agents and host IDEs with a secure, high-performance execution layer. Rather than allowing raw shell escape hatches or fragile unvalidated edits, my-pi exposes a hardened 13-tool MCP catalog with server-side security policies, raw-byte SHA-256 fingerprinting, atomic single-file mutation, AST structural querying, and persistent multi-language LSP intelligence.
 
 ```
                            PRODUCT TARGETS
@@ -47,7 +51,7 @@
 
 ## 🛠️ Complete 13-Tool MCP Surface
 
-CCR v1.1 implements and exposes all 13 production tools over stdio transport:
+my-pi v1.1 implements and exposes all 13 production tools over stdio transport:
 
 | Domain | Tool Name | Description & Capabilities |
 |---|---|---|
@@ -99,7 +103,7 @@ CCR v1.1 implements and exposes all 13 production tools over stdio transport:
 ```text
 my-pi/
 ├── apps/
-│   └── ccr-mcp/                 # CLI entry point and stdio server binary
+│   └── my-pi-mcp/                 # CLI entry point and stdio server binary
 ├── packages/
 │   ├── contracts/               # Core data interfaces, error codes, and fingerprinting
 │   ├── workspace-runtime/       # Workspace root management, atomic replace, mutex locks
@@ -117,7 +121,7 @@ my-pi/
 │   ├── mcp-adapter/             # Official MCP SDK v2 stdio transport adapter
 │   └── host-profiles/           # Config generators for Claude Code, OpenCode, Cursor, etc.
 ├── crates/
-│   └── ccr-native/              # Rust napi-rs bridge scaffold
+│   └── my-pi-native/              # Rust napi-rs bridge scaffold
 ├── benchmarks/                  # 100k-file synthetic generator & traversal benchmarks
 ├── scripts/                     # PR smoke, SBOM generator, host probe, gate verifier
 └── docs/                        # Specifications, release contract, host compatibility
@@ -149,31 +153,31 @@ pnpm build
 ### Running the MCP Server
 
 ```bash
-# Start CCR over stdio for a target workspace
-node apps/ccr-mcp/dist/main.js --workspace /path/to/project
+# Start my-pi over stdio for a target workspace
+node apps/my-pi-mcp/dist/main.js --workspace /path/to/project
 
 # Or using environment variable
-CCR_WORKSPACE_ROOT=/path/to/project node apps/ccr-mcp/dist/main.js
+MY_PI_WORKSPACE_ROOT=/path/to/project node apps/my-pi-mcp/dist/main.js
 ```
 
 ### Generating Host Configurations
 
 ```bash
 # Render configuration for Claude Code
-node apps/ccr-mcp/dist/main.js host-config claude-code-local
+node apps/my-pi-mcp/dist/main.js host-config claude-code-local
 
 # Render configuration for Cursor
-node apps/ccr-mcp/dist/main.js host-config cursor-local
+node apps/my-pi-mcp/dist/main.js host-config cursor-local
 
 # Render configuration for OpenCode
-node apps/ccr-mcp/dist/main.js host-config opencode-current-local
+node apps/my-pi-mcp/dist/main.js host-config opencode-current-local
 ```
 
 ---
 
 ## 🧪 Verification & Testing
 
-CCR enforces automated gate verification across all capabilities:
+my-pi enforces automated gate verification across all capabilities:
 
 ```bash
 # Run full verification pipeline

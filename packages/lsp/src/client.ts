@@ -1,7 +1,7 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { err } from "@ccr/contracts";
+import { err } from "@my-pi/contracts";
 import { LSP_MAX_RESTARTS, LSP_IDLE_TIMEOUT_MS, type LspState } from "./lifecycle.js";
 import { resolveServerCommand } from "./registry-contract.js";
 

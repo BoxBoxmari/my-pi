@@ -8,9 +8,9 @@ import {
   detectAstLanguage,
   TreeSitterAstBackend,
   createAstCapabilities,
-} from "@ccr/ast";
-import { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { createRequestId } from "@ccr/contracts";
+} from "@my-pi/ast";
+import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { createRequestId } from "@my-pi/contracts";
 
 let dir: string;
 let tsPath: string;
@@ -20,7 +20,7 @@ let rsPath: string;
 let goPath: string;
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-ast-test-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-ast-test-"));
 
   tsPath = path.join(dir, "calc.ts");
   await fs.writeFile(

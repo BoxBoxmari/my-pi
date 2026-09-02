@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { REQUIRED_PROFILES, renderProfile } from "@ccr/host-profiles";
+import { REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
 
 test("REQUIRED_PROFILES: two blocking, seven monitoring", () => {
   assert.equal(REQUIRED_PROFILES.filter((p) => p.releaseRole === "blocking").length, 2);
@@ -11,27 +11,30 @@ test("REQUIRED_PROFILES: two blocking, seven monitoring", () => {
   assert.ok(roles.has("cursor-local"));
 });
 
-test("renderProfile: opencode and cursor JSON shapes", () => {
+test("renderProfile: opencode and cursor JSON shapes (my-pi primary + ccr alias)", () => {
   const opencode = renderProfile(REQUIRED_PROFILES.find((p) => p.id === "opencode-current-local")!, {
-    command: "ccr-mcp",
+    command: "my-pi-mcp",
   });
   assert.equal(opencode.type, "json");
   const j = (opencode as { json: Record<string, unknown> }).json;
+  assert.ok((j["mcp"] as Record<string, unknown>)["my-pi"]);
   assert.ok((j["mcp"] as Record<string, unknown>)["ccr"]);
 
   const cursor = renderProfile(REQUIRED_PROFILES.find((p) => p.id === "cursor-local")!, {
-    command: "ccr-mcp",
+    command: "my-pi-mcp",
   });
   const cj = (cursor as { json: Record<string, unknown> }).json;
+  assert.ok((cj["mcpServers"] as Record<string, unknown>)["my-pi"]);
   assert.ok((cj["mcpServers"] as Record<string, unknown>)["ccr"]);
 });
 
 test("renderProfile: claude-code renders a CLI command, not JSON", () => {
   const claude = renderProfile(REQUIRED_PROFILES.find((p) => p.id === "claude-code-local")!, {
-    command: "ccr-mcp",
+    command: "my-pi-mcp",
     workspace: ".",
   });
   assert.equal(claude.type, "cli");
+  assert.match(claude.command, /claude mcp add my-pi/);
   assert.match(claude.command, /claude mcp add ccr/);
   assert.match(claude.command, /--workspace \./);
 });

@@ -9,8 +9,8 @@
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { isLikelyBinary } from "@ccr/contracts";
-import type { SearchBackend, SearchRequest, SearchResult } from "@ccr/native-ports";
+import { isLikelyBinary } from "@my-pi/contracts";
+import type { SearchBackend, SearchRequest, SearchResult } from "@my-pi/native-ports";
 
 function segmentToRegex(segment: string): string {
   let out = "";

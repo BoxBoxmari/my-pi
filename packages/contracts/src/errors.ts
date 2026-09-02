@@ -2,7 +2,7 @@
  * V1 required error taxonomy. Transaction-specific errors are intentionally
  * absent from V1.
  */
-export const CCR_ERROR_CODES = [
+export const MY_PI_ERROR_CODES = [
   "ERR_INVALID_ARGUMENT",
   "ERR_WORKSPACE_NOT_FOUND",
   "ERR_PATH_OUTSIDE_WORKSPACE",
@@ -27,26 +27,33 @@ export const CCR_ERROR_CODES = [
   "ERR_PROTOCOL_COMPATIBILITY",
 ] as const;
 
-export type CcrErrorCode = (typeof CCR_ERROR_CODES)[number];
+/** @deprecated Use MY_PI_ERROR_CODES. Kept as a 1-major alias. */
+export const CCR_ERROR_CODES = MY_PI_ERROR_CODES;
 
-export interface CcrErrorShape {
+export type MyPiErrorCode = (typeof MY_PI_ERROR_CODES)[number];
+/** @deprecated Use MyPiErrorCode. Kept as a 1-major alias. */
+export type CcrErrorCode = MyPiErrorCode;
+
+export interface MyPiErrorShape {
   schemaVersion: "1";
   requestId: string;
-  code: CcrErrorCode;
+  code: MyPiErrorCode;
   message: string;
   retryable: boolean;
   details?: Record<string, unknown>;
 }
+/** @deprecated Use MyPiErrorShape. Kept as a 1-major alias. */
+export type CcrErrorShape = MyPiErrorShape;
 
-export class CcrError extends Error {
+export class MyPiError extends Error {
   readonly schemaVersion = "1" as const;
-  readonly code: CcrErrorCode;
+  readonly code: MyPiErrorCode;
   readonly retryable: boolean;
   readonly details?: Record<string, unknown>;
   readonly requestId: string;
 
   constructor(opts: {
-    code: CcrErrorCode;
+    code: MyPiErrorCode;
     message: string;
     retryable?: boolean;
     details?: Record<string, unknown>;
@@ -54,15 +61,15 @@ export class CcrError extends Error {
     cause?: unknown;
   }) {
     super(opts.message, opts.cause === undefined ? undefined : { cause: opts.cause });
-    this.name = "CcrError";
+    this.name = "MyPiError";
     this.code = opts.code;
     this.retryable = opts.retryable ?? false;
     this.details = opts.details;
     this.requestId = opts.requestId ?? "";
   }
 
-  toShape(): CcrErrorShape {
-    const shape: CcrErrorShape = {
+  toShape(): MyPiErrorShape {
+    const shape: MyPiErrorShape = {
       schemaVersion: "1",
       requestId: this.requestId,
       code: this.code,
@@ -74,41 +81,47 @@ export class CcrError extends Error {
   }
 }
 
+/** @deprecated Use MyPiError. Kept as a 1-major alias. */
+export const CcrError = MyPiError;
+
 /** Convenience factory helpers. */
 export const err = {
   invalidArgument: (msg: string, details?: Record<string, unknown>) =>
-    new CcrError({ code: "ERR_INVALID_ARGUMENT", message: msg, details }),
-  workspaceNotFound: (msg = "workspace not found") => new CcrError({ code: "ERR_WORKSPACE_NOT_FOUND", message: msg }),
-  pathOutsideWorkspace: (msg = "path outside workspace") => new CcrError({ code: "ERR_PATH_OUTSIDE_WORKSPACE", message: msg }),
-  pathNotFound: (msg = "path not found") => new CcrError({ code: "ERR_PATH_NOT_FOUND", message: msg }),
-  permissionDenied: (msg = "permission denied") => new CcrError({ code: "ERR_PERMISSION_DENIED", message: msg }),
-  secretPathDenied: (msg = "sensitive path denied") => new CcrError({ code: "ERR_SECRET_PATH_DENIED", message: msg }),
-  staleResource: (msg = "stale resource; re-read before edit") => new CcrError({ code: "ERR_STALE_RESOURCE", message: msg }),
-  ambiguousAnchor: (msg = "short anchor is ambiguous") => new CcrError({ code: "ERR_AMBIGUOUS_ANCHOR", message: msg }),
-  fileBusy: (msg = "file is busy / locked") => new CcrError({ code: "ERR_FILE_BUSY", message: msg }),
-  binaryFile: (msg = "binary file") => new CcrError({ code: "ERR_BINARY_FILE", message: msg }),
-  unsupportedEncoding: (msg = "unsupported encoding") => new CcrError({ code: "ERR_UNSUPPORTED_ENCODING", message: msg }),
-  atomicReplaceFailed: (msg = "atomic replace failed") => new CcrError({ code: "ERR_ATOMIC_REPLACE_FAILED", message: msg, retryable: true }),
-  parseFailed: (msg = "parse failed") => new CcrError({ code: "ERR_PARSE_FAILED", message: msg }),
-  lspUnavailable: (msg = "LSP unavailable") => new CcrError({ code: "ERR_LSP_UNAVAILABLE", message: msg, retryable: true }),
-  lspTimeout: (msg = "LSP request timed out") => new CcrError({ code: "ERR_LSP_TIMEOUT", message: msg, retryable: true }),
-  lspRestartExhausted: (msg = "LSP restart attempts exhausted") => new CcrError({ code: "ERR_LSP_RESTART_EXHAUSTED", message: msg }),
-  nativeUnavailable: (msg = "native backend unavailable") => new CcrError({ code: "ERR_NATIVE_UNAVAILABLE", message: msg, retryable: true }),
-  nativeFailure: (msg = "native backend failure") => new CcrError({ code: "ERR_NATIVE_FAILURE", message: msg, retryable: true }),
-  aborted: (msg = "operation aborted") => new CcrError({ code: "ERR_ABORTED", message: msg }),
-  outputLimit: (msg = "output exceeded limit") => new CcrError({ code: "ERR_OUTPUT_LIMIT", message: msg }),
-  unsupportedCapability: (msg = "unsupported capability") => new CcrError({ code: "ERR_UNSUPPORTED_CAPABILITY", message: msg }),
-  protocolCompatibility: (msg = "MCP protocol compatibility error") => new CcrError({ code: "ERR_PROTOCOL_COMPATIBILITY", message: msg }),
+    new MyPiError({ code: "ERR_INVALID_ARGUMENT", message: msg, details }),
+  workspaceNotFound: (msg = "workspace not found") => new MyPiError({ code: "ERR_WORKSPACE_NOT_FOUND", message: msg }),
+  pathOutsideWorkspace: (msg = "path outside workspace") => new MyPiError({ code: "ERR_PATH_OUTSIDE_WORKSPACE", message: msg }),
+  pathNotFound: (msg = "path not found") => new MyPiError({ code: "ERR_PATH_NOT_FOUND", message: msg }),
+  permissionDenied: (msg = "permission denied") => new MyPiError({ code: "ERR_PERMISSION_DENIED", message: msg }),
+  secretPathDenied: (msg = "sensitive path denied") => new MyPiError({ code: "ERR_SECRET_PATH_DENIED", message: msg }),
+  staleResource: (msg = "stale resource; re-read before edit") => new MyPiError({ code: "ERR_STALE_RESOURCE", message: msg }),
+  ambiguousAnchor: (msg = "short anchor is ambiguous") => new MyPiError({ code: "ERR_AMBIGUOUS_ANCHOR", message: msg }),
+  fileBusy: (msg = "file is busy / locked") => new MyPiError({ code: "ERR_FILE_BUSY", message: msg }),
+  binaryFile: (msg = "binary file") => new MyPiError({ code: "ERR_BINARY_FILE", message: msg }),
+  unsupportedEncoding: (msg = "unsupported encoding") => new MyPiError({ code: "ERR_UNSUPPORTED_ENCODING", message: msg }),
+  atomicReplaceFailed: (msg = "atomic replace failed") => new MyPiError({ code: "ERR_ATOMIC_REPLACE_FAILED", message: msg, retryable: true }),
+  parseFailed: (msg = "parse failed") => new MyPiError({ code: "ERR_PARSE_FAILED", message: msg }),
+  lspUnavailable: (msg = "LSP unavailable") => new MyPiError({ code: "ERR_LSP_UNAVAILABLE", message: msg, retryable: true }),
+  lspTimeout: (msg = "LSP request timed out") => new MyPiError({ code: "ERR_LSP_TIMEOUT", message: msg, retryable: true }),
+  lspRestartExhausted: (msg = "LSP restart attempts exhausted") => new MyPiError({ code: "ERR_LSP_RESTART_EXHAUSTED", message: msg }),
+  nativeUnavailable: (msg = "native backend unavailable") => new MyPiError({ code: "ERR_NATIVE_UNAVAILABLE", message: msg, retryable: true }),
+  nativeFailure: (msg = "native backend failure") => new MyPiError({ code: "ERR_NATIVE_FAILURE", message: msg, retryable: true }),
+  aborted: (msg = "operation aborted") => new MyPiError({ code: "ERR_ABORTED", message: msg }),
+  outputLimit: (msg = "output exceeded limit") => new MyPiError({ code: "ERR_OUTPUT_LIMIT", message: msg }),
+  unsupportedCapability: (msg = "unsupported capability") => new MyPiError({ code: "ERR_UNSUPPORTED_CAPABILITY", message: msg }),
+  protocolCompatibility: (msg = "MCP protocol compatibility error") => new MyPiError({ code: "ERR_PROTOCOL_COMPATIBILITY", message: msg }),
 };
 
-export function isCcrError(value: unknown): value is CcrError {
-  return value instanceof CcrError;
+export function isMyPiError(value: unknown): value is MyPiError {
+  return value instanceof MyPiError;
 }
 
+/** @deprecated Use isMyPiError. Kept as a 1-major alias. */
+export const isCcrError = isMyPiError;
+
 /**
- * Map a Node.js filesystem error to a CCR error code.
+ * Map a Node.js filesystem error to a my-pi error code.
  */
-export function nodeErrorToCode(code: string | undefined, pathHint?: string): CcrErrorCode {
+export function nodeErrorToCode(code: string | undefined, pathHint?: string): MyPiErrorCode {
   switch (code) {
     case "ENOENT":
       return "ERR_PATH_NOT_FOUND";

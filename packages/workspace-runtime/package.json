@@ -1,5 +1,5 @@
 {
-  "name": "@ccr/workspace-runtime",
+  "name": "@my-pi/workspace-runtime",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,9 +11,9 @@
     }
   },
   "dependencies": {
-    "@ccr/contracts": "workspace:*",
-    "@ccr/hashline": "workspace:*",
-    "@ccr/observability": "workspace:*",
-    "@ccr/policy": "workspace:*"
+    "@my-pi/contracts": "workspace:*",
+    "@my-pi/hashline": "workspace:*",
+    "@my-pi/observability": "workspace:*",
+    "@my-pi/policy": "workspace:*"
   }
 }

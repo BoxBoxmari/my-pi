@@ -6,7 +6,7 @@ Status: **BLOCKED** (external environment).
 Release-blocking matrix: **Windows x64 + Node 24**, **macOS arm64 + Node 24**, **Linux x64 + Node 24**. Spike verifies compile, package, install, load `.node`, sync/async call, cancellation bridge, Rust→JS error mapping, panic/fatal documentation, version sentinel, prebuilt loader resolution.
 
 ## Evidence recorded
-- `Cargo.toml` / `crates/ccr-native` scaffold exists (empty dependency surface, `cdylib`).
+- `Cargo.toml` / `crates/my-pi-native` scaffold exists (empty dependency surface, `cdylib`).
 - Local toolchain: `cargo 1.90.0`, `rustc 1.90.0`, `node v26.7.0`, Windows x64.
 - **No `.node` was built or loaded.** napi-rs dependency intentionally not added until the spike is executed on the blocking matrix.
 

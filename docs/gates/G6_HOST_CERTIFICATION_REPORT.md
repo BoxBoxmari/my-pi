@@ -1,13 +1,13 @@
 # G6 — Blocking Host Certification
 
-Status: **PARTIAL** — both blocking hosts **connect to the ccr-mcp server** (real evidence). Core V1 freeze is NOT met: 8/13 tools functional, remaining 5 (AST + LSP) unsupported, native/multi-platform and full supply-chain audit still blocked.
+Status: **PARTIAL** — both blocking hosts **connect to the my-pi-mcp server** (real evidence). Core V1 freeze is NOT met: 8/13 tools functional, remaining 5 (AST + LSP) unsupported, native/multi-platform and full supply-chain audit still blocked.
 
 ## Host connection evidence (real, executed)
-Registered `ccr-mcp` as an MCP stdio server in both blocking hosts and observed host-side status:
+Registered `my-pi-mcp` as an MCP stdio server in both blocking hosts and observed host-side status:
 
-- **OpenCode** `opencode mcp list` → `• ccr ✓ connected`
-  (server: `node --experimental-strip-types apps/ccr-mcp/dist/main.js --workspace fixtures/demo`)
-- **Claude Code** `claude mcp add ccr ...` + `claude mcp list` → `ccr: ... - √ Connected`
+- **OpenCode** `opencode mcp list` → `• my-pi ✓ connected`
+  (server: `node --experimental-strip-types apps/my-pi-mcp/dist/main.js --workspace fixtures/demo`)
+- **Claude Code** `claude mcp add my-pi ...` + `claude mcp list` → `my-pi: ... - √ Connected`
 
 Both hosts spawned the server, completed the MCP initialize handshake, and listed it as connected. This is genuine blocking-host integration evidence (previously assumed impossible in this environment).
 

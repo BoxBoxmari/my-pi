@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
-import { err, fingerprintBytes } from "@ccr/contracts";
+import { err, fingerprintBytes } from "@my-pi/contracts";
 
 export interface AtomicReplaceOptions {
   maxRetries?: number;
@@ -40,7 +40,7 @@ export async function atomicReplaceBytes(
   const backoffMs = opts.backoffMs ?? 20;
   const dir = path.dirname(target);
   const base = path.basename(target);
-  const temp = path.join(dir, `.${base}.ccr-tmp-${randomBytes(6).toString("hex")}`);
+  const temp = path.join(dir, `.${base}.my-pi-tmp-${randomBytes(6).toString("hex")}`);
 
   let attempts = 0;
   // P0.9: capture existing file mode before creating the temp file so
@@ -117,7 +117,7 @@ export async function atomicCreateNoReplace(
 ): Promise<AtomicReplaceResult> {
   const dir = path.dirname(target);
   const base = path.basename(target);
-  const temp = path.join(dir, `.${base}.ccr-create-${randomBytes(6).toString("hex")}`);
+  const temp = path.join(dir, `.${base}.my-pi-create-${randomBytes(6).toString("hex")}`);
 
   if (opts.signal?.aborted) throw err.aborted("aborted before atomic create");
 

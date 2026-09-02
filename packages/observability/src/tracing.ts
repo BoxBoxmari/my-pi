@@ -1,4 +1,4 @@
-import { createRequestId, type RequestId } from "@ccr/contracts";
+import { createRequestId, type RequestId } from "@my-pi/contracts";
 
 export interface TraceSpan {
   trace_id: string;

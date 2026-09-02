@@ -8,7 +8,7 @@ import {
   type WorkspaceCapabilities,
   type WorkspaceId,
   type WorkspacePolicy,
-} from "@ccr/contracts";
+} from "@my-pi/contracts";
 import { PathPolicy } from "./path-policy.js";
 import { SnapshotStore } from "./snapshot-store.js";
 import { withWorkspaceLock } from "./mutation-mutex.js";

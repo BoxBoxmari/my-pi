@@ -51,7 +51,7 @@
       "name": "OMP Hashline",
       "upstream": "omp",
       "decision": "ACCEPT",
-      "reason": "behavior adapted under CCR-owned @ccr/hashline (single-file parser/applier); no runtime dependency on OMP package",
+      "reason": "behavior adapted under my-pi-owned @my-pi/hashline (single-file parser/applier); no runtime dependency on OMP package",
       "evidence": ["packages/hashline tests: 5/5 pass", "G3 matrix patch cases"]
     },
     {

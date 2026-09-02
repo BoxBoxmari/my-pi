@@ -1,4 +1,4 @@
-import type { WorkspaceId } from "@ccr/contracts";
+import type { WorkspaceId } from "@my-pi/contracts";
 
 interface LockEntry {
   tail: Promise<void>;

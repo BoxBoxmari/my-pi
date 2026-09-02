@@ -4,10 +4,10 @@ import path from "node:path";
 import os from "node:os";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
-import { atomicReplaceBytes } from "@ccr/workspace-runtime";
+import { atomicReplaceBytes } from "@my-pi/workspace-runtime";
 
 test("G3: Windows locked-file injection (sharing violation fails closed with ERR_FILE_BUSY)", async (t) => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-win-lock-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-win-lock-"));
   const target = path.join(dir, "locked-file.txt");
   await fs.writeFile(target, "initial-content", "utf8");
 

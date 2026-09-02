@@ -26,7 +26,7 @@ Status: **PASS (TypeScript-only spike)** — with diagnostics noted as server-be
 - **Diagnostics push**: the spike records `textDocument/publishDiagnostics`
   notifications but does NOT gate on receiving them. On this environment the
   server did not push diagnostics for the temp-dir probe (tsserver project
-  model). This is server behavior, not a CCR contract gap; production `lsp_diagnostics`
+  model). This is server behavior, not a my-pi contract gap; production `lsp_diagnostics`
   (G5) must validate push/pull per server before that tool ships.
 - **RSS sampling**: not exercised in the spike; it is a production
   monitoring concern (G5 `ResourceMonitor`).

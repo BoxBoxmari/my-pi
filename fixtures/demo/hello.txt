@@ -1,1 +1,1 @@
-hello ccr on opencode
+hello my-pi on opencode

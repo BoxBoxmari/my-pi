@@ -6,13 +6,13 @@ import {
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
-} from "@ccr/contracts";
+} from "@my-pi/contracts";
 import type {
   AstBackend,
   AstSearchRequest,
   AstSearchResult,
-} from "@ccr/native-ports";
-import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
+} from "@my-pi/native-ports";
+import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 
 const require = createRequire(import.meta.url);
 const Parser = require("web-tree-sitter");

@@ -5,8 +5,8 @@ import {
   DEFAULT_SENSITIVE_PATTERNS,
   matchesSensitivePattern,
   PolicyEngine,
-} from "@ccr/policy";
-import type { WorkspacePolicy } from "@ccr/contracts";
+} from "@my-pi/policy";
+import type { WorkspacePolicy } from "@my-pi/contracts";
 
 test("default sensitive rules match expected paths", () => {
   const p = new SensitivePathPolicy(DEFAULT_SENSITIVE_PATTERNS);

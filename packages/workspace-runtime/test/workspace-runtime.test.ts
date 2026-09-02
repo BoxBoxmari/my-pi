@@ -9,7 +9,7 @@ import {
   atomicCreateNoReplace,
   withWorkspaceLock,
   SnapshotStore,
-} from "@ccr/workspace-runtime";
+} from "@my-pi/workspace-runtime";
 import {
   fingerprintBytes,
   encodeText,
@@ -17,11 +17,11 @@ import {
   detectNewline,
   hasFinalNewline,
   decodeText,
-} from "@ccr/contracts";
+} from "@my-pi/contracts";
 
 let dir: string;
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-ws-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-ws-"));
   await fs.writeFile(path.join(dir, "a.txt"), "hello world");
   await fs.writeFile(path.join(dir, ".env"), "SECRET=1");
   await fs.mkdir(path.join(dir, "sub"));
@@ -146,7 +146,7 @@ test("R0.1.4: atomicCreateNoReplace is no-clobber even if target appears between
   // pre-creating it. atomicCreateNoReplace must refuse (link -> EEXIST).
   await fs.writeFile(target, "external-writer");
   await assert.rejects(
-    atomicCreateNoReplace(target, new TextEncoder().encode("ccr-create")),
+    atomicCreateNoReplace(target, new TextEncoder().encode("my-pi-create")),
     (e: unknown) => (e as { code?: string }).code === "ERR_STALE_RESOURCE",
   );
   assert.equal(await fs.readFile(target, "utf8"), "external-writer");

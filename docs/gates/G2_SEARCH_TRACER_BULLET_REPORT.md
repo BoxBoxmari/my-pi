@@ -4,7 +4,7 @@ Status: **PARTIAL** — `fs_stat`, `fs_read`, and `search(mode=grep|glob)` imple
 
 ## Implemented
 - `fs_stat` / `fs_read` (raw-byte fingerprint, encoding/BOM/binary detection, snapshot metadata, artifact-friendly).
-- `search(mode=grep|glob)` via `@ccr/search` `NodeFallbackSearchBackend` (gitignore/hidden handling, cancellation `throwIfAborted`, result caps, sensitive-path deny).
+- `search(mode=grep|glob)` via `@my-pi/search` `NodeFallbackSearchBackend` (gitignore/hidden handling, cancellation `throwIfAborted`, result caps, sensitive-path deny).
 - Result metadata: `backend="node-fallback"`, `degraded=true`.
 
 ## Evidence

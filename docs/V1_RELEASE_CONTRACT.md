@@ -1,12 +1,12 @@
-# CCR V1 Release Contract
+# my-pi V1 Release Contract
 
-**Coding Capability Runtime (CCR) v1.1** — Host-neutral coding capability substrate exposed through Model Context Protocol (MCP).
+**my-pi (formerly Coding Capability Runtime (my-pi)) v1.1** — Host-neutral coding capability substrate exposed through Model Context Protocol (MCP).
 
 ---
 
 ## 1. 13-Tool MCP Surface
 
-CCR v1.1 guarantees a complete, operational 13-tool MCP catalog over stdio transport:
+my-pi v1.1 guarantees a complete, operational 13-tool MCP catalog over stdio transport:
 
 | Category | Tools | Capabilities & Guarantees |
 |---|---|---|

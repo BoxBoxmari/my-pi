@@ -1,13 +1,24 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
+    "my-pi": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/my-pi-mcp/dist/main.js",
+        "--workspace",
+        "fixtures/demo"
+      ]
+    },
     "ccr": {
       "type": "local",
       "enabled": true,
       "command": [
         "node",
         "--experimental-strip-types",
-        "apps/ccr-mcp/dist/main.js",
+        "apps/my-pi-mcp/dist/main.js",
         "--workspace",
         "fixtures/demo"
       ]

@@ -16,7 +16,7 @@ import os from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const FIXTURE_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(os.tmpdir(), "ccr-100k-fixture");
+const FIXTURE_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(os.tmpdir(), "my-pi-100k-fixture");
 
 async function runBenchmark() {
   console.log(`[benchmark] Starting traversal benchmark against: ${FIXTURE_DIR}`);
@@ -42,9 +42,9 @@ async function runBenchmark() {
   console.log(`[benchmark] Glob found ${globRes.data.totalCount} matches in ${globMs.toFixed(2)}ms (truncated=${globRes.data.truncated})`);
 
   // 2. Grep search test (deterministic needle)
-  console.log("[benchmark] Running grep search (CCR_BENCHMARK_TARGET_UNIQUE_NEEDLE)...");
+  console.log("[benchmark] Running grep search (MY_PI_BENCHMARK_TARGET_UNIQUE_NEEDLE)...");
   const t0Grep = performance.now();
-  const grepRes = await searchCap.execute({ mode: "grep", pattern: "CCR_BENCHMARK_TARGET_UNIQUE_NEEDLE" }, ctx);
+  const grepRes = await searchCap.execute({ mode: "grep", pattern: "MY_PI_BENCHMARK_TARGET_UNIQUE_NEEDLE" }, ctx);
   const grepMs = performance.now() - t0Grep;
   console.log(`[benchmark] Grep found ${grepRes.data.totalCount} matches in ${grepMs.toFixed(2)}ms`);
 

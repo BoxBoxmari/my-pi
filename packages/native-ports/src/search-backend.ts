@@ -1,4 +1,4 @@
-import type { ArtifactRef, CapabilityResult, SnapshotId } from "@ccr/contracts";
+import type { ArtifactRef, CapabilityResult, SnapshotId } from "@my-pi/contracts";
 
 export interface SearchRequest {
   mode: "grep" | "glob";

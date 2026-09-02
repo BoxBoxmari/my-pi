@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
-import { err, type CapabilityClass, type Workspace } from "@ccr/contracts";
-import { PolicyEngine } from "@ccr/policy";
+import { err, type CapabilityClass, type Workspace } from "@my-pi/contracts";
+import { PolicyEngine } from "@my-pi/policy";
 import { canonicalizeWithinRoots, type ResolvedPath } from "./path-normalize.js";
 
 export class PathPolicy {

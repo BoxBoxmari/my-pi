@@ -30,7 +30,7 @@ function detectCliTool(name, versionCmd) {
 }
 
 async function probeHostEra() {
-  console.log("=== CCR Host & Era Probe ===");
+  console.log("=== my-pi Host & Era Probe ===");
 
   // 1. Detect local host CLIs
   const claudeProbe = detectCliTool("Claude Code", "claude --version");
@@ -41,17 +41,17 @@ async function probeHostEra() {
   console.log("  OpenCode:   ", openCodeProbe.installed ? openCodeProbe.version : "Not installed on PATH (CI runner / local)");
 
   // 2. Connect via official MCP SDK stdio
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-host-probe-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-host-probe-"));
   await fs.writeFile(path.join(tempDir, "sample.txt"), "host-probe-data");
 
-  const mainScript = path.join(ROOT, "apps", "ccr-mcp", "dist", "main.js");
+  const mainScript = path.join(ROOT, "apps", "my-pi-mcp", "dist", "main.js");
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [mainScript, "--workspace", tempDir],
     cwd: ROOT,
   });
 
-  const client = new Client({ name: "ccr-host-probe", version: "1.0.0" });
+  const client = new Client({ name: "my-pi-host-probe", version: "1.0.0" });
   await client.connect(transport);
   const negotiatedEra = client.getNegotiatedProtocolVersion() ?? "2025-11-25";
   console.log(`\nNegotiated MCP Era over stdio: ${negotiatedEra}`);

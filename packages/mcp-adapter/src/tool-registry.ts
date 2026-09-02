@@ -2,7 +2,7 @@
  * Tool registry: maps MCP tool name -> Capability. Tool count is capped at 13
  * in V1 (A17).
  */
-import type { Capability } from "@ccr/contracts";
+import type { Capability } from "@my-pi/contracts";
 
 export interface ToolDefinition {
   name: string;

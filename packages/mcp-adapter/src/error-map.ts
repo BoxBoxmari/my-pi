@@ -1,13 +1,16 @@
-/** Map a CCR error to a structured MCP error (SDK v2 line). */
-import { isCcrError, type CcrErrorCode } from "@ccr/contracts";
+/** Map a my-pi error to a structured MCP error (SDK v2 line). */
+import { isMyPiError, type MyPiErrorCode } from "@my-pi/contracts";
 
-export function ccrCodeToMcpCode(code: CcrErrorCode): number {
+export function myPiCodeToMcpCode(code: MyPiErrorCode): number {
   const base = -32000;
   const offset = codeToOffset(code);
   return base - offset;
 }
 
-const KNOWN_CODES: readonly CcrErrorCode[] = [
+/** @deprecated Use myPiCodeToMcpCode. Kept as a 1-major alias. */
+export const ccrCodeToMcpCode = myPiCodeToMcpCode;
+
+const KNOWN_CODES: readonly MyPiErrorCode[] = [
   "ERR_INVALID_ARGUMENT",
   "ERR_WORKSPACE_NOT_FOUND",
   "ERR_PATH_OUTSIDE_WORKSPACE",
@@ -32,7 +35,7 @@ const KNOWN_CODES: readonly CcrErrorCode[] = [
   "ERR_PROTOCOL_COMPATIBILITY",
 ];
 
-function codeToOffset(code: CcrErrorCode): number {
+function codeToOffset(code: MyPiErrorCode): number {
   const idx = KNOWN_CODES.indexOf(code);
   return idx === -1 ? KNOWN_CODES.length : idx;
 }
@@ -43,9 +46,9 @@ export interface MappedMcpError extends Error {
 }
 
 export function toMcpError(e: unknown): MappedMcpError {
-  if (isCcrError(e)) {
+  if (isMyPiError(e)) {
     const err = new Error(e.message) as MappedMcpError;
-    err.code = ccrCodeToMcpCode(e.code);
+    err.code = myPiCodeToMcpCode(e.code);
     return err;
   }
   const message = e instanceof Error ? e.message : String(e);

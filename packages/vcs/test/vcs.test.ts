@@ -4,14 +4,14 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { GitVcsBackend } from "@ccr/vcs";
-import { isCcrError } from "@ccr/contracts";
+import { GitVcsBackend } from "@my-pi/vcs";
+import { isCcrError } from "@my-pi/contracts";
 
 let dir: string;
 let siblingRepo: string; // P0.1: a DIFFERENT git repo, sibling of the workspace
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-vcs-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-vcs-"));
   execFileSync("git", ["init", "-q"], { cwd: dir });
   execFileSync("git", ["config", "user.email", "t@t"], { cwd: dir });
   execFileSync("git", ["config", "user.name", "t"], { cwd: dir });
@@ -20,7 +20,7 @@ before(async () => {
   execFileSync("git", ["commit", "-qm", "init"], { cwd: dir });
   await fs.writeFile(path.join(dir, "f.txt"), "one\nTWO\n");
 
-  siblingRepo = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-vcs-sibling-"));
+  siblingRepo = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-vcs-sibling-"));
   execFileSync("git", ["init", "-q"], { cwd: siblingRepo });
   execFileSync("git", ["config", "user.email", "t@t"], { cwd: siblingRepo });
   execFileSync("git", ["config", "user.name", "t"], { cwd: siblingRepo });
@@ -65,7 +65,7 @@ test("P0.1: '.' is rejected as an implicit authority root", async () => {
 
 test("P0.1: non-Git workspace is a typed error, never fake clean=false/empty", async () => {
   const backend = new GitVcsBackend();
-  const nonGit = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-nongit-"));
+  const nonGit = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-nongit-"));
   try {
     await assert.rejects(
       backend.status({ path: nonGit }, new AbortController().signal),

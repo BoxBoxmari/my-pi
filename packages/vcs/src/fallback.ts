@@ -7,8 +7,8 @@
  * a failed Git command is NEVER converted into apparently-valid empty data.
  */
 import { spawn } from "node:child_process";
-import { err, type ArtifactRef } from "@ccr/contracts";
-import type { VcsBackend, VcsDiffRequest, VcsDiffResult, VcsStatusRequest, VcsStatusResult } from "@ccr/native-ports";
+import { err, type ArtifactRef } from "@my-pi/contracts";
+import type { VcsBackend, VcsDiffRequest, VcsDiffResult, VcsStatusRequest, VcsStatusResult } from "@my-pi/native-ports";
 
 const INLINE_HUNK_LINES = 500; // model-facing inline cap; remainder spills to artifact
 

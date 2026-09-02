@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/ccr-native"]
+members = ["crates/my-pi-native"]
 
 [workspace.package]
 version = "0.1.0"

@@ -6,7 +6,7 @@ Date: 2026-09-01 · Verdict: **PASS** — with explicitly documented environment
 
 | Item | Finding | Fix + Evidence | Status |
 |---|---|---|---|
-| P0.1 | VCS used cwd fallback; failures became fake `clean:false/[]` | `@ccr/vcs` requires resolved absolute path (rejects `"."`/undefined); typed outcomes: non-git → `ERR_UNSUPPORTED_CAPABILITY`, git-missing → `ERR_NATIVE_UNAVAILABLE`, permission → `ERR_PERMISSION_DENIED`, abort → `ERR_ABORTED`, generic → `ERR_NATIVE_FAILURE`. Tests: `vcs.test.ts` 6/6 (cwd isolation, sibling repo isolation, non-git typed, `"."` rejected, diff isolation, cancellation) | CLOSED |
+| P0.1 | VCS used cwd fallback; failures became fake `clean:false/[]` | `@my-pi/vcs` requires resolved absolute path (rejects `"."`/undefined); typed outcomes: non-git → `ERR_UNSUPPORTED_CAPABILITY`, git-missing → `ERR_NATIVE_UNAVAILABLE`, permission → `ERR_PERMISSION_DENIED`, abort → `ERR_ABORTED`, generic → `ERR_NATIVE_FAILURE`. Tests: `vcs.test.ts` 6/6 (cwd isolation, sibling repo isolation, non-git typed, `"."` rejected, diff isolation, cancellation) | CLOSED |
 | P0.2 | Search read sensitive files, then filtered output | `SearchRequest.allowed` gate enforced during traversal + `onFileRead` spy. Tests prove visible sensitive files (`credentials_prod.txt`, `secrets.json`, `keydir/`) are NEVER opened; allow-listed path CAN be read; dir descent blocked | CLOSED |
 | P0.3 | Search used `ResolvedPath.root` instead of the resolved scope | Uses `resolved.absolute`; file scope → typed invalid-scope; subdir scoping proven not to leak sibling matches; `"."` root rejected by backend | CLOSED |
 | P0.4 | MCP handler created its own never-aborted signal | Uses `ctx.mcpReq.signal` (SDK v2 ServerContext) end-to-end: capability → Node search (`throwIfAborted`) → git subprocess kill → atomic-replace retry delays. Real-stdio test cancels mid-search and connection stays healthy | CLOSED |
@@ -20,8 +20,8 @@ Date: 2026-09-01 · Verdict: **PASS** — with explicitly documented environment
 
 | Item | Status |
 |---|---|
-| P1.1 capability boundaries | CLOSED — fs business logic moved to `@ccr/fs`; `scripts/architecture-check.mjs` fails CI on `node:fs`/`node:child_process` in mcp-adapter; check PASS |
-| P1.2 catalog vs availability | CLOSED — 13-tool catalog kept; `_meta: {"ccr/availability": implemented\|planned}` on each tool; typed unsupported errors preserved |
+| P1.1 capability boundaries | CLOSED — fs business logic moved to `@my-pi/fs`; `scripts/architecture-check.mjs` fails CI on `node:fs`/`node:child_process` in mcp-adapter; check PASS |
+| P1.2 catalog vs availability | CLOSED — 13-tool catalog kept; `_meta: {"my-pi/availability": implemented\|planned}` on each tool; typed unsupported errors preserved |
 | P1.3 truthful health | CLOSED — `backendHealth.native=false` (no addon exists), `nodeFallback=true`; ast/lsp operational=false while catalog=true |
 | P1.4 gitignore/hidden semantics | narrowed + documented: hidden-dotfiles skipped always; `.gitignore` subset (no negation) documented in code; sensitive policy independent (proven by visible-file tests) | CLOSED (reduced contract documented) |
 | P1.5 truncation/totalCount | CLOSED — Contract A: exact counts past limit (test proves 2 matches with limit 1 → totalCount=2, truncated=true) |
@@ -37,7 +37,7 @@ Date: 2026-09-01 · Verdict: **PASS** — with explicitly documented environment
 - Tests: `node --experimental-strip-types --test "packages/*/test/*.test.ts"` → **76 tests, 75 pass, 0 fail, 1 skip** (skip = POSIX-mode test on win32, reason recorded).
 - Architecture: `node scripts/architecture-check.mjs` → PASS.
 - MCP era: observed `2025-11-25` over real stdio (SDK v2.0.0; supported list verified at runtime).
-- Hosts: OpenCode + Claude Code `mcp list` → `ccr connected` (transport/handshake evidence only — NOT certification).
+- Hosts: OpenCode + Claude Code `mcp list` → `my-pi connected` (transport/handshake evidence only — NOT certification).
 
 ## Final self-check (10 questions)
 
@@ -48,7 +48,7 @@ Date: 2026-09-01 · Verdict: **PASS** — with explicitly documented environment
 5. Can fs_write overwrite without proving observed version? **No** — overwrite requires `expected_hash`; create verifies non-existence at commit. 
 6. Can a valid UTF-16 BOM file be rejected as binary? **No** — BOM detection precedes NUL heuristic; LE/BE end-to-end tests pass. 
 7. Can patching an executable remove its exec bit? **No on POSIX-preserving path** (mode captured + restored); win32 read-only fails closed. POSIX proof: **BLOCKED to CI lane** (test armed). 
-8. Does mcp-adapter still own fs/vcs business logic? **No** — moved to `@ccr/fs`; CI check enforces. 
+8. Does mcp-adapter still own fs/vcs business logic? **No** — moved to `@my-pi/fs`; CI check enforces. 
 9. Is every PASS backed by acceptance cases? **Yes** — G3 matrix itemized; gate reports list per-case evidence. 
 10. Any performance claims without benchmarks? **No** — P1.7 explicitly not-claimed; docs contain no perf numbers.
 

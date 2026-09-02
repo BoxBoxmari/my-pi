@@ -54,11 +54,11 @@ const sbom = {
   version: 1,
   metadata: {
     timestamp: new Date().toISOString(),
-    component: { type: "application", name: "coding-capability-runtime", version: "0.1.0" },
-    tools: [{ name: "ccr-generate-sbom", version: "1.0.0" }],
+    component: { type: "application", name: "my-pi", version: "0.1.0" },
+    tools: [{ name: "my-pi-generate-sbom", version: "1.0.0" }],
     properties: [
-      { name: "ccr:commit", value: commit },
-      { name: "ccr:source", value: "generated from pnpm-lock.yaml + Cargo.lock" },
+      { name: "my-pi:commit", value: commit },
+      { name: "my-pi:source", value: "generated from pnpm-lock.yaml + Cargo.lock" },
     ],
   },
   components: [

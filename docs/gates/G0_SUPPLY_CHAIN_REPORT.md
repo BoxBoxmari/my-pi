@@ -17,7 +17,7 @@ Status: **PARTIAL / BLOCKED** (tooling + upstream access).
 | `pi-vcs` | candidate — prefer narrower `gix` if `jj-lib` cost excessive | vcs_status/diff |
 | `pi-natives` | **rejected** (monolith) | no wholesale dependency |
 | OMP `grep.rs` | reference only | minimal owned search crate if not cleanly reusable |
-| OMP Hashline / LSP | adapt under CCR interfaces | single-file semantics |
+| OMP Hashline / LSP | adapt under my-pi interfaces | single-file semantics |
 
 ## Required checks NOT yet executed
 - `cargo deny` / transitive license inventory: **not run**.
@@ -29,6 +29,6 @@ Status: **PARTIAL / BLOCKED** (tooling + upstream access).
 These require the upstream OMP crates to be cloned/built and the scan tooling installed, which are external/network-dependent actions not completed in this scaffold phase.
 
 ## Guardrails in effect
-- Production packages depend only on `@ccr/contracts|policy|observability` (TS) and `@modelcontextprotocol/sdk`+`zod` (adapter only).
+- Production packages depend only on `@my-pi/contracts|policy|observability` (TS) and `@modelcontextprotocol/sdk`+`zod` (adapter only).
 - No OMP harness/provider/ToolSession/`pi-natives` dependency exists in the dependency graph.
 - No supplier crate is marked accepted; promotion evidence (exact rev, graph, licenses, advisories, size, portability, API subset, replacement path) is recorded as a requirement but **unmet**.

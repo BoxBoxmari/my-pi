@@ -11,10 +11,15 @@ import {
   decodeText,
   encodeText,
   isLikelyBinary,
+  MyPiError,
   CcrError,
+  isMyPiError,
+  isCcrError,
+  MY_PI_ERROR_CODES,
+  CCR_ERROR_CODES,
   nodeErrorToCode,
   createWorkspaceId,
-} from "@ccr/contracts";
+} from "@my-pi/contracts";
 
 test("fingerprintBytes produces stable sha256 + size", () => {
   const a = fingerprintBytes(new TextEncoder().encode("hello"));
@@ -69,9 +74,20 @@ test("isLikelyBinary rejects NUL-heavy content", () => {
   assert.equal(isLikelyBinary(new TextEncoder().encode("plain text")), false);
 });
 
-test("CcrError shape and nodeErrorToCode", () => {
-  const e = new CcrError({ code: "ERR_STALE_RESOURCE", message: "stale" });
+test("MyPiError shape and nodeErrorToCode (CcrError is a 1-major alias)", () => {
+  const e = new MyPiError({ code: "ERR_STALE_RESOURCE", message: "stale" });
+  assert.equal(e.name, "MyPiError");
   assert.equal(e.toShape().schemaVersion, "1");
+  // Legacy alias still constructs the same class.
+  const legacy = new CcrError({ code: "ERR_STALE_RESOURCE", message: "stale" });
+  assert.ok(legacy instanceof MyPiError);
+  assert.equal(legacy.name, "MyPiError");
+  // Both guards recognize both spellings (same class).
+  assert.ok(isMyPiError(e));
+  assert.ok(isCcrError(e));
+  assert.ok(isMyPiError(legacy));
+  // Error-code lists are aliased.
+  assert.equal(MY_PI_ERROR_CODES, CCR_ERROR_CODES);
   assert.equal(nodeErrorToCode("ENOENT"), "ERR_PATH_NOT_FOUND");
   assert.equal(nodeErrorToCode("EBUSY"), "ERR_FILE_BUSY");
   assert.equal(nodeErrorToCode("EACCES", "/x/.env"), "ERR_SECRET_PATH_DENIED");

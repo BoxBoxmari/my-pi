@@ -1,8 +1,8 @@
 /**
  * V1 capability composition (thin orchestrator — R0.1.8).
  *
- * All business logic lives in capability packages: @ccr/fs, @ccr/search,
- * @ccr/vcs. This module only wires runtime + workspace_info + unsupported
+ * All business logic lives in capability packages: @my-pi/fs, @my-pi/search,
+ * @my-pi/vcs. This module only wires runtime + workspace_info + unsupported
  * stubs. It must NOT import node:fs / node:child_process / backend classes
  * (enforced by scripts/architecture-check.mjs).
  */
@@ -11,13 +11,13 @@ import {
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
-} from "@ccr/contracts";
-import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { createSearchCapability } from "@ccr/search";
-import { createVcsCapabilities } from "@ccr/vcs";
-import { createFsCapabilities } from "@ccr/fs";
-import { createAstCapabilities } from "@ccr/ast";
-import { createLspCapabilities } from "@ccr/lsp";
+} from "@my-pi/contracts";
+import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { createSearchCapability } from "@my-pi/search";
+import { createVcsCapabilities } from "@my-pi/vcs";
+import { createFsCapabilities } from "@my-pi/fs";
+import { createAstCapabilities } from "@my-pi/ast";
+import { createLspCapabilities } from "@my-pi/lsp";
 
 type Ctx = CapabilityContext;
 

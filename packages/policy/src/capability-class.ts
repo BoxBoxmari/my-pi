@@ -1,5 +1,5 @@
 /** Operation-class policy for workspace policy modes. */
-import type { CapabilityClass, WorkspacePolicyMode } from "@ccr/contracts";
+import type { CapabilityClass, WorkspacePolicyMode } from "@my-pi/contracts";
 
 export function classAllowedInMode(cls: CapabilityClass, mode: WorkspacePolicyMode): boolean {
   if (cls === "read") return true;

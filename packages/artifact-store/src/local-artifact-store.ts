@@ -5,7 +5,7 @@ import {
   fingerprintBytes,
   type ArtifactId,
   type ArtifactRef,
-} from "@ccr/contracts";
+} from "@my-pi/contracts";
 
 export interface ArtifactStore {
   put(mimeType: string, bytes: Uint8Array, expiresAtMs?: number): Promise<ArtifactRef>;

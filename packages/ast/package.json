@@ -1,5 +1,5 @@
 {
-  "name": "@ccr/ast",
+  "name": "@my-pi/ast",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,9 +11,9 @@
     }
   },
   "dependencies": {
-    "@ccr/contracts": "workspace:*",
-    "@ccr/native-ports": "workspace:*",
-    "@ccr/workspace-runtime": "workspace:*",
+    "@my-pi/contracts": "workspace:*",
+    "@my-pi/native-ports": "workspace:*",
+    "@my-pi/workspace-runtime": "workspace:*",
     "tree-sitter-wasms": "^0.1.13",
     "web-tree-sitter": "^0.22.6"
   }

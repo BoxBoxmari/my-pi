@@ -1,7 +1,7 @@
 /**
  * Minimal single-file Hashline adaptation (v1.1 §18).
  */
-import { err } from "@ccr/contracts";
+import { err } from "@my-pi/contracts";
 
 export interface Hunk {
   old: string;

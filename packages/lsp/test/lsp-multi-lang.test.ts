@@ -10,9 +10,9 @@ import {
   detectLanguageFromPath,
   findWorkspaceRoot,
   createLspCapabilities,
-} from "@ccr/lsp";
-import { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { createRequestId } from "@ccr/contracts";
+} from "@my-pi/lsp";
+import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { createRequestId } from "@my-pi/contracts";
 
 let dir: string;
 let tsFile: string;
@@ -21,7 +21,7 @@ let rsFile: string;
 let goFile: string;
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-lsp-multi-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-lsp-multi-"));
   await fs.writeFile(path.join(dir, "tsconfig.json"), JSON.stringify({ compilerOptions: { strict: true } }), "utf8");
   await fs.writeFile(path.join(dir, "pyproject.toml"), "[project]\nname = 'test-proj'\n", "utf8");
   await fs.writeFile(path.join(dir, "Cargo.toml"), "[package]\nname = 'test-proj'\nversion = '0.1.0'\n", "utf8");

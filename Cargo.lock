@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "ccr-native"
+name = "my-pi-native"
 version = "0.1.0"

@@ -1,5 +1,5 @@
 /**
- * @ccr/search — search capability orchestration (R0.1.8).
+ * @my-pi/search — search capability orchestration (R0.1.8).
  *
  * Owns: scope resolution, workspace-relative policy-path composition (R0.1.2),
  * backend selection, result limits, degraded metadata. The MCP adapter only
@@ -11,9 +11,9 @@ import {
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
-} from "@ccr/contracts";
-import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { SensitivePathPolicy } from "@ccr/policy";
+} from "@my-pi/contracts";
+import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { SensitivePathPolicy } from "@my-pi/policy";
 import { NodeFallbackSearchBackend } from "./fallback.js";
 
 type Ctx = CapabilityContext;

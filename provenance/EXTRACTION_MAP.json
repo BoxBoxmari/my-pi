@@ -40,5 +40,5 @@
     "crates/pi-vcs/",
     "crates/pi-natives/src/vcs.rs"
   ],
-  "rule": "Prefer qualified leaf dependencies over re-transcription when clean. If a subsystem is coupled to pi-natives/ToolSession/harness state, adapt the minimum behavior behind CCR-owned contracts. Never import OMP agent/harness/provider/ToolSession layers into core."
+  "rule": "Prefer qualified leaf dependencies over re-transcription when clean. If a subsystem is coupled to pi-natives/ToolSession/harness state, adapt the minimum behavior behind my-pi-owned contracts. Never import OMP agent/harness/provider/ToolSession layers into core."
 }

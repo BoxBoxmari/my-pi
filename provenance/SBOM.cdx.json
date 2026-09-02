@@ -7,22 +7,22 @@
     "timestamp": "2026-09-01T16:30:29.173Z",
     "component": {
       "type": "application",
-      "name": "coding-capability-runtime",
+      "name": "my-pi",
       "version": "0.1.0"
     },
     "tools": [
       {
-        "name": "ccr-generate-sbom",
+        "name": "my-pi-generate-sbom",
         "version": "1.0.0"
       }
     ],
     "properties": [
       {
-        "name": "ccr:commit",
+        "name": "my-pi:commit",
         "value": "5d00d8170a68c7ba60cc668d4a3d6483e9c07839"
       },
       {
-        "name": "ccr:source",
+        "name": "my-pi:source",
         "value": "generated from pnpm-lock.yaml + Cargo.lock"
       }
     ]
@@ -184,10 +184,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/ccr-native@0.1.0",
-      "name": "ccr-native",
+      "bom-ref": "pkg:cargo/my-pi-native@0.1.0",
+      "name": "my-pi-native",
       "version": "0.1.0",
-      "purl": "pkg:cargo/ccr-native@0.1.0"
+      "purl": "pkg:cargo/my-pi-native@0.1.0"
     }
   ]
 }

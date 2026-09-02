@@ -1,5 +1,5 @@
 /**
- * @ccr/vcs — VCS capability orchestration (R0.1.8).
+ * @my-pi/vcs — VCS capability orchestration (R0.1.8).
  *
  * Owns: workspace-root resolution, path filters, backend selection, artifact
  * spill. The MCP adapter only translates MCP input into VcsInput and back.
@@ -8,9 +8,9 @@ import {
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
-} from "@ccr/contracts";
-import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { LocalArtifactStore } from "@ccr/artifact-store";
+} from "@my-pi/contracts";
+import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { LocalArtifactStore } from "@my-pi/artifact-store";
 import { GitVcsBackend } from "./fallback.js";
 
 type Ctx = CapabilityContext;

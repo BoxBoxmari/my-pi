@@ -1,4 +1,4 @@
-name: CCR Multi-Platform CI
+name: My-Pi Multi-Platform CI
 
 on:
   push:
@@ -73,7 +73,7 @@ jobs:
       - name: Host probe & era negotiation (R0.1.7)
         run: node scripts/probe-hosts.mjs
 
-      - name: PR smoke test (pack + tarball + ccr-mcp stdio)
+      - name: PR smoke test (pack + tarball + my-pi-mcp stdio)
         run: node scripts/pr-smoke.mjs
 
       - name: Supply-chain - pnpm audit

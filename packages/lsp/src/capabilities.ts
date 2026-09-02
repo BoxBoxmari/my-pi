@@ -3,8 +3,8 @@ import {
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
-} from "@ccr/contracts";
-import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
+} from "@my-pi/contracts";
+import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { defaultLspRegistry, LspRegistry } from "./registry.js";
 import { detectLanguageFromPath } from "./root-detection.js";
 

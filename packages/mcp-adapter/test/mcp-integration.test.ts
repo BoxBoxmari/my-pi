@@ -5,24 +5,24 @@ import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/client";
-import { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { CcrServer, createFoundationCapabilities } from "@ccr/mcp-adapter";
-import { err, type Capability, type CapabilityContext } from "@ccr/contracts";
+import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { MyPiServer, createFoundationCapabilities } from "@my-pi/mcp-adapter";
+import { err, type Capability, type CapabilityContext } from "@my-pi/contracts";
 
 let dir: string;
 let runtime: WorkspaceRuntime;
-let server: CcrServer;
+let server: MyPiServer;
 let client: Client;
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-mcp-"));
-  await fs.writeFile(path.join(dir, "a.txt"), "hello ccr");
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-mcp-"));
+  await fs.writeFile(path.join(dir, "a.txt"), "hello my-pi");
   await fs.writeFile(path.join(dir, ".env"), "SECRET=1");
 
   runtime = new WorkspaceRuntime();
   await runtime.open({ root: dir });
-  server = new CcrServer({
-    name: "ccr-test",
+  server = new MyPiServer({
+    name: "my-pi-test",
     version: "0.0.1",
     runtime,
     capabilities: createFoundationCapabilities(runtime),
@@ -30,7 +30,7 @@ before(async () => {
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
-  client = new Client({ name: "ccr-test-client", version: "0.0.1" });
+  client = new Client({ name: "my-pi-test-client", version: "0.0.1" });
   await client.connect(clientTransport);
 });
 
@@ -64,7 +64,7 @@ test("G1: fs_read returns content + fingerprint snapshot", async () => {
   const res = await client.callTool({ name: "fs_read", arguments: { path: "a.txt" } });
   const text = (res.content as Array<{ type: string; text?: string }>)[0]!.text!;
   const parsed = JSON.parse(text);
-  assert.equal(parsed.data.content, "hello ccr");
+  assert.equal(parsed.data.content, "hello my-pi");
   assert.ok(parsed.data.content_hash.startsWith("sha256:"));
   assert.ok(parsed.data.snapshot_id);
   assert.ok(parsed.data.anchor);
@@ -74,7 +74,7 @@ test("G1: fs_stat returns metadata", async () => {
   const res = await client.callTool({ name: "fs_stat", arguments: { path: "a.txt" } });
   const parsed = JSON.parse((res.content as Array<{ text?: string }>)[0]!.text!);
   assert.equal(parsed.data.isFile, true);
-  assert.equal(parsed.data.size, 9);
+  assert.equal(parsed.data.size, "hello my-pi".length);
 });
 
 test("G1: sensitive path is denied end-to-end", async () => {
@@ -119,7 +119,7 @@ test("P0.8: fs_write on EXISTING file WITHOUT expected_hash is rejected", async 
   // file unchanged
   const back = await client.callTool({ name: "fs_read", arguments: { path: "a.txt" } });
   const read = JSON.parse((back.content as Array<{ text?: string }>)[0]!.text!);
-  assert.equal(read.data.content, "hello ccr");
+  assert.equal(read.data.content, "hello my-pi");
 });
 
 test("P0.8: fs_write with correct expected_hash passes", async () => {

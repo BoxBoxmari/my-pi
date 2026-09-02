@@ -14,11 +14,11 @@ let client: Client;
 let transport: StdioClientTransport;
 
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-stdio-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-stdio-"));
   await fs.writeFile(path.join(dir, "a.txt"), "hello stdio");
   transport = new StdioClientTransport({
     command: process.execPath,
-    args: ["--experimental-strip-types", "apps/ccr-mcp/dist/main.js", "--workspace", dir],
+    args: ["--experimental-strip-types", "apps/my-pi-mcp/dist/main.js", "--workspace", dir],
     // P0.1 regression: process cwd is deliberately DIFFERENT from workspace.
     cwd: repoRoot,
   });

@@ -14,6 +14,23 @@ function json(pretty: string, json: unknown): RenderedConfig {
   return { type: "json", json, pretty };
 }
 
+function mcpEntry(opts: RenderOptions, args: string[]) {
+  return { type: "local", command: [opts.command, ...args] };
+}
+
+/**
+ * Emit BOTH keys: `my-pi` (primary) and `ccr` (deprecated alias, kept for
+ * 1 major so hosts configured with the old key keep resolving the server).
+ */
+function dualMcpServers(opts: RenderOptions, args: string[], entry: unknown): Record<string, unknown> {
+  return {
+    "my-pi": entry,
+    ccr: entry,
+    _comment: "ccr is a deprecated alias of my-pi (kept 1 major); prefer my-pi",
+    ...(opts as { __unused?: never }),
+  };
+}
+
 export function renderProfile(profile: HostProfile, opts: RenderOptions): RenderedConfig {
   const args = [...(opts.args ?? ["--transport", "stdio"])];
   if (opts.workspace !== undefined) args.push("--workspace", opts.workspace);
@@ -22,31 +39,41 @@ export function renderProfile(profile: HostProfile, opts: RenderOptions): Render
     case "claude-code":
       return {
         type: "cli",
-        command: `claude mcp add ccr -- ${opts.command} ${args.join(" ")}`.trim(),
+        // Primary key my-pi; ccr alias registered as a second command.
+        command: [
+          `claude mcp add my-pi -- ${opts.command} ${args.join(" ")}`.trim(),
+          `claude mcp add ccr -- ${opts.command} ${args.join(" ")}`.trim(),
+        ].join("\n"),
       };
     case "opencode": {
+      const entry = mcpEntry(opts, args);
       const j = {
         $schema: "https://opencode.ai/config.json",
         mcp: {
-          ccr: { type: "local", command: [opts.command, ...args] },
+          "my-pi": entry,
+          ccr: entry,
         },
       };
       return json(JSON.stringify(j, null, 2), j);
     }
     case "cursor": {
-      const j = { mcpServers: { ccr: { type: "stdio", command: opts.command, args } } };
+      const entry = { type: "stdio", command: opts.command, args };
+      const j = { mcpServers: dualMcpServers(opts, args, entry) };
       return json(JSON.stringify(j, null, 2), j);
     }
     case "antigravity": {
-      const j = { mcpServers: { ccr: { command: opts.command, args } } };
+      const entry = { command: opts.command, args };
+      const j = { mcpServers: dualMcpServers(opts, args, entry) };
       return json(JSON.stringify(j, null, 2), j);
     }
     case "copilot-vscode": {
-      const j = { servers: { ccr: { type: "stdio", command: opts.command, args } } };
+      const entry = { type: "stdio", command: opts.command, args };
+      const j = { servers: dualMcpServers(opts, args, entry) };
       return json(JSON.stringify(j, null, 2), j);
     }
     case "copilot-cli": {
-      const j = { mcpServers: { ccr: { type: "stdio", command: opts.command, args, tools: ["*"] } } };
+      const entry = { type: "stdio", command: opts.command, args, tools: ["*"] };
+      const j = { mcpServers: dualMcpServers(opts, args, entry) };
       return json(JSON.stringify(j, null, 2), j);
     }
   }

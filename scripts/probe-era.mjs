@@ -17,12 +17,12 @@ import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { SUPPORTED_PROTOCOL_VERSIONS } from "@modelcontextprotocol/server";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const workspaceDir = process.argv[2] ?? (await fs.mkdtemp(path.join(os.tmpdir(), "ccr-era-")));
+const workspaceDir = process.argv[2] ?? (await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-era-")));
 await fs.writeFile(path.join(workspaceDir, "probe.txt"), "era probe");
 
 const transport = new StdioClientTransport({
   command: process.execPath,
-  args: ["--experimental-strip-types", "apps/ccr-mcp/dist/main.js", "--workspace", workspaceDir],
+  args: ["--experimental-strip-types", "apps/my-pi-mcp/dist/main.js", "--workspace", workspaceDir],
   cwd: repoRoot,
 });
 const client = new Client({ name: "era-probe", version: "0.0.1" });

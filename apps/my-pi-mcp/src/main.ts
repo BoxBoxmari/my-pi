@@ -1,11 +1,11 @@
 /**
- * CLI entry for ccr-mcp and ccr host-config.
+ * CLI entry for my-pi-mcp and host-config.
  * V1 transport: stdio only.
  */
 import path from "node:path";
-import { WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { createFoundationCapabilities, CcrServer } from "@ccr/mcp-adapter";
-import { REQUIRED_PROFILES, renderProfile } from "@ccr/host-profiles";
+import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { createFoundationCapabilities, MyPiServer } from "@my-pi/mcp-adapter";
+import { REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
 
 export interface CliOptions {
   command: "mcp" | "host-config";
@@ -13,12 +13,21 @@ export interface CliOptions {
   profileId?: string;
 }
 
+function resolveWorkspaceRootFromEnv(): string | undefined {
+  if (process.env.MY_PI_WORKSPACE_ROOT !== undefined) return process.env.MY_PI_WORKSPACE_ROOT;
+  if (process.env.CCR_WORKSPACE_ROOT !== undefined) {
+    console.error("[my-pi] warning: CCR_WORKSPACE_ROOT is deprecated; use MY_PI_WORKSPACE_ROOT (supported for 1 major)");
+    return process.env.CCR_WORKSPACE_ROOT;
+  }
+  return undefined;
+}
+
 export function parseArgs(argv: string[]): CliOptions {
   const args = argv.slice(2);
   if (args[0] === "host-config") {
     return { command: "host-config", profileId: args[1] };
   }
-  let workspace = process.env.CCR_WORKSPACE_ROOT;
+  let workspace = resolveWorkspaceRootFromEnv();
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--workspace") workspace = args[i + 1] ?? workspace;
     else if (args[i]?.startsWith("--workspace=")) workspace = args[i]!.split("=")[1] ?? workspace;
@@ -35,20 +44,20 @@ export async function runHostConfig(profileId: string | undefined): Promise<void
     return;
   }
   const rendered = renderProfile(profile, {
-    command: "ccr-mcp",
+    command: "my-pi-mcp",
     workspace: "${workspaceFolder}",
   });
   process.stdout.write(rendered.type === "json" ? rendered.pretty + "\n" : rendered.command + "\n");
 }
 
 export async function runMcp(workspace: string | undefined): Promise<void> {
-  const root = workspace ?? process.env.CCR_WORKSPACE_ROOT ?? process.cwd();
+  const root = workspace ?? resolveWorkspaceRootFromEnv() ?? process.cwd();
   const runtime = new WorkspaceRuntime();
   await runtime.open({ root: path.resolve(root) });
-  console.error(`[ccr] workspace=${path.resolve(root)} mode=${runtime.workspaceOrThrow.policy.mode} transport=stdio`);
+  console.error(`[my-pi] workspace=${path.resolve(root)} mode=${runtime.workspaceOrThrow.policy.mode} transport=stdio`);
 
   const capabilities = createFoundationCapabilities(runtime);
-  const server = new CcrServer({ name: "ccr", version: "0.1.0", runtime, capabilities });
+  const server = new MyPiServer({ name: "my-pi", version: "0.1.0", runtime, capabilities });
   await server.connect();
 }
 

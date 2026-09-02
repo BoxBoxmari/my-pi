@@ -27,36 +27,36 @@ importers:
         specifier: 4.4.1
         version: 4.4.1
 
-  apps/ccr-mcp:
+  apps/my-pi-mcp:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@ccr/host-profiles':
+      '@my-pi/host-profiles':
         specifier: workspace:*
         version: link:../../packages/host-profiles
-      '@ccr/mcp-adapter':
+      '@my-pi/mcp-adapter':
         specifier: workspace:*
         version: link:../../packages/mcp-adapter
-      '@ccr/workspace-runtime':
+      '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../../packages/workspace-runtime
 
   packages/artifact-store:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/ast:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@ccr/native-ports':
+      '@my-pi/native-ports':
         specifier: workspace:*
         version: link:../native-ports
-      '@ccr/workspace-runtime':
+      '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../workspace-runtime
       tree-sitter-wasms:
@@ -70,160 +70,160 @@ importers:
 
   packages/fs:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@ccr/hashline':
+      '@my-pi/hashline':
         specifier: workspace:*
         version: link:../hashline
-      '@ccr/workspace-runtime':
+      '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../workspace-runtime
 
   packages/hashline:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/host-profiles:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/lsp:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@ccr/workspace-runtime':
+      '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../workspace-runtime
 
   packages/mcp-adapter:
     dependencies:
-      '@ccr/artifact-store':
-        specifier: workspace:*
-        version: link:../artifact-store
-      '@ccr/ast':
-        specifier: workspace:*
-        version: link:../ast
-      '@ccr/contracts':
-        specifier: workspace:*
-        version: link:../contracts
-      '@ccr/fs':
-        specifier: workspace:*
-        version: link:../fs
-      '@ccr/hashline':
-        specifier: workspace:*
-        version: link:../hashline
-      '@ccr/lsp':
-        specifier: workspace:*
-        version: link:../lsp
-      '@ccr/native-ports':
-        specifier: workspace:*
-        version: link:../native-ports
-      '@ccr/observability':
-        specifier: workspace:*
-        version: link:../observability
-      '@ccr/policy':
-        specifier: workspace:*
-        version: link:../policy
-      '@ccr/search':
-        specifier: workspace:*
-        version: link:../search
-      '@ccr/vcs':
-        specifier: workspace:*
-        version: link:../vcs
-      '@ccr/workspace-runtime':
-        specifier: workspace:*
-        version: link:../workspace-runtime
       '@modelcontextprotocol/core':
         specifier: 2.0.0
         version: 2.0.0
       '@modelcontextprotocol/server':
         specifier: 2.0.0
         version: 2.0.0
+      '@my-pi/artifact-store':
+        specifier: workspace:*
+        version: link:../artifact-store
+      '@my-pi/ast':
+        specifier: workspace:*
+        version: link:../ast
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@my-pi/fs':
+        specifier: workspace:*
+        version: link:../fs
+      '@my-pi/hashline':
+        specifier: workspace:*
+        version: link:../hashline
+      '@my-pi/lsp':
+        specifier: workspace:*
+        version: link:../lsp
+      '@my-pi/native-ports':
+        specifier: workspace:*
+        version: link:../native-ports
+      '@my-pi/observability':
+        specifier: workspace:*
+        version: link:../observability
+      '@my-pi/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@my-pi/search':
+        specifier: workspace:*
+        version: link:../search
+      '@my-pi/vcs':
+        specifier: workspace:*
+        version: link:../vcs
+      '@my-pi/workspace-runtime':
+        specifier: workspace:*
+        version: link:../workspace-runtime
       zod:
         specifier: ^4.5.4
         version: 4.5.4
 
   packages/native-loader:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/native-ports:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/observability:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/policy:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/search:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@ccr/native-loader':
+      '@my-pi/native-loader':
         specifier: workspace:*
         version: link:../native-loader
-      '@ccr/native-ports':
+      '@my-pi/native-ports':
         specifier: workspace:*
         version: link:../native-ports
-      '@ccr/policy':
+      '@my-pi/policy':
         specifier: workspace:*
         version: link:../policy
-      '@ccr/workspace-runtime':
+      '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../workspace-runtime
 
   packages/testing:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/vcs:
     dependencies:
-      '@ccr/artifact-store':
+      '@my-pi/artifact-store':
         specifier: workspace:*
         version: link:../artifact-store
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@ccr/native-ports':
+      '@my-pi/native-ports':
         specifier: workspace:*
         version: link:../native-ports
-      '@ccr/workspace-runtime':
+      '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../workspace-runtime
 
   packages/workspace-runtime:
     dependencies:
-      '@ccr/contracts':
+      '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@ccr/hashline':
+      '@my-pi/hashline':
         specifier: workspace:*
         version: link:../hashline
-      '@ccr/observability':
+      '@my-pi/observability':
         specifier: workspace:*
         version: link:../observability
-      '@ccr/policy':
+      '@my-pi/policy':
         specifier: workspace:*
         version: link:../policy
 

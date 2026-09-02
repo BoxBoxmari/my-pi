@@ -13,7 +13,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
-const TARGET_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(os.tmpdir(), "ccr-100k-fixture");
+const TARGET_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(os.tmpdir(), "my-pi-100k-fixture");
 const TOTAL_FILES = parseInt(process.argv[3] ?? "100000", 10);
 const SEED = 133742;
 
@@ -112,7 +112,7 @@ temp/
 `, "utf8");
 
   await fs.writeFile(path.join(targetDir, "package.json"), JSON.stringify({
-    name: "ccr-100k-benchmark-repo",
+    name: "my-pi-100k-benchmark-repo",
     version: "1.0.0",
     private: true,
   }, null, 2), "utf8");
@@ -131,7 +131,7 @@ temp/
 
   // 4. Deterministic search needles at known locations
   const needlePath1 = path.join(targetDir, "src", "target_unique_needle.ts");
-  await fs.writeFile(needlePath1, `// CCR_BENCHMARK_TARGET_UNIQUE_NEEDLE_A17\nexport const benchmarkTarget = 42;\n`, "utf8");
+  await fs.writeFile(needlePath1, `// MY_PI_BENCHMARK_TARGET_UNIQUE_NEEDLE_A17\nexport const benchmarkTarget = 42;\n`, "utf8");
 
   // 5. Build compact directory hierarchy (5 pkgs * 10 mods * 4 subdirs = 200 directories)
   const numPackages = 5;

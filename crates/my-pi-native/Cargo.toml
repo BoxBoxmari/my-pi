@@ -1,5 +1,5 @@
 [package]
-name = "ccr-native"
+name = "my-pi-native"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

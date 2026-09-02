@@ -6,7 +6,7 @@ import {
   type NewlineStyle,
   type SnapshotId,
   type TextEncoding,
-} from "@ccr/contracts";
+} from "@my-pi/contracts";
 
 export interface RecordSnapshotInput {
   path: string;

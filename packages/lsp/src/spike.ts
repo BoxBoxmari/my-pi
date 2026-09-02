@@ -10,7 +10,7 @@
  * server, and freezes that contract. It is intentionally self-contained.
  */
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { err, type ArtifactRef } from "@ccr/contracts";
+import { err, type ArtifactRef } from "@my-pi/contracts";
 
 const LSP_TIMEOUT_MS = 30_000;
 

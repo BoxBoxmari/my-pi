@@ -20,13 +20,13 @@ import type { Transport } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import {
   createRequestId,
-  isCcrError,
+  isMyPiError,
   type Capability,
   type CapabilityContext,
-} from "@ccr/contracts";
-import type { WorkspaceRuntime } from "@ccr/workspace-runtime";
+} from "@my-pi/contracts";
+import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { getDesiredEra, setObservedEra, getObservedEra, type McpEra } from "./era.js";
-import { ccrCodeToMcpCode } from "./error-map.js";
+import { myPiCodeToMcpCode } from "./error-map.js";
 import { ToolRegistry, type ToolDefinition } from "./tool-registry.js";
 
 const SCHEMAS: Record<string, StandardSchemaWithJSON> = {
@@ -90,7 +90,7 @@ const DESCRIPTIONS: Record<string, string> = {
   vcs_diff: "VCS diff. Read-only.",
 };
 
-export interface CcrServerOptions {
+export interface MyPiServerOptions {
   name?: string;
   version?: string;
   runtime: WorkspaceRuntime;
@@ -98,13 +98,13 @@ export interface CcrServerOptions {
   requestLog?: (row: { tool: string; ok: boolean; ms: number; errorCode?: string }) => void;
 }
 
-export class CcrServer {
+export class MyPiServer {
   private readonly server: McpServer;
   private readonly registry = new ToolRegistry();
 
-  constructor(private readonly opts: CcrServerOptions) {
+  constructor(private readonly opts: MyPiServerOptions) {
     const server = new McpServer(
-      { name: opts.name ?? "ccr", version: opts.version ?? "0.1.0" },
+      { name: opts.name ?? "my-pi", version: opts.version ?? "0.1.0" },
       { capabilities: { tools: {} } },
     );
     this.server = server;
@@ -139,7 +139,7 @@ export class CcrServer {
         inputSchema: SCHEMAS[def.name]!,
         // P1.2: explicit availability metadata outside the call path, so the
         // catalog can stay at 13 without implying 13 working tools.
-        _meta: { "ccr/availability": toolAvailability(def.name) },
+        _meta: { "my-pi/availability": toolAvailability(def.name), "ccr/availability": toolAvailability(def.name) },
       },
       async (input, ctx) => {
         const requestId = createRequestId();
@@ -158,12 +158,12 @@ export class CcrServer {
           this.opts.requestLog?.({ tool: def.name, ok: true, ms: performance.now() - started });
           return { content: [{ type: "text", text: JSON.stringify(res) }] };
         } catch (e) {
-          const errorCode = isCcrError(e) ? e.code : "UNKNOWN";
+          const errorCode = isMyPiError(e) ? e.code : "UNKNOWN";
           this.opts.requestLog?.({ tool: def.name, ok: false, ms: performance.now() - started, errorCode });
-          if (isCcrError(e)) {
-            // Typed CCR error -> JSON-RPC error with stable code mapping.
+          if (isMyPiError(e)) {
+            // Typed my-pi error -> JSON-RPC error with stable code mapping.
             const err = new Error(e.message) as Error & { code?: number };
-            err.code = ccrCodeToMcpCode(e.code);
+            err.code = myPiCodeToMcpCode(e.code);
             throw err;
           }
           throw e;
@@ -182,5 +182,10 @@ export class CcrServer {
     return this.server;
   }
 }
+
+/** @deprecated Use MyPiServer. Kept as a 1-major alias. */
+export const CcrServer = MyPiServer;
+/** @deprecated Use MyPiServerOptions. Kept as a 1-major alias. */
+export type CcrServerOptions = MyPiServerOptions;
 
 export { InMemoryTransport, INVALID_PARAMS, PARSE_ERROR, INTERNAL_ERROR, METHOD_NOT_FOUND };

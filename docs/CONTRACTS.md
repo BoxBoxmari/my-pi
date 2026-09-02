@@ -1,6 +1,6 @@
-# CCR Contracts (v1.1)
+# my-pi Contracts (v1.1)
 
-Stable domain contracts, protocol-version independent. Implemented in `@ccr/contracts`.
+Stable domain contracts, protocol-version independent. Implemented in `@my-pi/contracts`.
 
 ## Workspace
 ```ts

@@ -1,5 +1,5 @@
 {
-  "name": "@ccr/native-loader",
+  "name": "@my-pi/native-loader",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,6 +11,6 @@
     }
   },
   "dependencies": {
-    "@ccr/contracts": "workspace:*"
+    "@my-pi/contracts": "workspace:*"
   }
 }

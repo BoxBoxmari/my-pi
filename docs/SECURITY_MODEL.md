@@ -1,4 +1,4 @@
-# CCR Security Model (v1.1)
+# my-pi Security Model (v1.1)
 
 Host permission UX is **defense-in-depth, never the trust boundary** (A6). All policy is
 enforced server-side.
@@ -38,7 +38,7 @@ content-based secret scanning.
 
 ## Transport & observability
 - `stdout` = MCP protocol only; logs to `stderr`.
-- No content/secret/auth-header logging by default (`@ccr/observability` redaction).
+- No content/secret/auth-header logging by default (`@my-pi/observability` redaction).
 - HTTP is post-V1; if enabled later it is disabled by default and requires bearer auth
   before non-loopback exposure.
 

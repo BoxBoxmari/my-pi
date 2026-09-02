@@ -2,12 +2,13 @@
 /**
  * R0.1.1: project-reference validation.
  *
- * Rule: for every workspace package, each `@ccr/*` entry in package.json
- * dependencies/devDependencies must have a matching entry in that package's
- * tsconfig.json `references`. This prevents the class of build failure where
- * a TS composite project imports a workspace package it does not reference
- * (verified real case: mcp-adapter imported @ccr/fs without a `../fs`
- * reference -> clean `tsc --build` failed with TS2307).
+ * Rule: for every workspace package, each `@my-pi/*` (or legacy `@ccr/*`)
+ * entry in package.json dependencies/devDependencies must have a matching
+ * entry in that package's tsconfig.json `references`. This prevents the
+ * class of build failure where a TS composite project imports a workspace
+ * package it does not reference (verified real case: mcp-adapter imported
+ * @my-pi/fs without a `../fs` reference -> clean `tsc --build` failed
+ * with TS2307).
  */
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
@@ -44,7 +45,9 @@ async function checkOne(dir) {
     ...(pkg.dependencies ?? {}),
     ...(pkg.devDependencies ?? {}),
   };
-  const workspaceDeps = Object.keys(deps).filter((d) => d.startsWith("@ccr/"));
+  const workspaceDeps = Object.keys(deps).filter(
+    (d) => d.startsWith("@ccr/") || d.startsWith("@my-pi/"),
+  );
   if (workspaceDeps.length === 0) return;
 
   const refs = (tsconfig.references ?? []).map(refNameFromPath).filter(Boolean);
@@ -54,7 +57,7 @@ async function checkOne(dir) {
   );
 
   for (const dep of workspaceDeps) {
-    const short = dep.replace("@ccr/", "");
+    const short = dep.replace(/^@(?:ccr|my-pi)\//, "");
     if (!refNames.has(short)) {
       const relDir = path.relative(ROOT, dir).replace(/\\/g, "/");
       console.error(
@@ -87,4 +90,4 @@ if (failures > 0) {
   console.error(`\n${failures} project-reference violation(s). Fix tsconfig references before building.`);
   process.exit(1);
 }
-console.log("project-reference validation: PASS (every @ccr/* dependency has a matching tsconfig reference)");
+console.log("project-reference validation: PASS (every @my-pi/* dependency has a matching tsconfig reference)");

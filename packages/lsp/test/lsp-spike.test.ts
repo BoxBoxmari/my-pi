@@ -3,11 +3,11 @@ import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { runLspSpike, LspJsonRpcConnection } from "@ccr/lsp";
+import { runLspSpike, LspJsonRpcConnection } from "@my-pi/lsp";
 
 let dir: string;
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-lsp-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-lsp-"));
   await fs.writeFile(path.join(dir, "tsconfig.json"), JSON.stringify({ compilerOptions: { strict: true } }), "utf8");
 });
 after(async () => {

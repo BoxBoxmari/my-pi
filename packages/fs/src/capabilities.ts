@@ -1,5 +1,5 @@
 /**
- * @ccr/fs — the FS capability package (P1.1).
+ * @my-pi/fs — the FS capability package (P1.1).
  *
  * Owns fs_read / fs_stat / fs_write / fs_patch business logic. The MCP
  * adapter only translates MCP input into domain input and back.
@@ -18,9 +18,9 @@ import {
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
-} from "@ccr/contracts";
-import { atomicCreateNoReplace, atomicReplaceBytes, type WorkspaceRuntime } from "@ccr/workspace-runtime";
-import { applyHunks, parsePatch } from "@ccr/hashline";
+} from "@my-pi/contracts";
+import { atomicCreateNoReplace, atomicReplaceBytes, type WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { applyHunks, parsePatch } from "@my-pi/hashline";
 
 type Ctx = CapabilityContext;
 

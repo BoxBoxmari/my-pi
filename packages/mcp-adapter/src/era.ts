@@ -2,7 +2,8 @@
  * MCP era tracking (P0.6).
  *
  * Three DISTINCT concepts — never conflated:
- * - desired era: operator intent (env `CCR_MCP_ERA`), advisory only;
+ * - desired era: operator intent (env `MY_PI_MCP_ERA`, legacy `CCR_MCP_ERA`),
+ *   advisory only;
  * - supported eras: what the official SDK v2 actually supports (observed from
  *   the installed package at runtime, not from memory);
  * - observed/negotiated era: what the wire initialize exchange actually
@@ -15,7 +16,7 @@ export type McpEra = string;
 
 /** Operator intent only — never reported as negotiated fact. */
 export function getDesiredEra(): McpEra | undefined {
-  const v = process.env.CCR_MCP_ERA;
+  const v = process.env.MY_PI_MCP_ERA ?? process.env.CCR_MCP_ERA;
   return v && v.trim() !== "" ? v : undefined;
 }
 
@@ -50,5 +51,5 @@ export function setSelectedEra(era: McpEra): void {
 
 import { createHash } from "node:crypto";
 export function eraHash(era: McpEra): string {
-  return createHash("sha256").update(`ccr-era:${era}`).digest("hex").slice(0, 16);
+  return createHash("sha256").update(`my-pi-era:${era}`).digest("hex").slice(0, 16);
 }

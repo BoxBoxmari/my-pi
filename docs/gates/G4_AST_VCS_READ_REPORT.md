@@ -3,7 +3,7 @@
 Status: **PARTIAL** — VCS read plane DONE; AST search BLOCKED (native supplier qualification pending G0).
 
 ## VCS (implemented, tested)
-- `@ccr/vcs` `GitVcsBackend` (read-only): `vcs_status` (`git status --porcelain`) and `vcs_diff` (`git diff --unified=3`).
+- `@my-pi/vcs` `GitVcsBackend` (read-only): `vcs_status` (`git status --porcelain`) and `vcs_diff` (`git diff --unified=3`).
 - Controlled subprocess only; no shell interpolation; forbidden mutations (commit/reset/checkout/branch) never invoked (A10).
 - Non-git workspace → typed non-crashing behavior.
 - Tools: `vcs_status`, `vcs_diff` wired; backend metadata `"typescript"`.

@@ -2,7 +2,7 @@
  * Policy engine: authorize an operation class for a resolved path against a
  * workspace policy, applying sensitive-path deny-by-default semantics.
  */
-import type { CapabilityClass, WorkspacePolicy } from "@ccr/contracts";
+import type { CapabilityClass, WorkspacePolicy } from "@my-pi/contracts";
 import { classAllowedInMode, V1_UNAVAILABLE_CLASSES } from "./capability-class.js";
 import { SensitivePathPolicy } from "./sensitive-paths.js";
 

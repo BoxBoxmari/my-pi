@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * PR Smoke Test: Pack, install tarball, and run ccr-mcp over real stdio.
+ * PR Smoke Test: Pack, install tarball, and run my-pi-mcp over real stdio.
  *
  * Verifies:
  * 1. Monorepo builds cleanly
  * 2. Packages can be packed into npm tarballs
- * 3. An isolated environment can run ccr-mcp
+ * 3. An isolated environment can run my-pi-mcp
  * 4. All 13 tools are discoverable and operational over MCP stdio
  * 5. Clean exit without leaks or hanging processes
  *
@@ -30,7 +30,7 @@ async function runPrSmoke() {
   execSync("pnpm build", { cwd: ROOT, stdio: "inherit" });
 
   // Step 2: Create temp smoke workspace
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-pr-smoke-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-pr-smoke-"));
   console.log(`[2/5] Created isolated test workspace: ${tempDir}`);
 
   // Create sample files
@@ -46,16 +46,16 @@ def greet(name: str) -> str:
 `, "utf8");
 
   // Step 3: Pack app package
-  console.log("[3/5] Packing @ccr/app with pnpm pack...");
-  const packOutput = execSync("pnpm --filter @ccr/app pack --pack-destination " + tempDir, {
+  console.log("[3/5] Packing @my-pi/app with pnpm pack...");
+  const packOutput = execSync("pnpm --filter @my-pi/app pack --pack-destination " + tempDir, {
     cwd: ROOT,
     encoding: "utf8",
   });
   console.log(`  Packed: ${packOutput.trim()}`);
 
-  // Step 4: Launch ccr-mcp subprocess over stdio
-  console.log("[4/5] Launching ccr-mcp server process over stdio...");
-  const mainScript = path.join(ROOT, "apps", "ccr-mcp", "dist", "main.js");
+  // Step 4: Launch my-pi-mcp subprocess over stdio
+  console.log("[4/5] Launching my-pi-mcp server process over stdio...");
+  const mainScript = path.join(ROOT, "apps", "my-pi-mcp", "dist", "main.js");
 
   const transport = new StdioClientTransport({
     command: process.execPath,
@@ -66,7 +66,7 @@ def greet(name: str) -> str:
 
   const client = new Client({ name: "pr-smoke-client", version: "1.0.0" });
   await client.connect(transport);
-  console.log("  ✓ MCP Client connected to ccr-mcp over stdio");
+  console.log("  ✓ MCP Client connected to my-pi-mcp over stdio");
 
   // Step 5: Verify 13 tools & call core capabilities
   console.log("[5/5] Exercising 13-tool surface...");

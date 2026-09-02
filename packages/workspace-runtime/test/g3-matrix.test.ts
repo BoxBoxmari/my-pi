@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { WorkspaceRuntime, atomicReplaceBytes } from "@ccr/workspace-runtime";
-import { applyHunks, parsePatch } from "@ccr/hashline";
+import { WorkspaceRuntime, atomicReplaceBytes } from "@my-pi/workspace-runtime";
+import { applyHunks, parsePatch } from "@my-pi/hashline";
 import {
   fingerprintBytes,
   encodeText,
@@ -14,11 +14,11 @@ import {
   hasFinalNewline,
   isLikelyBinary,
   type CcrError,
-} from "@ccr/contracts";
+} from "@my-pi/contracts";
 
 let dir: string;
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-g3-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-g3-"));
 });
 after(async () => {
   await fs.rm(dir, { recursive: true, force: true });

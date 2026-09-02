@@ -4,12 +4,12 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { GitVcsBackend } from "@ccr/vcs";
-import { isCcrError, type ArtifactRef } from "@ccr/contracts";
+import { GitVcsBackend } from "@my-pi/vcs";
+import { isCcrError, type ArtifactRef } from "@my-pi/contracts";
 
 let dir: string;
 before(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccr-spill-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-spill-"));
   execFileSync("git", ["init", "-q"], { cwd: dir });
   execFileSync("git", ["config", "user.email", "t@t"], { cwd: dir });
   execFileSync("git", ["config", "user.name", "t"], { cwd: dir });
@@ -33,7 +33,7 @@ test("G2: vcs_diff truncates inline hunks and spills the full diff to an artifac
     new AbortController().signal,
     {
       spillTo: async (data: string) => {
-        const { LocalArtifactStore } = await import("@ccr/artifact-store");
+        const { LocalArtifactStore } = await import("@my-pi/artifact-store");
         const store = new LocalArtifactStore(await import("node:os").then((m) => m.tmpdir()));
         const ref = await store.put("text/plain", new TextEncoder().encode(data));
         artifacts.push(ref);
@@ -61,7 +61,7 @@ test("G2: vcs_diff under the inline limit does NOT spill", async () => {
     new AbortController().signal,
     {
       spillTo: async (data: string) => {
-        const { LocalArtifactStore } = await import("@ccr/artifact-store");
+        const { LocalArtifactStore } = await import("@my-pi/artifact-store");
         const store = new LocalArtifactStore(await import("node:os").then((m) => m.tmpdir()));
         return store.put("text/plain", new TextEncoder().encode(data));
       },

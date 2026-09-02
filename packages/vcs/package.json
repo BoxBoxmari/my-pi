@@ -1,5 +1,5 @@
 {
-  "name": "@ccr/vcs",
+  "name": "@my-pi/vcs",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,9 +11,9 @@
     }
   },
   "dependencies": {
-    "@ccr/artifact-store": "workspace:*",
-    "@ccr/contracts": "workspace:*",
-    "@ccr/native-ports": "workspace:*",
-    "@ccr/workspace-runtime": "workspace:*"
+    "@my-pi/artifact-store": "workspace:*",
+    "@my-pi/contracts": "workspace:*",
+    "@my-pi/native-ports": "workspace:*",
+    "@my-pi/workspace-runtime": "workspace:*"
   }
 }
