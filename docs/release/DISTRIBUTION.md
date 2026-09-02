@@ -2,20 +2,26 @@
 
 **Package Name:** `my-pi`  
 **CLI Binaries:** `my-pi-mcp` (primary), `ccr-mcp` (deprecated 1-major alias)  
-**Target Registry:** npm / GitHub Packages  
-**Supported Node Engine:** `>=22.6.0` (tested on Node 22 LTS and Node 24 LTS)
+**Intended Registry:** npm / GitHub Packages
+**Current workflow state:** qualification artifacts are uploaded by GitHub Actions; registry publication remains a manual follow-up.
+**Supported Node Engine:** `>=22.6.0` (Node 22 and Node 24 qualification lanes are configured; candidate run evidence is retained by the release workflow)
 
 ---
 
 ## 1. Package Contents Allowlist
 
-The distributed npm tarball (`apps/my-pi-mcp`) must contain exclusively:
+The distributed npm tarball (`my-pi`) must contain exclusively:
 
 - `dist/main.js` (with `#!/usr/bin/env node` shebang)
-- `dist/**/*.js` and `dist/**/*.d.ts`
+- `dist/**/*.js`, `dist/**/*.d.ts`, and matching `dist/**/*.map` files
 - `package.json`
 - `LICENSE`
 - `README.md`
+- optionally `THIRD-PARTY-NOTICES.txt`
+
+Shipped source maps describe the final bundled JavaScript and may include
+embedded source content for debugging; standalone TypeScript implementation
+files are not included.
 
 Excluded from tarball:
 - Source `.ts` files (except definitions)
@@ -23,6 +29,15 @@ Excluded from tarball:
 - Benchmark fixtures (`fixtures/`)
 - Engineering logs (`evidence/*.log`)
 - Agent & harness metadata (`.agent/`, `.agt/`, `.knowns/`, `.x-harness/`)
+
+The release smoke path validates this allowlist from the TGZ itself, then
+installs that same TGZ into a fresh consumer directory. Release qualification
+must pass the existing artifact to `scripts/pr-smoke.mjs --artifact`; it must
+not repack before testing.
+
+The release workflow retains `release-manifest.json` alongside `SHA256SUMS.txt`,
+the candidate-bound SBOM, benchmark result, and evidence documents. The
+manifest records the exact TGZ and SBOM digests plus the candidate commit.
 
 ---
 
@@ -36,5 +51,5 @@ npm install -g my-pi
 my-pi-mcp --workspace /path/to/project
 
 # Direct execution via npx
-npx my-pi --workspace /path/to/project
+npx --yes --package my-pi@0.1.0-alpha.1 my-pi-mcp --workspace /path/to/project
 ```

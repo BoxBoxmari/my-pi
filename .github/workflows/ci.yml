@@ -70,6 +70,9 @@ jobs:
       - name: Unit + Integration tests (100+ suites)
         run: pnpm test
 
+      - name: Bind release evidence to current commit
+        run: node scripts/bind-release-evidence.mjs
+
       - name: Release verifier test suite
         run: node --test test/release/**/*.test.mjs
 
@@ -92,14 +95,15 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.node == 24
         continue-on-error: true
         run: |
-          cargo install cargo-audit cargo-deny --locked || true
+          cargo install cargo-audit --version 0.22.2 --locked || true
+          cargo install cargo-deny --version 0.20.2 --locked || true
           cargo audit || echo "cargo audit reported notices"
           cargo deny check licenses || echo "cargo deny check completed"
 
       - name: Supply-chain - SBOM generation & verification
         run: |
           node scripts/generate-sbom.mjs
-          node -e "import('node:fs/promises').then(fs => fs.access('provenance/SBOM.cdx.json'))"
+          node scripts/verify-sbom.mjs
 
       - name: Benchmark smoke - stdio overhead & traversal
         run: |

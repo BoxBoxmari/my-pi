@@ -1,54 +1,217 @@
 #!/usr/bin/env node
 /**
- * Release Admission Gate Verifier v2 (RR-01).
+ * Release Admission Gate Verifier v3.
+ *
  * Enforces fail-closed validation of release criteria defined in
  * release/release-policy.json against evidence/*.json, package metadata,
- * git tags, and benchmark integrity.
+ * candidate commit identity, git tags, and benchmark integrity.
  * Usage: node scripts/verify-release.mjs [--strict]
  */
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
+import { normalizeCommit, resolveReleaseCommit } from "./release-identity.mjs";
 
 const ROOT = process.cwd();
+const STRICT = process.argv.includes("--strict");
 const POLICY_FILE = path.join(ROOT, "release", "release-policy.json");
 const EVIDENCE_DIR = path.join(ROOT, "evidence");
 const ROOT_PACKAGE = path.join(ROOT, "package.json");
 const APP_PACKAGE = path.join(ROOT, "apps", "my-pi-mcp", "package.json");
 
-async function fileExists(p) {
+async function fileExists(filePath) {
   try {
-    await stat(p);
-    return true;
+    const details = await stat(filePath);
+    return details.isFile();
   } catch {
     return false;
   }
 }
 
-async function run() {
+function requiredEvidenceIds(policy) {
+  const ids = new Set(policy.requiredGates ?? []);
+  for (const criterion of policy.requiredCriteria ?? []) {
+    const [gateId] = String(criterion).split(":", 1);
+    if (gateId) ids.add(gateId);
+  }
+  return [...ids].sort();
+}
+
+async function readEvidence(evidenceFiles) {
+  const evidenceMap = new Map();
+  let failures = 0;
+  for (const file of evidenceFiles) {
+    const filePath = path.join(EVIDENCE_DIR, file);
+    try {
+      const gateData = JSON.parse(await readFile(filePath, "utf8"));
+      const fileGateId = file.replace(/\.json$/, "");
+      const gateId = gateData.id || fileGateId;
+      if (gateData.id && gateData.id !== fileGateId) {
+        console.error(`  ✗ Evidence file ${file} declares unexpected gate id ${gateData.id}`);
+        failures++;
+        continue;
+      }
+      if (evidenceMap.has(gateId)) {
+        console.error(`  ✗ Duplicate evidence document for gate ${gateId}`);
+        failures++;
+        continue;
+      }
+      evidenceMap.set(gateId, gateData);
+    } catch (err) {
+      console.error(`  ✗ Failed to parse evidence ${file}: ${err.message}`);
+      failures++;
+    }
+  }
+  return { evidenceMap, failures };
+}
+
+function validateEvidenceFreshness(policy, evidenceMap) {
+  const mode = policy.evidenceFreshness?.mode ?? "none";
+  if (mode === "none") return { failures: 0, commit: null };
+  if (mode !== "current-release-commit") {
+    console.error(`  ✗ Unsupported evidence freshness mode: ${mode}`);
+    return { failures: 1, commit: null };
+  }
+
+  let canonicalCommit;
+  try {
+    canonicalCommit = resolveReleaseCommit({ cwd: ROOT });
+    console.log(`  ✓ Canonical release commit: ${canonicalCommit}`);
+  } catch (err) {
+    console.error(`  ✗ Cannot determine canonical release commit: ${err.message}`);
+    return { failures: 1, commit: null };
+  }
+
+  let failures = 0;
+  for (const gateId of requiredEvidenceIds(policy)) {
+    const gateData = evidenceMap.get(gateId);
+    if (!gateData) continue;
+    if (typeof gateData.commit !== "string" || gateData.commit.trim() === "") {
+      console.error(`  ✗ Gate evidence ${gateId}.json is missing commit identifier`);
+      failures++;
+      continue;
+    }
+
+    let observedCommit;
+    try {
+      observedCommit = normalizeCommit(gateData.commit, { cwd: ROOT });
+    } catch (err) {
+      console.error(`  ✗ Gate evidence ${gateId}.json has invalid commit ${gateData.commit}: ${err.message}`);
+      failures++;
+      continue;
+    }
+
+    if (observedCommit !== canonicalCommit) {
+      console.error(`  ✗ Gate evidence ${gateId}.json is stale: expected ${canonicalCommit}, observed ${observedCommit}`);
+      failures++;
+    } else {
+      console.log(`  ✓ Gate evidence ${gateId}.json bound to ${canonicalCommit}`);
+    }
+  }
+  return { failures, commit: canonicalCommit };
+}
+
+function validateBenchmarkData(data, { expectedProfile, minTarget, policyVersion, canonicalCommit, fileName }) {
+  let failures = 0;
+  if (data.profile !== expectedProfile) {
+    console.error(`  ✗ Benchmark profile mismatch in ${fileName}: got ${data.profile}, expected ${expectedProfile}`);
+    failures++;
+  }
+  if (typeof data.releaseVersion !== "string" || data.releaseVersion !== policyVersion) {
+    console.error(`  ✗ Benchmark release version mismatch in ${fileName}: got ${data.releaseVersion}, expected ${policyVersion}`);
+    failures++;
+  }
+  if (typeof data.commit !== "string" || data.commit.trim() === "") {
+    console.error(`  ✗ Benchmark ${fileName} is missing candidate commit`);
+    failures++;
+  } else {
+    try {
+      const observedCommit = normalizeCommit(data.commit, { cwd: ROOT });
+      if (canonicalCommit && observedCommit !== canonicalCommit) {
+        console.error(`  ✗ Benchmark ${fileName} is stale: expected ${canonicalCommit}, observed ${observedCommit}`);
+        failures++;
+      }
+    } catch (err) {
+      console.error(`  ✗ Benchmark ${fileName} has invalid commit ${data.commit}: ${err.message}`);
+      failures++;
+    }
+  }
+  if (typeof data.targetFileCount !== "number" || data.targetFileCount < minTarget) {
+    console.error(`  ✗ Benchmark target count insufficient in ${fileName}: got ${data.targetFileCount}, expected >= ${minTarget}`);
+    failures++;
+  }
+  if (typeof data.observedFileCount !== "number" || data.observedFileCount < data.targetFileCount) {
+    console.error(`  ✗ Benchmark observed file count (${data.observedFileCount}) < target count (${data.targetFileCount})`);
+    failures++;
+  }
+  if (typeof data.observedFileCount !== "number" || data.observedFileCount < minTarget) {
+    console.error(`  ✗ Benchmark observed file count (${data.observedFileCount}) < required minimum (${minTarget})`);
+    failures++;
+  }
+  if (typeof data.platform !== "string" || data.platform.trim() === "") {
+    console.error(`  ✗ Benchmark ${fileName} is missing platform`);
+    failures++;
+  }
+  if (typeof data.nodeVersion !== "string" || data.nodeVersion.trim() === "") {
+    console.error(`  ✗ Benchmark ${fileName} is missing Node version`);
+    failures++;
+  }
+  if (typeof data.timestamp !== "string" || data.timestamp.trim() === "") {
+    console.error(`  ✗ Benchmark ${fileName} is missing timestamp`);
+    failures++;
+  }
+  return failures;
+}
+
+async function verifyBenchmark(filePath, config, policyVersion, canonicalCommit, required) {
+  const fileName = path.basename(filePath);
+  let data;
+  try {
+    data = JSON.parse(await readFile(filePath, "utf8"));
+  } catch (err) {
+    if (required) {
+      console.error(`  ✗ Missing required ${config.profile} benchmark evidence at ${filePath}: ${err.message}`);
+      return 1;
+    }
+    return 0;
+  }
+
+  const failures = validateBenchmarkData(data, {
+    expectedProfile: config.profile,
+    minTarget: config.minTarget,
+    policyVersion,
+    canonicalCommit,
+    fileName,
+  });
+  if (failures === 0) {
+    console.log(`  ✓ Benchmark ${config.profile} verified (${data.observedFileCount} files in ${data.globDurationMs}ms glob / ${data.grepDurationMs}ms grep)`);
+  }
+  return failures;
+}
+
+export async function run() {
   let policy;
   try {
     policy = JSON.parse(await readFile(POLICY_FILE, "utf8"));
   } catch (err) {
-    console.error(`[RELEASE VERIFIER] Failed to load policy file ${POLICY_FILE}: ${err.message}`);
-    process.exit(1);
+    throw new Error(`Failed to load policy file ${POLICY_FILE}: ${err.message}`);
   }
 
-  console.log(`=== MY-PI RELEASE ADMISSION VERIFIER v2 ===`);
+  console.log(`=== MY-PI RELEASE ADMISSION VERIFIER v3 (${STRICT ? "strict" : "standard"}) ===`);
   console.log(`Release Version: ${policy.version} (${policy.releaseChannel} channel)`);
   console.log(`Schema Version:  ${policy.schemaVersion}`);
 
   let failures = 0;
   let passedCount = 0;
 
-  // 1. Version & Tag binding across manifests
-  let rootPkg, appPkg;
+  let rootPkg;
+  let appPkg;
   try {
     rootPkg = JSON.parse(await readFile(ROOT_PACKAGE, "utf8"));
     appPkg = JSON.parse(await readFile(APP_PACKAGE, "utf8"));
   } catch (err) {
-    console.error(`[RELEASE VERIFIER] Failed to read package manifests: ${err.message}`);
-    process.exit(1);
+    throw new Error(`Failed to read package manifests: ${err.message}`);
   }
 
   if (rootPkg.version !== policy.version) {
@@ -76,23 +239,16 @@ async function run() {
     }
   }
 
-  // 2. Read evidence directory
-  let evidenceFiles = [];
+  let evidenceFiles;
   try {
-    evidenceFiles = (await readdir(EVIDENCE_DIR)).filter((f) => f.endsWith(".json"));
+    evidenceFiles = (await readdir(EVIDENCE_DIR)).filter((file) => file.endsWith(".json"));
   } catch (err) {
-    console.error(`[RELEASE VERIFIER] Failed to read evidence directory: ${err.message}`);
-    process.exit(1);
+    throw new Error(`Failed to read evidence directory: ${err.message}`);
   }
+  const evidenceResult = await readEvidence(evidenceFiles);
+  const evidenceMap = evidenceResult.evidenceMap;
+  failures += evidenceResult.failures;
 
-  const evidenceMap = new Map();
-  for (const f of evidenceFiles) {
-    const gateData = JSON.parse(await readFile(path.join(EVIDENCE_DIR, f), "utf8"));
-    const gateId = gateData.id || f.replace(".json", "");
-    evidenceMap.set(gateId, gateData);
-  }
-
-  // 3. Required Gates validation
   for (const requiredGate of policy.requiredGates || []) {
     if (!evidenceMap.has(requiredGate)) {
       console.error(`  ✗ Missing required gate evidence for gate: ${requiredGate}`);
@@ -100,11 +256,13 @@ async function run() {
     }
   }
 
-  // 4. Required criteria & duplicates validation
+  const freshness = validateEvidenceFreshness(policy, evidenceMap);
+  failures += freshness.failures;
+  const canonicalCommit = freshness.commit;
+
   const deferredList = policy.deferredCapabilities || [];
   const seenCriteria = new Set();
-
-  for (const critKey of policy.requiredCriteria) {
+  for (const critKey of policy.requiredCriteria || []) {
     if (seenCriteria.has(critKey)) {
       console.error(`  ✗ Duplicate required criterion in policy: ${critKey}`);
       failures++;
@@ -112,21 +270,16 @@ async function run() {
     }
     seenCriteria.add(critKey);
 
-    const [gateId, critId] = critKey.split(":");
+    const [gateId, ...criterionParts] = String(critKey).split(":");
+    const critId = criterionParts.join(":");
     const gateData = evidenceMap.get(gateId);
-
     if (!gateData) {
       console.error(`  ✗ Missing required gate evidence for: ${critKey}`);
       failures++;
       continue;
     }
 
-    if (!gateData.commit || typeof gateData.commit !== "string" || gateData.commit.trim() === "") {
-      console.error(`  ✗ Gate evidence ${gateId}.json is missing commit identifier`);
-      failures++;
-    }
-
-    const crit = (gateData.criteria || []).find((c) => c.id === critId);
+    const crit = (gateData.criteria || []).find((criterion) => criterion.id === critId);
     if (!crit) {
       console.error(`  ✗ Missing required criterion: ${critKey} in ${gateId}.json`);
       failures++;
@@ -146,44 +299,18 @@ async function run() {
     console.log(`  ℹ Deferred: ${def.gate}:${def.id} (${def.description}) - Non-blocking`);
   }
 
-  // 5. Performance benchmark binding
-  const benchDir = path.join(ROOT, "benchmarks", "results");
-  const smokeBenchFile = path.join(benchDir, "traversal-smoke.json");
-  const releaseBenchFile = path.join(benchDir, "traversal-release.json");
-
-  const verifyBenchmark = async (filePath, expectedProfile, minTarget) => {
-    try {
-      const data = JSON.parse(await readFile(filePath, "utf8"));
-      if (data.profile !== expectedProfile) {
-        console.error(`  ✗ Benchmark profile mismatch in ${path.basename(filePath)}: got ${data.profile}, expected ${expectedProfile}`);
-        failures++;
-      }
-      if (typeof data.targetFileCount !== "number" || data.targetFileCount < minTarget) {
-        console.error(`  ✗ Benchmark target count insufficient in ${path.basename(filePath)}: got ${data.targetFileCount}, expected >= ${minTarget}`);
-        failures++;
-      }
-      if (typeof data.observedFileCount !== "number" || data.observedFileCount < data.targetFileCount) {
-        console.error(`  ✗ Benchmark observed file count (${data.observedFileCount}) < target count (${data.targetFileCount})`);
-        failures++;
-      }
-      if (!data.timestamp) {
-        console.error(`  ✗ Benchmark missing timestamp in ${path.basename(filePath)}`);
-        failures++;
-      }
-      console.log(`  ✓ Benchmark ${expectedProfile} verified (${data.observedFileCount} files in ${data.globDurationMs}ms glob / ${data.grepDurationMs}ms grep)`);
-    } catch (err) {
-      if (expectedProfile === "release" && process.env.REQUIRE_RELEASE_BENCHMARK === "true") {
-        console.error(`  ✗ Missing release benchmark evidence at ${filePath}: ${err.message}`);
-        failures++;
-      }
-    }
+  const benchmarkDefaults = {
+    smoke: { file: "benchmarks/results/traversal-smoke.json", profile: "smoke", minTarget: 5000, requiredInStrictMode: false },
+    release: { file: "benchmarks/results/traversal-release.json", profile: "release", minTarget: 100000, requiredInStrictMode: true },
   };
-
-  if (await fileExists(smokeBenchFile)) {
-    await verifyBenchmark(smokeBenchFile, "smoke", 5000);
-  }
-  if (await fileExists(releaseBenchFile)) {
-    await verifyBenchmark(releaseBenchFile, "release", 100000);
+  const benchmarkPolicy = { ...benchmarkDefaults, ...(policy.benchmarkQualification || {}) };
+  for (const config of Object.values(benchmarkPolicy)) {
+    if (!config?.file) continue;
+    const filePath = path.resolve(ROOT, config.file);
+    const required = config.requiredInStrictMode === true && (STRICT || process.env.REQUIRE_RELEASE_BENCHMARK === "true");
+    if (required || await fileExists(filePath)) {
+      failures += await verifyBenchmark(filePath, config, policy.version, canonicalCommit, required);
+    }
   }
 
   console.log(`\n========================================`);
@@ -195,16 +322,24 @@ async function run() {
     passedCount,
     failedCount: failures,
     deferredCount: deferredList.length,
+    releaseCommit: canonicalCommit,
   };
   console.log(JSON.stringify(resultSummary, null, 2));
   console.log(`========================================`);
 
   if (failures > 0) {
     console.error(`\n[RELEASE VERIFIER] ADMISSION WITHHELD: ${failures} check(s) failed.`);
-    process.exit(1);
+    process.exitCode = 1;
+    return false;
   }
 
   console.log(`\n[RELEASE VERIFIER] ADMISSION ADMITTED: All ${passedCount} criteria and release contracts verified successfully.`);
+  return true;
 }
 
-await run();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await run().catch((err) => {
+    console.error(`[RELEASE VERIFIER] ${err.message}`);
+    process.exitCode = 1;
+  });
+}

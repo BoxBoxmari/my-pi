@@ -1,5 +1,9 @@
 # G0 — Supply Chain & Supplier Qualification
 
+> Historical scaffold record. Current release evidence is generated and
+> validated by `scripts/generate-sbom.mjs`, `scripts/verify-sbom.mjs`, and the
+> strict release workflow; this page is not current admission evidence.
+
 Status: **PARTIAL / BLOCKED** (tooling + upstream access).
 
 ## Committed artifacts (structured, honest)

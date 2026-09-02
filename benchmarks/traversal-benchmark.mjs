@@ -15,6 +15,7 @@ import path from "node:path";
 import os from "node:os";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { resolveReleaseCommit } from "../scripts/release-identity.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -33,6 +34,9 @@ for (let i = 0; i < args.length; i++) {
 }
 
 const targetCount = profile === "release" ? 100000 : 5000;
+if (profile !== "smoke" && profile !== "release") {
+  throw new Error(`Unsupported benchmark profile: ${profile}`);
+}
 const FIXTURE_DIR = customDir ? path.resolve(customDir) : path.join(os.tmpdir(), `my-pi-${profile}-${targetCount}-fixture`);
 
 async function countFilesRecursively(dir) {
@@ -54,6 +58,8 @@ async function countFilesRecursively(dir) {
 
 async function runBenchmark() {
   console.log(`=== TRAVERSAL BENCHMARK: profile=${profile} target=${targetCount} ===`);
+  const appPackage = JSON.parse(await fs.readFile(path.join(repoRoot, "apps", "my-pi-mcp", "package.json"), "utf8"));
+  const commit = resolveReleaseCommit({ cwd: repoRoot });
 
   // Auto-generate fixture if missing or if count doesn't match
   let observedCount = await countFilesRecursively(FIXTURE_DIR);
@@ -108,13 +114,17 @@ async function runBenchmark() {
 
   const resultData = {
     profile,
+    releaseVersion: appPackage.version,
+    commit,
     targetFileCount: targetCount,
     observedFileCount: observedCount,
-    fixtureDir: FIXTURE_DIR,
+    fixtureDir: path.basename(FIXTURE_DIR),
     globMatches: globRes.data.totalCount,
     globDurationMs: +globMs.toFixed(2),
     grepMatches: grepRes.data.totalCount,
     grepDurationMs: +grepMs.toFixed(2),
+    platform: process.platform,
+    nodeVersion: process.version,
     timestamp: new Date().toISOString(),
   };
 

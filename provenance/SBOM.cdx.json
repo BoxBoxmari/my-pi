@@ -1,39 +1,256 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:249f6aa6-dfcb-4624-8661-2c3b977a9068",
+  "serialNumber": "urn:uuid:3f5ea22e-3703-5a93-acd7-6be035abd5a0",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-02T11:35:51.790Z",
+    "timestamp": "2026-09-02T17:45:49.201Z",
     "component": {
       "type": "application",
       "name": "my-pi",
-      "version": "0.1.0"
+      "version": "0.1.0-alpha.1"
     },
     "tools": [
       {
         "name": "my-pi-generate-sbom",
-        "version": "1.0.0"
+        "version": "1.1.0"
       }
     ],
     "properties": [
       {
         "name": "my-pi:commit",
-        "value": "5afa28627c9da5138ffab29de760c2e233d1c822"
+        "value": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321"
       },
       {
         "name": "my-pi:source",
-        "value": "generated from pnpm-lock.yaml + Cargo.lock"
+        "value": "apps/my-pi-mcp/package.json + pnpm-lock.yaml + Cargo.lock"
       }
     ]
   },
   "components": [
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/aix-ppc64@0.28.2",
+      "name": "@esbuild/aix-ppc64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/aix-ppc64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/android-arm@0.28.2",
+      "name": "@esbuild/android-arm",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/android-arm@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/android-arm64@0.28.2",
+      "name": "@esbuild/android-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/android-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/android-x64@0.28.2",
+      "name": "@esbuild/android-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/android-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/darwin-arm64@0.28.2",
+      "name": "@esbuild/darwin-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/darwin-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/darwin-x64@0.28.2",
+      "name": "@esbuild/darwin-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/darwin-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/freebsd-arm64@0.28.2",
+      "name": "@esbuild/freebsd-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/freebsd-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/freebsd-x64@0.28.2",
+      "name": "@esbuild/freebsd-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/freebsd-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-arm@0.28.2",
+      "name": "@esbuild/linux-arm",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-arm@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-arm64@0.28.2",
+      "name": "@esbuild/linux-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-ia32@0.28.2",
+      "name": "@esbuild/linux-ia32",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-ia32@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-loong64@0.28.2",
+      "name": "@esbuild/linux-loong64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-loong64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-mips64el@0.28.2",
+      "name": "@esbuild/linux-mips64el",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-mips64el@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-ppc64@0.28.2",
+      "name": "@esbuild/linux-ppc64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-ppc64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-riscv64@0.28.2",
+      "name": "@esbuild/linux-riscv64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-riscv64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-s390x@0.28.2",
+      "name": "@esbuild/linux-s390x",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-s390x@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/linux-x64@0.28.2",
+      "name": "@esbuild/linux-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/netbsd-arm64@0.28.2",
+      "name": "@esbuild/netbsd-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/netbsd-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/netbsd-x64@0.28.2",
+      "name": "@esbuild/netbsd-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/netbsd-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/openbsd-arm64@0.28.2",
+      "name": "@esbuild/openbsd-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/openbsd-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/openbsd-x64@0.28.2",
+      "name": "@esbuild/openbsd-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/openbsd-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/openharmony-arm64@0.28.2",
+      "name": "@esbuild/openharmony-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/openharmony-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/sunos-x64@0.28.2",
+      "name": "@esbuild/sunos-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/sunos-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/win32-arm64@0.28.2",
+      "name": "@esbuild/win32-arm64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/win32-arm64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/win32-ia32@0.28.2",
+      "name": "@esbuild/win32-ia32",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/win32-ia32@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40esbuild/win32-x64@0.28.2",
+      "name": "@esbuild/win32-x64",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/win32-x64@0.28.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40modelcontextprotocol/client@2.0.0",
+      "name": "@modelcontextprotocol/client",
+      "version": "2.0.0",
+      "purl": "pkg:npm/%40modelcontextprotocol/client@2.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40modelcontextprotocol/core@2.0.0",
+      "name": "@modelcontextprotocol/core",
+      "version": "2.0.0",
+      "purl": "pkg:npm/%40modelcontextprotocol/core@2.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40modelcontextprotocol/server@2.0.0",
+      "name": "@modelcontextprotocol/server",
+      "version": "2.0.0",
+      "purl": "pkg:npm/%40modelcontextprotocol/server@2.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40types/node@26.4.0",
+      "name": "@types/node",
+      "version": "26.4.0",
+      "purl": "pkg:npm/%40types/node@26.4.0"
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/cross-spawn@7.0.6",
       "name": "cross-spawn",
       "version": "7.0.6",
       "purl": "pkg:npm/cross-spawn@7.0.6"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/esbuild@0.28.2",
+      "name": "esbuild",
+      "version": "0.28.2",
+      "purl": "pkg:npm/esbuild@0.28.2"
     },
     {
       "type": "library",
@@ -114,10 +331,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/typescript-language-server@4.4.1",
+      "bom-ref": "pkg:npm/typescript-language-server@6.0.0",
       "name": "typescript-language-server",
-      "version": "4.4.1",
-      "purl": "pkg:npm/typescript-language-server@4.4.1"
+      "version": "6.0.0",
+      "purl": "pkg:npm/typescript-language-server@6.0.0"
     },
     {
       "type": "library",
@@ -128,10 +345,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici-types@7.18.2",
+      "bom-ref": "pkg:npm/undici-types@8.3.0",
       "name": "undici-types",
-      "version": "7.18.2",
-      "purl": "pkg:npm/undici-types@7.18.2"
+      "version": "8.3.0",
+      "purl": "pkg:npm/undici-types@8.3.0"
     },
     {
       "type": "library",
@@ -174,6 +391,13 @@
       "name": "which",
       "version": "2.0.2",
       "purl": "pkg:npm/which@2.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/yaml@2.9.0",
+      "name": "yaml",
+      "version": "2.9.0",
+      "purl": "pkg:npm/yaml@2.9.0"
     },
     {
       "type": "library",

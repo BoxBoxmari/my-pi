@@ -1,4 +1,4 @@
-﻿# cargo-deny configuration for my-pi workspace
+# cargo-deny configuration for my-pi workspace
 [graph]
 targets = [
     { triple = "x86_64-unknown-linux-gnu" },
@@ -9,8 +9,7 @@ targets = [
 
 [advisories]
 version = 2
-vulnerability = "deny"
-unmaintained = "warn"
+unmaintained = "workspace"
 yanked = "deny"
 ignore = []
 

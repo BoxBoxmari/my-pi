@@ -1,6 +1,6 @@
 {
   "id": "R0",
-  "commit": "5d00d81",
+  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
   "status": "PASS",
   "environment": { "os": "win32", "node": "v26.7.0 (local); v24 (CI matrix lane)", "platforms": ["windows-x64", "ci-matrix-configured"] },
   "criteria": [
@@ -12,7 +12,7 @@
     { "id": "R0.1.6-deterministic-cancellation", "status": "PASS", "evidence": ["mcp-integration.test.ts: R0.1.6 capability cancellation is deterministic ERR_ABORTED"] },
     { "id": "R0.1.7-era-truth", "status": "PASS", "evidence": ["scripts/probe-hosts.mjs: negotiated 2025-11-25 with Claude Code 2.1.224", "docs/protocol-evidence.json: protocol and host state captured"] },
     { "id": "R0.1.8-capability-layering", "status": "PASS", "evidence": ["architecture-check.mjs: PASS", "search/vcs orchestration moved to @my-pi/search, @my-pi/vcs"] },
-    { "id": "R0.1.9-operational-capability-model", "status": "PASS", "evidence": ["workspace-runtime.ts: all 13 operational capabilities wired"] },
+    { "id": "R0.1.9-operational-capability-model", "status": "PASS", "evidence": ["workspace-runtime.ts: all 13 catalog capabilities wired"] },
     { "id": "R0.1.10-evidence-framework", "status": "PASS", "evidence": ["verify-gates.mjs: PASS", "evidence/*.json machine validated"] }
   ]
 }

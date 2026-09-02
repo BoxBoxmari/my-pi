@@ -15,15 +15,101 @@ permissions:
   contents: read
 
 jobs:
+  prepare:
+    name: build-and-pack-release-candidate
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_COMMIT: ${{ github.sha }}
+      RELEASE_QUALIFICATION: "true"
+    outputs:
+      artifact_name: ${{ steps.pack.outputs.artifact_name }}
+      artifact_sha256: ${{ steps.pack.outputs.artifact_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check requested release channel
+        env:
+          RELEASE_CHANNEL: ${{ inputs.release_channel || 'alpha' }}
+        run: node -e "const policy=require('./release/release-policy.json'); if(process.env.RELEASE_CHANNEL !== policy.releaseChannel) throw new Error('Requested channel does not match the package release policy'); console.log('Release channel:', policy.releaseChannel)"
+
+      - name: Check public repository boundary
+        run: node scripts/check-public-boundary.mjs
+
+      - name: Project references & architecture check
+        run: |
+          node scripts/check-project-references.mjs
+          node scripts/architecture-check.mjs
+
+      - name: Build with lockfile-controlled toolchain
+        run: pnpm build
+
+      - name: Unit & integration tests
+        run: pnpm test
+
+      - name: Bind evidence to this candidate
+        run: node scripts/bind-release-evidence.mjs
+
+      - name: Release verifier test suite
+        run: pnpm test:release
+
+      - name: Pack the sole release TGZ
+        id: pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist-release
+          pnpm --filter my-pi pack --pack-destination dist-release
+          mapfile -t artifacts < <(find dist-release -maxdepth 1 -type f -name '*.tgz' -printf '%f\n')
+          if [ "${#artifacts[@]}" -ne 1 ]; then
+            echo "Expected exactly one release TGZ, found ${#artifacts[@]}" >&2
+            exit 1
+          fi
+          echo "artifact_name=${artifacts[0]}" >> "$GITHUB_OUTPUT"
+          sha256sum "dist-release/${artifacts[0]}" | awk '{print "artifact_sha256="$1}' >> "$GITHUB_OUTPUT"
+
+      - name: Smoke-test the exact packed TGZ
+        run: node scripts/pr-smoke.mjs --artifact "dist-release/${{ steps.pack.outputs.artifact_name }}"
+
+      - name: Upload the candidate TGZ for qualification lanes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-tgz
+          path: dist-release/${{ steps.pack.outputs.artifact_name }}
+          if-no-files-found: error
+          retention-days: 1
+
   qualify:
-    name: release-qualification (${{ matrix.os }})
+    name: release-qualification (${{ matrix.os }}, node ${{ matrix.node }})
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         node: [24]
-
+        include:
+          - os: ubuntu-latest
+            node: 22
+    env:
+      RELEASE_COMMIT: ${{ github.sha }}
+      RELEASE_QUALIFICATION: "true"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,63 +133,129 @@ jobs:
       - name: Check public repository boundary
         run: node scripts/check-public-boundary.mjs
 
+      - name: Native Rust workspace check
+        run: cargo check --workspace
+
       - name: Project references & architecture check
         run: |
           node scripts/check-project-references.mjs
           node scripts/architecture-check.mjs
 
-      - name: TypeScript build & standalone bundle
+      - name: Build with lockfile-controlled toolchain
         run: pnpm build
 
-      - name: Unit & Integration tests
+      - name: Unit & integration tests
         run: pnpm test
 
+      - name: Bind evidence to this candidate
+        run: node scripts/bind-release-evidence.mjs
+
       - name: Release verifier test suite
-        run: node --test test/release/**/*.test.mjs
+        run: pnpm test:release
 
-      - name: True clean-install package smoke
-        run: node scripts/pr-smoke.mjs
+      - name: Verify evidence consistency
+        run: node scripts/verify-gates.mjs --strict
 
-      - name: 100k Release Traversal Benchmark (Ubuntu only)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Verify standard release contracts
+        run: node scripts/verify-release.mjs
+
+      - name: Download the sole release TGZ
+        uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-tgz
+          path: dist-release
+
+      - name: Clean-install the exact release TGZ
+        run: node scripts/pr-smoke.mjs --artifact "dist-release/${{ needs.prepare.outputs.artifact_name }}"
+
+  admit:
+    name: strict-release-admission
+    needs: [prepare, qualify]
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_COMMIT: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download the sole release TGZ
+        uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-tgz
+          path: dist-release
+
+      - name: Verify artifact bytes were preserved across qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(sha256sum "dist-release/${{ needs.prepare.outputs.artifact_name }}" | awk '{print $1}')"
+          test "$actual" = "${{ needs.prepare.outputs.artifact_sha256 }}"
+          echo "Exact artifact SHA256: $actual"
+
+      - name: Clean-install smoke on the checksum candidate
+        run: node scripts/pr-smoke.mjs --artifact "dist-release/${{ needs.prepare.outputs.artifact_name }}"
+
+      - name: Release traversal benchmark (100k minimum)
         run: node benchmarks/traversal-benchmark.mjs --profile release
 
       - name: Supply-chain - pnpm audit (fail-closed)
         run: pnpm audit --prod
 
-      - name: Supply-chain - cargo audit & deny (ubuntu only)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Supply-chain - cargo audit & deny (fail-closed)
         run: |
-          cargo install cargo-audit cargo-deny --locked
+          cargo install cargo-audit --version 0.22.2 --locked
+          cargo install cargo-deny --version 0.20.2 --locked
           cargo audit
           cargo deny check licenses advisories bans sources
 
-      - name: Generate SBOM
+      - name: Generate and validate candidate SBOM
         run: |
           node scripts/generate-sbom.mjs
-          node -e "import('node:fs/promises').then(fs => fs.access('provenance/SBOM.cdx.json'))"
+          node scripts/verify-sbom.mjs
 
-      - name: Release admission gate verification
-        run: node scripts/verify-release.mjs
-
-      - name: Pack release tarball
+      - name: Bind and verify candidate evidence
         run: |
-          mkdir -p dist-release
-          pnpm --filter my-pi pack --pack-destination dist-release
+          node scripts/bind-release-evidence.mjs
+          node scripts/verify-gates.mjs --strict
+          node scripts/verify-release.mjs --strict
 
-      - name: Generate Checksums
-        if: matrix.os == 'ubuntu-latest'
+      - name: Checksum the exact tested artifact
+        shell: bash
         run: |
+          set -euo pipefail
           cd dist-release
-          sha256sum *.tgz > SHA256SUMS.txt
+          sha256sum "${{ needs.prepare.outputs.artifact_name }}" > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
-      - name: Upload artifacts
-        if: matrix.os == 'ubuntu-latest'
+      - name: Generate and validate release manifest
+        run: node scripts/create-release-manifest.mjs --artifact "dist-release/${{ needs.prepare.outputs.artifact_name }}" --sbom provenance/SBOM.cdx.json --benchmark benchmarks/results/traversal-release.json --output "dist-release/release-manifest.json"
+
+      - name: Upload exact artifact and qualification evidence
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
           path: |
-            dist-release/*
+            dist-release/${{ needs.prepare.outputs.artifact_name }}
+            dist-release/SHA256SUMS.txt
+            dist-release/release-manifest.json
             provenance/SBOM.cdx.json
+            benchmarks/results/traversal-release.json
+            evidence/*.json
             docs/release/*
+          if-no-files-found: error

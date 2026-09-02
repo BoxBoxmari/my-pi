@@ -6,7 +6,7 @@
 
 ## 1. 13-Tool MCP Surface
 
-my-pi v1.1 guarantees a complete, operational 13-tool MCP catalog over stdio transport:
+my-pi v1.1 advertises a complete 13-tool MCP catalog over stdio transport; clean-install qualification exercises representative operations:
 
 | Category | Tools | Capabilities & Guarantees |
 |---|---|---|
@@ -32,19 +32,23 @@ my-pi v1.1 guarantees a complete, operational 13-tool MCP catalog over stdio tra
 
 ## 3. Supported Languages Matrix
 
-| Language | AST Backend | LSP Server | Root Markers |
+| Language | AST Backend | Compatible LSP Server (host-provided) | Root Markers |
 |---|---|---|---|
 | **TypeScript / JS** | Tree-Sitter (`tree-sitter-typescript`, `tree-sitter-javascript`) | `typescript-language-server` | `tsconfig.json`, `package.json` |
 | **Python** | Tree-Sitter (`tree-sitter-python`) | `pyright-langserver` / `pylsp` | `pyproject.toml`, `setup.py`, `requirements.txt` |
 | **Rust** | Tree-Sitter (`tree-sitter-rust`) | `rust-analyzer` | `Cargo.toml` |
 | **Go** | Tree-Sitter (`tree-sitter-go`) | `gopls` | `go.mod` |
 
+The package integrates with these language-server protocols but does not bundle
+the server executables. Hosts must provide a compatible executable when an LSP
+operation needs one.
+
 ---
 
 ## 4. Performance & Scalability Floor
 
-- **Traversal**: Validated on >=100,000 file synthetic repository fixtures.
-- **Stdio Protocol Overhead**: <5ms median overhead per request.
+- **Traversal**: 100,000-file validation is a candidate-bound release gate, not a permanent claim until the strict release run passes.
+- **Stdio Protocol Overhead**: Observed per benchmark run; no cross-runner latency threshold is release-blocking for alpha.
 - **Memory Footprint**: Bounded RSS with automatic idle server teardown after 30s.
 - **Spill Artifacts**: VCS diffs and large query responses spill to local artifact store to prevent MCP token exhaustion.
 

@@ -12,7 +12,7 @@
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9%20Strict-3178c6.svg" alt="TypeScript" /></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-2021%20Stable-dea584.svg" alt="Rust" /></a>
   <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Multi-Platform" />
-  <img src="https://img.shields.io/badge/Architecture-Local--First%20%2F%20Zero--Inference-059669.svg" alt="Zero Cost" />
+  <img src="https://img.shields.io/badge/Architecture-Local--First%20%2F%20Zero--Inference-059669.svg" alt="Local-first architecture" />
 </p>
 
 ---
@@ -32,9 +32,9 @@ Rather than granting unrestricted shell access or relying on fragile line-based 
 | **🛡️ Compare-And-Swap (CAS)** | All file updates verify raw SHA-256 byte fingerprints before write | Zero accidental overwrites or stale race conditions |
 | **🔒 Pre-Read Security Policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Zero secret leakage to LLM context |
 | **⚡ Deterministic AST Search** | Structural syntax tree queries via Tree-Sitter for 5 core languages | Accurate AST node filtering across large codebases |
-| **🧠 Multi-Language LSP Engine** | Integrated background lifecycle for TypeScript, Python, Rust, and Go | Hover, definition, references, and diagnostics |
+| **🧠 Multi-Language LSP Engine** | Integrated lifecycle for TypeScript, Python, Rust, and Go when compatible host servers are available | Hover, definition, references, and diagnostics |
 | **📦 Large Diff Spillover** | Massive VCS diffs automatically spill into local artifact storage | Token context conservation & bounded memory |
-| **🎯 Zero Operating Cost** | 100% local execution — no secondary LLMs, paid APIs, or cloud daemons required | Complete data privacy & zero subscription costs |
+| **🎯 No Paid API Dependency** | Local-first core with no secondary LLM or paid API dependency | Core execution stays on the host |
 
 ---
 
@@ -73,9 +73,9 @@ Rather than granting unrestricted shell access or relying on fragile line-based 
 
 ---
 
-## 🛠️ Complete 13-Tool MCP Surface
+## 🛠️ 13-Tool MCP Surface
 
-**my-pi** exposes a comprehensive 13-tool suite over standard MCP stdio:
+**my-pi** exposes a 13-tool catalog over standard MCP stdio; clean-install qualification exercises the representative core capabilities.
 
 ### 1. Filesystem & Mutation
 - **`fs_read`**: Bounded chunk streaming with SHA-256 fingerprinting, offset pagination, and automatic UTF-8 / UTF-16 / BOM / CRLF decoding.
@@ -121,14 +121,9 @@ pnpm build
 
 ### 2. Start MCP Server Locally
 ```bash
-# Global installation from npm
-npm install -g my-pi
-
-# Launch stdio MCP server for a target workspace
+# Install and run the published package for a target workspace
+pnpm add --global my-pi@0.1.0-alpha.1
 my-pi-mcp --workspace /path/to/your/project
-
-# Or directly via npx
-npx my-pi --workspace /path/to/your/project
 ```
 
 ### 3. Generate Host IDE Configurations
@@ -159,17 +154,16 @@ my-pi-mcp host-config opencode-current-local
 
 Deterministic synthetic benchmarks run automatically across generated repository structures:
 
-- **MCP Stdio Latency**: Overhead $p_{50} \le 3.5\text{ms}$ (measured $\approx 0.80\text{ms}$ in CI), $p_{95} \le 6.0\text{ms}$ over direct capability calls.
-- **Glob Throughput**: Glob over 5,000+ files resolves in under $400\text{ms}$ ($<15\text{ms}$ on Linux).
-- **Grep Throughput**: Grep over 5,000+ files resolves in $\approx 1.25\text{s}$ (Linux) to $6.2\text{s}$ (Windows NTFS) with pure Node.js fallback (native acceleration deferred).
-- **Release Scalability**: Validated on up to 100,000 files in tagged release benchmark profile.
+- **MCP Stdio Latency**: The stdio benchmark records observed overhead per run; no cross-runner latency threshold is used for alpha release admission.
+- **Glob and Grep Throughput**: Candidate-bound benchmark results record observed timings for the 5,000-file smoke profile; the pure Node.js fallback remains authoritative for this alpha.
+- **Release Scalability**: 100,000-file traversal is pending candidate-bound release qualification and is not yet a certified release claim.
 - **Memory Footprint**: Strict RSS delta control with bounded stream buffers.
 
 ---
 
 ## 🧪 Verification & CI Matrix
 
-Every commit and pull request is strictly verified across multi-platform GitHub Actions workflows:
+Every commit and pull request is checked by the configured multi-platform GitHub Actions workflows:
 
 ```bash
 # Run complete verification suite
@@ -179,7 +173,11 @@ pnpm verify
 pnpm test
 
 # Verify 39 gate evidence invariants
+pnpm bind:evidence
 node scripts/verify-gates.mjs
+
+# Validate the candidate SBOM
+pnpm verify:sbom
 
 # Execute PR smoke test in isolated sandbox
 node scripts/pr-smoke.mjs
@@ -187,9 +185,9 @@ node scripts/pr-smoke.mjs
 
 | OS Platform | Node 22 LTS | Node 24 LTS | Status |
 | :--- | :---: | :---: | :---: |
-| **Ubuntu Linux** (`ubuntu-latest`) | ✅ PASS | ✅ PASS | Active |
-| **Microsoft Windows** (`windows-latest`) | — | ✅ PASS | Active |
-| **Apple macOS** (`macos-latest`) | — | ✅ PASS | Active |
+| **Ubuntu Linux** (`ubuntu-latest`) | Configured | Configured | Candidate run required |
+| **Microsoft Windows** (`windows-latest`) | — | Configured | Candidate run required |
+| **Apple macOS** (`macos-latest`) | — | Configured | Candidate run required |
 
 ---
 

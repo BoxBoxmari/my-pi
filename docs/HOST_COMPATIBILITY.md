@@ -30,11 +30,11 @@ Verified for `cursor-local` (JSON), `claude-code-local` (CLI), `opencode-current
 - **Both blocking hosts connect to my-pi-mcp**:
   - OpenCode `opencode mcp list` → `my-pi ✓ connected`.
   - Claude Code `claude mcp list` → `my-pi Connected`.
-- **All 13 of 13 tools operational over stdio**:
+- **13 tools are discoverable over stdio; clean-install smoke exercises representative core operations**:
   - Filesystem: `workspace_info`, `fs_read`, `fs_stat`, `fs_write`, `fs_patch`
   - Search: `search` (grep & glob)
   - AST: `ast_search` (Tree-Sitter 5 languages: TS, JS, Python, Rust, Go)
-  - LSP: `lsp_status`, `lsp_diagnostics`, `lsp_symbols`, `lsp_navigate` (4 languages: TypeScript, Python, Rust, Go)
+  - LSP: `lsp_status`, `lsp_diagnostics`, `lsp_symbols`, `lsp_navigate` (TypeScript, Python, Rust, Go orchestration; compatible server executables are host-provided)
   - VCS: `vcs_status`, `vcs_diff`
 - Cursor/Antigravity/Copilot: configured in monitoring role (`host-profiles`).
 

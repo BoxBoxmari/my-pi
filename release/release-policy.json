@@ -2,7 +2,11 @@
   "schemaVersion": 1,
   "releaseChannel": "alpha",
   "version": "0.1.0-alpha.1",
+  "evidenceFreshness": {
+    "mode": "current-release-commit"
+  },
   "requiredGates": [
+    "G0",
     "G1",
     "G2",
     "G3",
@@ -74,5 +78,19 @@
       "darwin-x64"
     ]
   },
-  "performanceProfile": "alpha"
+  "performanceProfile": "alpha",
+  "benchmarkQualification": {
+    "smoke": {
+      "file": "benchmarks/results/traversal-smoke.json",
+      "profile": "smoke",
+      "minTarget": 5000,
+      "requiredInStrictMode": false
+    },
+    "release": {
+      "file": "benchmarks/results/traversal-release.json",
+      "profile": "release",
+      "minTarget": 100000,
+      "requiredInStrictMode": true
+    }
+  }
 }

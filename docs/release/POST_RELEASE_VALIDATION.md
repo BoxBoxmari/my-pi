@@ -19,7 +19,7 @@ cd my-pi-consumer-test
 # Install the published package globally or locally
 npm install -g my-pi@0.1.0-alpha.1
 # or
-npx my-pi@0.1.0-alpha.1 host-config cursor-local
+npx --yes --package my-pi@0.1.0-alpha.1 my-pi-mcp host-config cursor-local
 ```
 
 ### Step 2: Validate Executable Binaries & Shebang
