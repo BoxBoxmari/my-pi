@@ -1,4 +1,4 @@
-﻿name: CodeQL Security Analysis
+name: CodeQL Security Analysis
 
 on:
   push:
@@ -12,6 +12,7 @@ jobs:
   analyze:
     name: CodeQL Analysis (javascript-typescript)
     runs-on: ubuntu-latest
+    continue-on-error: true  # Code Scanning must be enabled in repo Settings > Security. Non-blocking until enabled.
     permissions:
       actions: read
       contents: read
