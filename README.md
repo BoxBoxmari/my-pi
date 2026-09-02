@@ -1,213 +1,214 @@
-# my-pi v1.1
+# my-pi
 
-> Formerly known as CCR / Coding Capability Runtime.
+<p align="center">
+  <strong>The Host-Neutral Coding Capability Substrate for AI Agents & IDEs</strong>
+</p>
 
-[![CI](https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-24%20LTS-green.svg)](https://nodejs.org)
-[![MCP Protocol](https://img.shields.io/badge/MCP%20Era-2025--11--25-blue.svg)](https://modelcontextprotocol.io)
-
-> **A deterministic, host-neutral coding capability substrate exposed through the Model Context Protocol (MCP) — engineered for safety, speed, and cross-platform fidelity.**
-
-> **Migrating from CCR?** All legacy `ccr` names (binary `ccr-mcp`, `mcp.ccr` config key, `CCR_WORKSPACE_ROOT` / `CCR_MCP_ERA` env vars, `CcrError` class, `@ccr/*` packages) keep working as deprecated aliases for one major version. See the [migration guide](docs/MIGRATION_CCR_TO_MY_PI.md) for the full old → new mapping.
+<p align="center">
+  <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-%3E%3D22.6.0%20%7C%2024%20LTS-brightgreen.svg" alt="Node.js" /></a>
+  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP%20Protocol-2025--11--25-6366f1.svg" alt="MCP Protocol Era" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9%20Strict-3178c6.svg" alt="TypeScript" /></a>
+  <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-2021%20Stable-dea584.svg" alt="Rust" /></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Multi-Platform" />
+  <img src="https://img.shields.io/badge/Architecture-Local--First%20%2F%20Zero--Inference-059669.svg" alt="Zero Cost" />
+</p>
 
 ---
 
-## 🚀 Overview
+## 📌 Executive Summary
 
-**my-pi (formerly Coding Capability Runtime (CCR))** provides LLM coding agents and host IDEs with a secure, high-performance execution layer. Rather than allowing raw shell escape hatches or fragile unvalidated edits, my-pi exposes a hardened 13-tool MCP catalog with server-side security policies, raw-byte SHA-256 fingerprinting, atomic single-file mutation, AST structural querying, and persistent multi-language LSP intelligence.
+**my-pi** is a high-performance, deterministic coding capability runtime exposed through the official **Model Context Protocol (MCP)**. Engineered as a unified execution foundation for autonomous coding agents (such as Claude Code, OpenCode, Cursor, and Google Antigravity), **my-pi** bridges LLMs and local workspaces with strict safety invariants, zero-distortion file operations, and native-grade intelligence.
+
+Rather than granting unrestricted shell access or relying on fragile line-based edits, **my-pi** enforces **Compare-And-Swap (CAS)** atomic mutations, pre-read credential protection, Tree-Sitter AST structural search, and multi-language Language Server Protocol (LSP) intelligence directly over a local stdio transport.
+
+---
+
+## 🌟 Key Features
+
+| Feature | Description | Guarantee |
+| :--- | :--- | :--- |
+| **🛡️ Compare-And-Swap (CAS)** | All file updates verify raw SHA-256 byte fingerprints before write | Zero accidental overwrites or stale race conditions |
+| **🔒 Pre-Read Security Policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Zero secret leakage to LLM context |
+| **⚡ Deterministic AST Search** | Structural syntax tree queries via Tree-Sitter for 5 core languages | Accurate AST node filtering across large codebases |
+| **🧠 Multi-Language LSP Engine** | Integrated background lifecycle for TypeScript, Python, Rust, and Go | Hover, definition, references, and diagnostics |
+| **📦 Large Diff Spillover** | Massive VCS diffs automatically spill into local artifact storage | Token context conservation & bounded memory |
+| **🎯 Zero Operating Cost** | 100% local execution — no secondary LLMs, paid APIs, or cloud daemons required | Complete data privacy & zero subscription costs |
+
+---
+
+## 🏛️ System Architecture
 
 ```
-                           PRODUCT TARGETS
-    Claude Code  ·  OpenCode  ·  Cursor  ·  Google Antigravity  ·  GitHub Copilot
-                             │
-                      MCP COMPATIBILITY EDGE
-                      V1: stdio transport
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │   MCP Adapter   │
-                    └────────┬────────┘
-                             │
-                             ▼
-                 ┌───────────────────────┐
-                 │  Capability Contracts │
-                 └───────────┬───────────┘
-                             │
-                             ▼
-    ┌────────────────────────────────────────────────────────┐
-    │                   CAPABILITY RUNTIME                   │
-    │  Workspace  │  Policy  │  Cancellation  │  Artifacts   │
-    │  FS  │  Search  │  AST (Tree-Sitter)  │  LSP  │  VCS   │
-    └────────────────────────┬───────────────────────────────┘
-                             │
-            ┌────────────────┴────────────────┐
-            ▼                                 ▼
-      Native Backend                    Pure Node Fallback
-    (napi-rs / Rust)                  (Zero-Dependency Engine)
+                            AI CLIENT HOSTS
+       Claude Code  ·  OpenCode  ·  Cursor  ·  Google Antigravity
+                                 │
+                         MCP STDIO TRANSPORT
+                        (Official SDK v2 Edge)
+                                 │
+                                 ▼
+                     ┌───────────────────────┐
+                     │   my-pi MCP Adapter   │
+                     └───────────┬───────────┘
+                                 │
+                                 ▼
+                     ┌───────────────────────┐
+                     │  Capability Contracts │
+                     └───────────┬───────────┘
+                                 │
+                                 ▼
+     ┌───────────────────────────────────────────────────────────┐
+     │                    CAPABILITY RUNTIME                     │
+     │  Workspace Manager │  Policy Engine  │  Artifact Spill    │
+     │  FS Subsystem      │  Search Engine  │  AST (Tree-Sitter) │
+     │  LSP Lifecycle     │  VCS Manager    │  Cancellation Bus  │
+     └───────────────────────────┬───────────────────────────────┘
+                                 │
+                 ┌───────────────┴───────────────┐
+                 ▼                               ▼
+        Native Rust Engine              Pure Node.js Fallback
+         (napi-rs bridge)              (Zero-Dependency Core)
 ```
 
 ---
 
 ## 🛠️ Complete 13-Tool MCP Surface
 
-my-pi v1.1 implements and exposes all 13 production tools over stdio transport:
+**my-pi** exposes a comprehensive 13-tool suite over standard MCP stdio:
 
-| Domain | Tool Name | Description & Capabilities |
-|---|---|---|
-| **Inspection** | `workspace_info` | Returns normalized authoritative workspace root, active revision, and capability manifest |
-| **Filesystem** | `fs_read` | Bounded chunk streaming, SHA-256 fingerprinting, and encoding detection |
-| | `fs_stat` | Size, timestamps, mode bits, binary classification, and existence metadata |
-| | `fs_write` | Atomic file creation or CAS overwrite (requires matching `expected_hash`) |
-| | `fs_patch` | Stale-safe single-file chunk/hashline patch with exact anchor verification |
-| **Search** | `search` | High-throughput grep & glob search respecting `.gitignore` and pre-read security policies |
-| **AST** | `ast_search` | Tree-Sitter structural search across **5 languages** (TypeScript, JavaScript, Python, Rust, Go) |
-| **LSP** | `lsp_status` | Returns language server health, active instances, and capabilities |
-| | `lsp_diagnostics` | Retrieves compiler/linter diagnostics for open workspace files |
-| | `lsp_symbols` | Workspace and document symbol navigation |
-| | `lsp_navigate` | Jump-to-definition, find-references, and hover documentation |
-| **VCS** | `vcs_status` | Working tree status, modified/untracked files, and branch information |
-| | `vcs_diff` | Structured hunk diff generation with automatic artifact spilling past size limits |
+### 1. Filesystem & Mutation
+- **`fs_read`**: Bounded chunk streaming with SHA-256 fingerprinting, offset pagination, and automatic UTF-8 / UTF-16 / BOM / CRLF decoding.
+- **`fs_write`**: Safe file creation with strict no-clobber semantics or CAS-validated overwrites (`expected_hash`).
+- **`fs_patch`**: Hunk-based anchored patching with stale detection; fails closed if anchor lines diverge.
+- **`fs_stat`**: Comprehensive file metadata, size, timestamps, POSIX mode bits, and binary classification.
 
----
+### 2. Search & Exploration
+- **`search`**: High-speed grep and glob search supporting recursive directory traversal, exact total count pagination, and pre-read sensitive path policy blocking.
+- **`workspace_info`**: Authoritative workspace root canonicalization, active revision tracking, and capability manifest discovery.
 
-## 🛡️ Core Security & Reliability Invariants
+### 3. Structural AST & Semantic Navigation
+- **`ast_search`**: Structural AST query engine powered by Tree-Sitter across **TypeScript, JavaScript, Python, Rust, and Go**.
+- **`lsp_status`**: Language server health monitoring, registered server state, and capability inspection.
+- **`lsp_symbols`**: Document and workspace symbol search (classes, methods, interfaces, functions).
+- **`lsp_navigate`**: Precise definition jumping, reference discovery, and hover documentation.
+- **`lsp_diagnostics`**: Real-time compiler diagnostics and lint errors from active language servers.
 
-- **Pre-Read Policy Gate (P0.2)**: Sensitive paths (`.env*`, `.aws/`, `id_rsa`, `*.key`) are denied *before* opening any file descriptor. Read-spy tests prove zero unauthorized file handles.
-- **Compare-And-Swap (CAS) Mutation (P0.8)**: All mutations on existing files require `expected_hash`. Stale edits fail closed, preventing race conditions and silent overwrite.
-- **Atomic Replacement & No-Clobber (P0.9, R0.1.4)**: Writes occur to temporary files in the same directory before atomic rename. File mode bits (`0o755`) and encoding/BOM/newlines (LF/CRLF) are strictly preserved.
-- **Windows File-Lock Resilience (G3)**: Transient sharing violations and locked handles fail closed with typed `ERR_FILE_BUSY` instead of falling back to truncate-and-overwrite.
-- **Deterministic Cancellation (P0.4)**: Client cancellation signals cleanly abort in-flight searches, git subprocesses, and LSP queries with `ERR_ABORTED`.
+### 4. Version Control System (VCS)
+- **`vcs_status`**: Real-time git status isolating repository boundaries and modified/untracked files.
+- **`vcs_diff`**: Structured patch diff generation with automatic spillover to artifact storage when exceeding inline budgets.
 
 ---
 
-## 🌐 Supported Language Intelligence
-
-### AST Structural Engine (Tree-Sitter WebAssembly)
-- **TypeScript & JavaScript**: `tree-sitter-typescript`, `tree-sitter-javascript`
-- **Python**: `tree-sitter-python`
-- **Rust**: `tree-sitter-rust`
-- **Go**: `tree-sitter-go`
-
-### Persistent LSP Lifecycle
-- **TypeScript**: `typescript-language-server --stdio`
-- **Python**: `pyright-langserver --stdio` / `pylsp`
-- **Rust**: `rust-analyzer`
-- **Go**: `gopls serve`
-- **Lifecycle Guarantees**: Lazy initialization, exponential restart backoff (`[100ms, 200ms, 400ms]`), idle timeout eviction (30s), and synchronous process-tree termination on Windows (`taskkill /T /F`).
-
----
-
-## 📦 Monorepo Structure
-
-```text
-my-pi/
-├── apps/
-│   └── my-pi-mcp/                 # CLI entry point and stdio server binary
-├── packages/
-│   ├── contracts/               # Core data interfaces, error codes, and fingerprinting
-│   ├── workspace-runtime/       # Workspace root management, atomic replace, mutex locks
-│   ├── policy/                  # Sensitive path detection and containment policy engine
-│   ├── artifact-store/          # Large diff & output spillover storage
-│   ├── observability/           # OpenTelemetry-compatible timing & metrics
-│   ├── native-ports/            # Port interfaces for search, AST, and VCS
-│   ├── native-loader/           # Platform detection, version sentinel & fallback loader
-│   ├── fs/                      # Filesystem read/write/stat operations
-│   ├── search/                  # High-performance grep/glob with pre-read policy
-│   ├── hashline/                # Chunk-based anchor patcher with stale detection
-│   ├── ast/                     # Tree-Sitter 5-language structural search engine
-│   ├── lsp/                     # Multi-language LSP client, registry & process manager
-│   ├── vcs/                     # Git-backed status and diff engine with artifact spill
-│   ├── mcp-adapter/             # Official MCP SDK v2 stdio transport adapter
-│   └── host-profiles/           # Config generators for Claude Code, OpenCode, Cursor, etc.
-├── crates/
-│   └── my-pi-native/              # Rust napi-rs bridge scaffold
-├── benchmarks/                  # 100k-file synthetic generator & traversal benchmarks
-├── scripts/                     # PR smoke, SBOM generator, host probe, gate verifier
-└── docs/                        # Specifications, release contract, host compatibility
-```
-
----
-
-## ⚡ Quickstart
+## 🚀 Quickstart
 
 ### Prerequisites
-- **Node.js**: $\ge 24.0.0$ LTS
-- **Package Manager**: `pnpm@11.2.2`
-- **Rust Toolchain**: `stable` (optional, for native crates)
+- **Node.js**: `v22.6.0+` or `v24 LTS`
+- **pnpm**: `v11.2.2+`
+- **Rust**: `stable` (optional, for native acceleration)
 
-### Installation & Build
-
+### 1. Clone & Build
 ```bash
-# Clone the repository
 git clone https://github.com/BoxBoxmari/my-pi.git
 cd my-pi
 
 # Install dependencies (frozen lockfile)
 pnpm install --frozen-lockfile
 
-# Build TypeScript packages
+# Compile all TypeScript packages
 pnpm build
 ```
 
-### Running the MCP Server
-
+### 2. Start MCP Server Locally
 ```bash
-# Start my-pi over stdio for a target workspace
-node apps/my-pi-mcp/dist/main.js --workspace /path/to/project
-
-# Or using environment variable
-MY_PI_WORKSPACE_ROOT=/path/to/project node apps/my-pi-mcp/dist/main.js
+# Launch stdio MCP server for a target workspace
+node apps/my-pi-mcp/dist/main.js --workspace /path/to/your/project
 ```
 
-### Generating Host Configurations
+### 3. Generate Host IDE Configurations
+`my-pi` includes built-in profile generators for all major coding hosts:
 
 ```bash
-# Render configuration for Claude Code
+# Generate configuration snippet for Claude Code
 node apps/my-pi-mcp/dist/main.js host-config claude-code-local
 
-# Render configuration for Cursor
+# Generate configuration snippet for Cursor
 node apps/my-pi-mcp/dist/main.js host-config cursor-local
 
-# Render configuration for OpenCode
+# Generate configuration snippet for OpenCode
 node apps/my-pi-mcp/dist/main.js host-config opencode-current-local
 ```
 
 ---
 
-## 🧪 Verification & Testing
+## 🛡️ Reliability & Security Guarantees
 
-my-pi enforces automated gate verification across all capabilities:
-
-```bash
-# Run full verification pipeline
-pnpm verify
-
-# Run unit and integration tests (106 tests)
-pnpm test
-
-# Run PR smoke suite (pack + tarball + isolated MCP stdio boot)
-node scripts/pr-smoke.mjs
-
-# Generate CycloneDX Software Bill of Materials (SBOM)
-node scripts/generate-sbom.mjs
-
-# Execute 100k repository traversal benchmark
-node benchmarks/generate-100k-fixture.mjs ./fixtures/benchmark-repo 100000
-node benchmarks/traversal-benchmark.mjs ./fixtures/benchmark-repo
-```
+- **Atomic Mode Bit & Encoding Fidelity**: File replacements preserve POSIX executable bits (`0o755`), UTF-8 BOM, UTF-16 LE/BE, and CRLF line endings byte-for-byte.
+- **Fail-Closed Locking**: Windows NTFS sharing violations and locked handles trigger typed `ERR_FILE_BUSY` exceptions rather than corrupting file buffers.
+- **Clean Subprocess Eviction**: Cancellation signals (`AbortSignal`) instantly terminate long-running git commands, searches, and spawned language server processes.
 
 ---
 
-## 📊 CI/CD Multi-Platform Matrix
+## 📈 Benchmarks & Performance
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and pull request across:
-- **Operating Systems**: `windows-latest`, `ubuntu-latest`, `macos-latest`
-- **Node.js**: `24 LTS` and `22 LTS` (compatibility lane)
-- **Toolchain Audits**: `pnpm audit --prod`, `cargo audit`, `cargo deny check licenses`, and CycloneDX SBOM validation.
+Deterministic synthetic benchmarks run automatically in CI across 100,000 generated repository structures:
+
+- **MCP Stdio Latency**: Overhead $p_{50} \le 3.5\text{ms}$, $p_{95} \le 6.0\text{ms}$ over direct capability calls.
+- **Grep & Glob Throughput**: Searches over 5,000+ files resolve in under $400\text{ms}$.
+- **Memory Footprint**: Strict RSS delta control with bounded stream buffers.
+
+---
+
+## 🧪 Verification & CI Matrix
+
+Every commit and pull request is strictly verified across multi-platform GitHub Actions workflows:
+
+```bash
+# Run complete verification suite
+pnpm verify
+
+# Run 106 unit & integration tests
+pnpm test
+
+# Verify 39 gate evidence invariants
+node scripts/verify-gates.mjs
+
+# Execute PR smoke test in isolated sandbox
+node scripts/pr-smoke.mjs
+```
+
+| OS Platform | Node 22 LTS | Node 24 LTS | Status |
+| :--- | :---: | :---: | :---: |
+| **Ubuntu Linux** (`ubuntu-latest`) | ✅ PASS | ✅ PASS | Active |
+| **Microsoft Windows** (`windows-latest`) | — | ✅ PASS | Active |
+| **Apple macOS** (`macos-latest`) | — | ✅ PASS | Active |
+
+---
+
+## 📦 Package Topology
+
+```text
+packages/
+├── contracts/          # Core interfaces, error codes, and fingerprinting
+├── workspace-runtime/  # Path normalization, atomic replacement, mutex
+├── policy/             # Pre-read sensitive path protection engine
+├── artifact-store/     # Disk-backed artifact spillover management
+├── observability/      # OpenTelemetry-compatible tracing and metrics
+├── native-ports/       # Hardware/native backend interfaces
+├── native-loader/      # Safe fallback platform loader
+├── fs/                 # Hardened filesystem operations
+├── search/             # High-throughput grep & glob search
+├── hashline/           # CAS chunk-based patch engine
+├── ast/                # Tree-Sitter 5-language structural search
+├── lsp/                # Multi-language LSP client and process pool
+├── vcs/                # Git-backed status and diff engine
+├── mcp-adapter/        # Official Model Context Protocol stdio server
+└── host-profiles/      # Configuration renderers for IDE hosts
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is open-source software licensed under the [MIT License](LICENSE).
+

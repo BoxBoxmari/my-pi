@@ -6,10 +6,13 @@ coverage/
 .cache/
 
 target/
-fixtures/
 benchmarks/results/
 docs/RUNTIME_CONTRACT.md
 docs/VERIFY_GATE.md
+docs/plans/
+docs/MIGRATION_CCR_TO_MY_PI.md
+crates/my-pi-search/
+evidence/*.log
 
 # Agent & Harness metadata (local only, do not leak to public repo)
 .agent/

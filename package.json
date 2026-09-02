@@ -2,7 +2,7 @@
   "name": "my-pi",
   "version": "0.1.0",
   "private": true,
-  "description": "my-pi (formerly Coding Capability Runtime (CCR)) v1.1 - host-neutral coding capability substrate exposed through MCP",
+  "description": "my-pi v1.1 - host-neutral coding capability substrate exposed through Model Context Protocol (MCP)",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"
