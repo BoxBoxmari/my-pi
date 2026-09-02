@@ -1,0 +1,22 @@
+﻿name: Feature Request
+description: Suggest an idea or feature for my-pi
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Suggest an enhancement or new feature.
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem & Motivation
+      description: Is your feature request related to a problem?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you would like.
+    validations:
+      required: true

@@ -1,4 +1,4 @@
-name: My-Pi Multi-Platform CI
+﻿name: My-Pi Multi-Platform CI
 
 on:
   push:
@@ -52,6 +52,9 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
+      - name: Check public repository boundary
+        run: node scripts/check-public-boundary.mjs
+
       - name: Native Rust workspace check
         run: cargo check --workspace
 
@@ -67,8 +70,14 @@ jobs:
       - name: Unit + Integration tests (100+ suites)
         run: pnpm test
 
+      - name: Release verifier test suite
+        run: node --test test/release/**/*.test.mjs
+
       - name: Gate evidence validation (R0.1.10)
         run: node scripts/verify-gates.mjs
+
+      - name: Release admission gate verification
+        run: node scripts/verify-release.mjs
 
       - name: Host probe & era negotiation (R0.1.7)
         run: node scripts/probe-hosts.mjs
@@ -95,4 +104,4 @@ jobs:
       - name: Benchmark smoke - stdio overhead & traversal
         run: |
           node benchmarks/stdio-overhead.mjs 50
-          node benchmarks/traversal-benchmark.mjs
+          node benchmarks/traversal-benchmark.mjs --profile smoke

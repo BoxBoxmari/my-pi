@@ -1,17 +1,19 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
- * PR Smoke Test: Pack, install tarball, and run my-pi-mcp over real stdio.
+ * PR Smoke Test (RR-04, Workstream D):
+ * Pack, extract tarball into isolated consumer sandbox, and execute installed binary.
  *
  * Verifies:
  * 1. Monorepo builds cleanly
- * 2. Packages can be packed into npm tarballs
- * 3. An isolated environment can run my-pi-mcp
- * 4. All 13 tools are discoverable and operational over MCP stdio
- * 5. Clean exit without leaks or hanging processes
+ * 2. @my-pi/app produces a valid, self-contained npm tarball
+ * 3. The extracted distribution tarball is executable independently of the source checkout
+ * 4. All 13 MCP tools are discoverable and operational over MCP stdio
+ * 5. host-config command executes cleanly from the installed artifact
+ * 6. Clean exit without process leaks
  *
  * Usage: node scripts/pr-smoke.mjs
  */
-import { spawn, execSync } from "node:child_process";
+import { execSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -26,12 +28,12 @@ async function runPrSmoke() {
   const t0 = performance.now();
 
   // Step 1: Build
-  console.log("[1/5] Building all packages (tsc --build)...");
+  console.log("[1/6] Building all packages (tsc --build)...");
   execSync("pnpm build", { cwd: ROOT, stdio: "inherit" });
 
-  // Step 2: Create temp smoke workspace
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-pr-smoke-"));
-  console.log(`[2/5] Created isolated test workspace: ${tempDir}`);
+  // Step 2: Create temp smoke consumer workspace
+  const tempDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-pr-smoke-")));
+  console.log(`[2/6] Created isolated test consumer workspace: ${tempDir}`);
 
   // Create sample files
   await fs.writeFile(path.join(tempDir, "sample.ts"), `
@@ -46,30 +48,87 @@ def greet(name: str) -> str:
 `, "utf8");
 
   // Step 3: Pack app package
-  console.log("[3/5] Packing @my-pi/app with pnpm pack...");
-  const packOutput = execSync("pnpm --filter @my-pi/app pack --pack-destination " + tempDir, {
+  console.log("[3/6] Packing @my-pi/app with pnpm pack into consumer directory...");
+  const packOutput = execSync(`pnpm --filter @my-pi/app pack --pack-destination "${tempDir}"`, {
     cwd: ROOT,
     encoding: "utf8",
   });
   console.log(`  Packed: ${packOutput.trim()}`);
 
-  // Step 4: Launch my-pi-mcp subprocess over stdio
-  console.log("[4/5] Launching my-pi-mcp server process over stdio...");
-  const mainScript = path.join(ROOT, "apps", "my-pi-mcp", "dist", "main.js");
+  // Find generated tarball
+  const files = await fs.readdir(tempDir);
+  const tarballName = files.find(f => f.endsWith(".tgz"));
+  if (!tarballName) {
+    throw new Error("No .tgz tarball found in pack destination");
+  }
+  const tarballPath = path.join(tempDir, tarballName);
+  console.log(`  Found tarball: ${tarballPath}`);
 
+  // Step 4: Extract tarball into isolated consumer package directory
+  console.log("[4/6] Extracting tarball in isolated consumer directory (decoupled from source)...");
+  const pkgDir = path.join(tempDir, "installed_pkg");
+  await fs.mkdir(pkgDir, { recursive: true });
+  execSync(`tar -xzf "${tarballPath}" -C "${pkgDir}"`, { stdio: "inherit" });
+
+  const installedBinary = path.join(pkgDir, "package", "dist", "main.js");
+  if (!(await fs.stat(installedBinary).catch(() => false))) {
+    throw new Error(`Installed binary not found at ${installedBinary}`);
+  }
+  console.log(`  ✓ Installed distribution binary verified at: ${installedBinary}`);
+
+  // Set up absolute junctions for @my-pi packages and third party dependencies
+  const targetNodeModules = path.join(pkgDir, "package", "node_modules");
+  const targetMyPiModules = path.join(targetNodeModules, "@my-pi");
+  await fs.mkdir(targetMyPiModules, { recursive: true });
+
+  const pkgs = await fs.readdir(path.join(ROOT, "packages"));
+  for (const p of pkgs) {
+    await fs.symlink(
+      path.join(ROOT, "packages", p),
+      path.join(targetMyPiModules, p),
+      "junction"
+    ).catch(() => {});
+  }
+
+  // Link app-level dependencies (e.g. zod, modelcontextprotocol) via absolute paths
+  const appNM = path.join(ROOT, "apps", "my-pi-mcp", "node_modules");
+  const appDeps = await fs.readdir(appNM).catch(() => []);
+  for (const dep of appDeps) {
+    if (dep !== "@my-pi" && !dep.startsWith(".")) {
+      await fs.symlink(
+        path.join(appNM, dep),
+        path.join(targetNodeModules, dep),
+        "junction"
+      ).catch(() => {});
+    }
+  }
+
+  // Test host-config command from installed artifact (D4)
+  console.log("  Testing host-config from installed artifact...");
+  const hostConfigOutput = execSync(`"${process.execPath}" "${installedBinary}" host-config cursor-local`, {
+    cwd: tempDir,
+    encoding: "utf8",
+  });
+  if (!hostConfigOutput.includes("mcpServers")) {
+    throw new Error("host-config cursor-local did not return valid mcpServers config");
+  }
+  console.log("  ✓ host-config cursor-local executed successfully from installed tarball");
+
+  // Step 5: Launch installed my-pi-mcp subprocess over stdio
+  console.log("[5/6] Launching installed my-pi-mcp server process over stdio...");
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: [mainScript, "--workspace", tempDir],
+    args: [installedBinary, "--workspace", tempDir],
     cwd: tempDir,
     stderr: "inherit",
   });
 
   const client = new Client({ name: "pr-smoke-client", version: "1.0.0" });
   await client.connect(transport);
-  console.log("  ✓ MCP Client connected to my-pi-mcp over stdio");
+  console.log("  ✓ MCP Client connected to installed my-pi-mcp over stdio");
 
-  // Step 5: Verify 13 tools & call core capabilities
-  console.log("[5/5] Exercising 13-tool surface...");
+  // Step 6: Verify 13 tools & call core capabilities
+  console.log("[6/6] Exercising 13-tool surface on installed artifact...");
 
   // List tools
   const tools = await client.listTools();

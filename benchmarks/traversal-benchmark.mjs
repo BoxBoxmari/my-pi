@@ -1,34 +1,70 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
- * Large repository traversal & search benchmark (Plan §27).
+ * Large repository traversal & search benchmark (Plan §27, Workstream B).
  *
  * Runs search (glob + grep) over the deterministic synthetic fixture.
- * Measures:
- *   - Traversal speed & throughput
- *   - Search match latency (p50, p95, p99)
- *   - Security policy compliance (verifying sensitive files are never returned)
+ * Supports:
+ *   --profile smoke   (5,000 files - PR / CI smoke profile)
+ *   --profile release (100,000 files - Full release qualification profile)
  *
- * Usage: node benchmarks/traversal-benchmark.mjs [fixtureDir]
+ * Usage:
+ *   node benchmarks/traversal-benchmark.mjs [--profile smoke|release] [fixtureDir]
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const FIXTURE_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(os.tmpdir(), "my-pi-100k-fixture");
+
+// Parse arguments
+const args = process.argv.slice(2);
+let profile = "smoke";
+let customDir = null;
+
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === "--profile" && args[i + 1]) {
+    profile = args[i + 1];
+    i++;
+  } else if (!args[i].startsWith("--")) {
+    customDir = args[i];
+  }
+}
+
+const targetCount = profile === "release" ? 100000 : 5000;
+const FIXTURE_DIR = customDir ? path.resolve(customDir) : path.join(os.tmpdir(), `my-pi-${profile}-${targetCount}-fixture`);
+
+async function countFilesRecursively(dir) {
+  let count = 0;
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const e of entries) {
+      if (e.isDirectory()) {
+        count += await countFilesRecursively(path.join(dir, e.name));
+      } else if (e.isFile()) {
+        count++;
+      }
+    }
+  } catch {
+    return 0;
+  }
+  return count;
+}
 
 async function runBenchmark() {
-  // Auto-generate fixture if missing (e.g. in fresh CI runners)
-  try {
-    await fs.access(FIXTURE_DIR);
-  } catch {
-    console.log(`[benchmark] Fixture not found at ${FIXTURE_DIR}, auto-generating deterministic fixture...`);
+  console.log(`=== TRAVERSAL BENCHMARK: profile=${profile} target=${targetCount} ===`);
+
+  // Auto-generate fixture if missing or if count doesn't match
+  let observedCount = await countFilesRecursively(FIXTURE_DIR);
+  if (observedCount < targetCount) {
+    console.log(`[benchmark] Fixture missing or incomplete (${observedCount}/${targetCount}) at ${FIXTURE_DIR}. Generating...`);
     const { generate100kFixture } = await import(pathToFileURL(path.join(repoRoot, "benchmarks", "generate-100k-fixture.mjs")).href);
-    await generate100kFixture(FIXTURE_DIR, 5000);
+    await generate100kFixture(FIXTURE_DIR, targetCount);
+    observedCount = await countFilesRecursively(FIXTURE_DIR);
   }
 
-  console.log(`[benchmark] Starting traversal benchmark against: ${FIXTURE_DIR}`);
+  console.log(`[benchmark] Target fixture verified: ${observedCount} observed files in ${FIXTURE_DIR}`);
 
   const { WorkspaceRuntime } = await import(pathToFileURL(path.join(repoRoot, "packages", "workspace-runtime", "dist", "index.js")).href);
   const { createSearchCapability } = await import(pathToFileURL(path.join(repoRoot, "packages", "search", "dist", "index.js")).href);
@@ -68,6 +104,9 @@ async function runBenchmark() {
   }
 
   const resultData = {
+    profile,
+    targetFileCount: targetCount,
+    observedFileCount: observedCount,
     fixtureDir: FIXTURE_DIR,
     globMatches: globRes.data.totalCount,
     globDurationMs: +globMs.toFixed(2),
@@ -78,8 +117,8 @@ async function runBenchmark() {
 
   const resultsDir = path.join(repoRoot, "benchmarks", "results");
   await fs.mkdir(resultsDir, { recursive: true });
-  await fs.writeFile(path.join(resultsDir, "traversal-100k.json"), JSON.stringify(resultData, null, 2), "utf8");
-  console.log(`[benchmark] Traversal benchmark PASS. Results saved to benchmarks/results/traversal-100k.json`);
+  await fs.writeFile(path.join(resultsDir, `traversal-${profile}.json`), JSON.stringify(resultData, null, 2), "utf8");
+  console.log(`[benchmark] Traversal benchmark PASS. Results saved to benchmarks/results/traversal-${profile}.json`);
 }
 
 runBenchmark().catch((err) => {

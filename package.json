@@ -1,6 +1,6 @@
 {
   "name": "my-pi",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "description": "my-pi v1.1 - host-neutral coding capability substrate exposed through Model Context Protocol (MCP)",
   "type": "module",
@@ -17,13 +17,21 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test --experimental-strip-types \"packages/*/test/**/*.test.ts\" \"apps/*/test/**/*.test.ts\"",
     "test:unit": "node --test --experimental-strip-types \"packages/*/test/**/*.test.ts\"",
+    "test:release": "node --test test/release/**/*.test.mjs",
+    "test:smoke": "node scripts/pr-smoke.mjs",
     "host-config": "node apps/my-pi-mcp/dist/main.js host-config",
-    "verify:gates": "node scripts/verify-gates.mjs",
+    "bench:smoke": "node benchmarks/traversal-benchmark.mjs --profile smoke",
+    "bench:release": "node benchmarks/traversal-benchmark.mjs --profile release",
     "check:refs": "node scripts/check-project-references.mjs",
     "check:arch": "node scripts/architecture-check.mjs",
+    "check:boundary": "node scripts/check-public-boundary.mjs",
     "probe:era": "node scripts/probe-era.mjs",
     "smoke": "node scripts/pr-smoke.mjs",
-    "verify": "node scripts/check-project-references.mjs && node scripts/architecture-check.mjs && pnpm build && pnpm test && node scripts/verify-gates.mjs && node scripts/pr-smoke.mjs"
+    "verify:gates": "node scripts/verify-gates.mjs",
+    "verify:evidence": "node scripts/verify-gates.mjs --strict",
+    "verify:boundary": "node scripts/check-public-boundary.mjs",
+    "verify:release": "node scripts/verify-release.mjs",
+    "verify": "node scripts/check-project-references.mjs && node scripts/architecture-check.mjs && node scripts/check-public-boundary.mjs && pnpm build && pnpm test && node --test test/release/**/*.test.mjs && node scripts/verify-gates.mjs && node scripts/verify-release.mjs && node scripts/pr-smoke.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.0.0",

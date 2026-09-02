@@ -1,6 +1,6 @@
 {
   "name": "@my-pi/app",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "type": "module",
   "description": "my-pi-mcp — my-pi MCP server (stdio)",
   "main": "./dist/main.js",

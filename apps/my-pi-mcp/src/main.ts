@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * CLI entry for my-pi-mcp and host-config.
  * V1 transport: stdio only.

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "releaseChannel": "alpha",
+  "version": "0.1.0-alpha.1",
+  "requiredGates": [
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6",
+    "R0"
+  ],
+  "requiredCriteria": [
+    "G0:supply-chain-audit",
+    "G0:era-probe",
+    "G0:supplier-qualification",
+    "G1:cancellation-deterministic",
+    "G1:lsp-feasibility-spike",
+    "G2:sensitive-path-pre-read",
+    "G2:scope-relative-policy",
+    "G2:exact-total-count",
+    "G2:backend-parity",
+    "G3:read-patch",
+    "G3:search-read-patch",
+    "G3:stale-hash",
+    "G3:missing-hash-overwrite",
+    "G3:concurrent-writers",
+    "G3:encoding-bom",
+    "G3:newlines",
+    "G3:binary-encoding-reject",
+    "G3:no-clobber-create",
+    "G3:atomic-failure",
+    "G3:read-back-verify",
+    "G3:windows-lock-injection",
+    "G4:vcs-status-diff",
+    "G4:ast-search",
+    "G5:lsp-lifecycle",
+    "G6:host-connection",
+    "G6:host-same-task-certification",
+    "R0:R0.1.1-clean-build",
+    "R0:R0.1.2-sensitive-path-workspace-relative",
+    "R0:R0.1.3-fs_patch-cas-mandatory",
+    "R0:R0.1.4-no-clobber-create",
+    "R0:R0.1.5-metadata-fail-closed",
+    "R0:R0.1.6-deterministic-cancellation",
+    "R0:R0.1.7-era-truth",
+    "R0:R0.1.8-capability-layering",
+    "R0:R0.1.9-operational-capability-model",
+    "R0:R0.1.10-evidence-framework"
+  ],
+  "deferredCapabilities": [
+    {
+      "gate": "G0",
+      "id": "native-napi-spike",
+      "description": "Rust napi-rs hardware-accelerated binding spike",
+      "status": "deferred",
+      "releaseBlocking": false
+    },
+    {
+      "gate": "G2",
+      "id": "native-search",
+      "description": "Native C/Rust accelerated grep/glob search backend",
+      "status": "deferred",
+      "releaseBlocking": false
+    }
+  ],
+  "environmentMatrix": {
+    "node": ">=22.6.0",
+    "platforms": [
+      "windows-x64",
+      "linux-x64",
+      "darwin-arm64",
+      "darwin-x64"
+    ]
+  },
+  "performanceProfile": "alpha"
+}
