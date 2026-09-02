@@ -24,8 +24,8 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
       typescript-language-server:
-        specifier: 4.4.1
-        version: 4.4.1
+        specifier: 6.0.0
+        version: 6.0.0
 
   apps/my-pi-mcp:
     dependencies:
@@ -291,9 +291,9 @@ packages:
   tree-sitter-wasms@0.1.13:
     resolution: {integrity: sha512-wT+cR6DwaIz80/vho3AvSF0N4txuNx/5bcRKoXouOfClpxh/qqrF4URNLQXbbt8MaAxeksZcZd1j8gcGjc+QxQ==}
 
-  typescript-language-server@4.4.1:
-    resolution: {integrity: sha512-vEvDw+cjY75afMN2rhx0z8sQtFDAUHoBniksBmB6NUZlDt0rEIwQq01VMiqyXFm9uZwcED2475cmDeXxoDHleg==}
-    engines: {node: '>=18'}
+  typescript-language-server@6.0.0:
+    resolution: {integrity: sha512-LXtzY3UZGfghWA5eRU6/T5j1+YiGRgy14mR3GOKyTKlE1op1TYKQnLVxwBsmnXeDhGLuvzZyIHBAqvrekAITYQ==}
+    engines: {node: '>=22.22.2'}
     hasBin: true
 
   typescript@5.9.3:
@@ -389,7 +389,7 @@ snapshots:
 
   tree-sitter-wasms@0.1.13: {}
 
-  typescript-language-server@4.4.1:
+  typescript-language-server@6.0.0:
     dependencies:
       vscode-jsonrpc: 5.0.1
       vscode-languageserver-protocol: 3.18.3
