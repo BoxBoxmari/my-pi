@@ -123,8 +123,8 @@ pnpm build
 
 ### 2. Start MCP Server Locally
 ```bash
-# Install and run the published package for a target workspace
-# (available after registry publication)
+# Install and run the published alpha package for a target workspace
+# https://www.npmjs.com/package/@koonwang03/my-pi
 pnpm add --global @koonwang03/my-pi@0.1.0-alpha.1
 my-pi-mcp --workspace /path/to/your/project
 ```

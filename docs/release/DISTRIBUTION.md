@@ -3,7 +3,7 @@
 **Package Name:** `@koonwang03/my-pi`
 **CLI Binaries:** `my-pi-mcp` (primary), `ccr-mcp` (deprecated 1-major alias)  
 **Intended Registry:** npm / GitHub Packages
-**Current workflow state:** qualification artifacts are uploaded by GitHub Actions; registry publication remains a manual follow-up.
+**Current workflow state:** `@koonwang03/my-pi@0.1.0-alpha.1` is published on npm; qualification artifacts are retained by GitHub Actions.
 **Supported Node Engine:** `>=22.6.0` (Node 22 and Node 24 qualification lanes are configured; candidate run evidence is retained by the release workflow)
 
 ---
