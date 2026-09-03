@@ -186,8 +186,11 @@ async function assertNoSymlinks(root) {
 }
 
 async function readExpectedPackage() {
-  const policy = JSON.parse(await fs.readFile(path.join(ROOT, "release", "release-policy.json"), "utf8"));
-  return { name: "my-pi", version: policy.version };
+  const [policy, appPackage] = await Promise.all([
+    fs.readFile(path.join(ROOT, "release", "release-policy.json"), "utf8").then((text) => JSON.parse(text)),
+    fs.readFile(path.join(ROOT, "apps", "my-pi-mcp", "package.json"), "utf8").then((text) => JSON.parse(text)),
+  ]);
+  return { name: appPackage.name, version: policy.version };
 }
 
 export async function runPrSmoke() {
@@ -220,8 +223,8 @@ def greet(name: str) -> str:
     } else {
       console.log("[2/6] Building all packages (tsc --build + locked esbuild API)...");
       runShellCommand(pnpmCommand, ["build"], { cwd: ROOT, stdio: "inherit" });
-      console.log("[3/6] Packing my-pi into the isolated consumer workspace...");
-      const packOutput = runShellCommand(pnpmCommand, ["--filter", "my-pi", "pack", "--pack-destination", tempDir], {
+      console.log("[3/6] Packing @koonwang03/my-pi into the isolated consumer workspace...");
+      const packOutput = runShellCommand(pnpmCommand, ["--filter", "@koonwang03/my-pi", "pack", "--pack-destination", tempDir], {
         cwd: ROOT,
         encoding: "utf8",
       });

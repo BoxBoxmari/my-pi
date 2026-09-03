@@ -9,6 +9,8 @@
   <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/release.yml"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/release.yml/badge.svg" alt="Release qualification status" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/codeql.yml?query=branch%3Amain"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/codeql.yml/badge.svg?branch=main" alt="CodeQL status" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/releases/tag/v0.1.0-alpha.1"><img src="https://img.shields.io/github/v/tag/BoxBoxmari/my-pi?sort=semver&label=release" alt="Latest release tag" /></a>
+  <a href="https://www.npmjs.com/package/@koonwang03/my-pi"><img src="https://img.shields.io/npm/v/%40koonwang03%2Fmy-pi?label=npm&logo=npm" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/@koonwang03/my-pi"><img src="https://img.shields.io/npm/dm/%40koonwang03%2Fmy-pi?label=downloads&logo=npm" alt="npm downloads" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/BoxBoxmari/my-pi" alt="License" /></a>
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.6.0%20%7C%2024%20LTS-339933?logo=node.js&logoColor=white" alt="Node.js support" />
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP%20SDK-2.0.0-6366f1" alt="Model Context Protocol SDK" /></a>
@@ -123,7 +125,7 @@ pnpm build
 ```bash
 # Install and run the published package for a target workspace
 # (available after registry publication)
-pnpm add --global my-pi@0.1.0-alpha.1
+pnpm add --global @koonwang03/my-pi@0.1.0-alpha.1
 my-pi-mcp --workspace /path/to/your/project
 ```
 

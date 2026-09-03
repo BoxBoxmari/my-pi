@@ -1,5 +1,5 @@
 {
-  "name": "my-pi",
+  "name": "@koonwang03/my-pi",
   "version": "0.1.0-alpha.1",
   "type": "module",
   "description": "my-pi — host-neutral coding capability substrate exposed through Model Context Protocol (MCP)",

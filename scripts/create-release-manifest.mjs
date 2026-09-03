@@ -66,7 +66,7 @@ function validateManifest(manifest, { policy, appPackage, releaseCommit, artifac
   if (typeof manifest.qualificationTimestamp !== "string" || !manifest.qualificationTimestamp.trim()) {
     errors.push("qualificationTimestamp is missing");
   }
-  if (appPackage.name !== "my-pi" || appPackage.version !== policy.version) {
+  if (appPackage.name !== policy.packageName || appPackage.version !== policy.version) {
     errors.push("publishable package metadata does not match the release policy");
   }
   if (benchmark.observedFileCount < benchmark.targetFileCount) errors.push("benchmark observed count is below its target");

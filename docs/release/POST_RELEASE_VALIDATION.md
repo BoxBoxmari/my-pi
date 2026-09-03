@@ -17,9 +17,9 @@ mkdir my-pi-consumer-test
 cd my-pi-consumer-test
 
 # Install the published package globally or locally
-npm install -g my-pi@0.1.0-alpha.1
+npm install -g @koonwang03/my-pi@0.1.0-alpha.1
 # or
-npx --yes --package my-pi@0.1.0-alpha.1 my-pi-mcp host-config cursor-local
+npx --yes --package @koonwang03/my-pi@0.1.0-alpha.1 my-pi-mcp host-config cursor-local
 ```
 
 ### Step 2: Validate Executable Binaries & Shebang

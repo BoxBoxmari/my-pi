@@ -14,7 +14,7 @@ const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 async function packCurrentArtifact(destination) {
-  await execFileAsync(pnpmCommand, ["--filter", "my-pi", "pack", "--pack-destination", destination], {
+  await execFileAsync(pnpmCommand, ["--filter", "@koonwang03/my-pi", "pack", "--pack-destination", destination], {
     cwd: ROOT,
     encoding: "utf8",
     shell: true,
@@ -30,7 +30,7 @@ test("pr-smoke: --artifact tests the supplied TGZ without repacking", { skip: pr
     const artifact = await packCurrentArtifact(tempDir);
     const result = await execFileAsync(process.execPath, [SCRIPT, "--artifact", artifact], { cwd: ROOT });
     assert.match(result.stdout, /Using supplied release artifact without repacking/);
-    assert.doesNotMatch(result.stdout, /Packing my-pi into/);
+    assert.doesNotMatch(result.stdout, /Packing @koonwang03\/my-pi into/);
     assert.match(result.stdout, /PR SMOKE TEST: ALL PASSED/);
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true });

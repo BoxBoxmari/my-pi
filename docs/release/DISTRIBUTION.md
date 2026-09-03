@@ -1,6 +1,6 @@
 ﻿# my-pi — Packaging & Distribution Specification
 
-**Package Name:** `my-pi`  
+**Package Name:** `@koonwang03/my-pi`
 **CLI Binaries:** `my-pi-mcp` (primary), `ccr-mcp` (deprecated 1-major alias)  
 **Intended Registry:** npm / GitHub Packages
 **Current workflow state:** qualification artifacts are uploaded by GitHub Actions; registry publication remains a manual follow-up.
@@ -10,7 +10,7 @@
 
 ## 1. Package Contents Allowlist
 
-The distributed npm tarball (`my-pi`) must contain exclusively:
+The distributed npm tarball (`@koonwang03/my-pi`) must contain exclusively:
 
 - `dist/main.js` (with `#!/usr/bin/env node` shebang)
 - `dist/**/*.js`, `dist/**/*.d.ts`, and matching `dist/**/*.map` files
@@ -45,11 +45,11 @@ manifest records the exact TGZ and SBOM digests plus the candidate commit.
 
 ```bash
 # Global installation
-npm install -g my-pi
+npm install -g @koonwang03/my-pi
 
 # Run MCP server
 my-pi-mcp --workspace /path/to/project
 
 # Direct execution via npx
-npx --yes --package my-pi@0.1.0-alpha.1 my-pi-mcp --workspace /path/to/project
+npx --yes --package @koonwang03/my-pi@0.1.0-alpha.1 my-pi-mcp --workspace /path/to/project
 ```

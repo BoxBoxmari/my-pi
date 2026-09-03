@@ -75,7 +75,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist-release
-          pnpm --filter my-pi pack --pack-destination dist-release
+          pnpm --filter @koonwang03/my-pi pack --pack-destination dist-release
           mapfile -t artifacts < <(find dist-release -maxdepth 1 -type f -name '*.tgz' -printf '%f\n')
           if [ "${#artifacts[@]}" -ne 1 ]; then
             echo "Expected exactly one release TGZ, found ${#artifacts[@]}" >&2

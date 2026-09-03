@@ -31,7 +31,7 @@ test("supply-chain integrity: cargo-deny discovers the policy and the workflow p
 
 test("release workflow: packs once and qualifies/uploads the same artifact", async () => {
   const releaseWorkflow = await readFile(".github/workflows/release.yml", "utf8");
-  assert.equal((releaseWorkflow.match(/pnpm --filter my-pi pack --pack-destination/g) ?? []).length, 1);
+  assert.equal((releaseWorkflow.match(/pnpm --filter @koonwang03\/my-pi pack --pack-destination/g) ?? []).length, 1);
   assert.ok((releaseWorkflow.match(/node scripts\/pr-smoke\.mjs --artifact/g) ?? []).length >= 3);
   assert.doesNotMatch(releaseWorkflow, /node scripts\/pr-smoke\.mjs\s*\n/);
   assert.match(releaseWorkflow, /Verify artifact bytes were preserved across qualification/);

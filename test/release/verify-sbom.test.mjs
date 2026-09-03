@@ -6,7 +6,7 @@ import { validateSbom } from "../../scripts/verify-sbom.mjs";
 
 const RELEASE_COMMIT = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 const appPackage = {
-  name: "my-pi",
+  name: "@koonwang03/my-pi",
   version: "0.1.0-alpha.1",
   dependencies: {
     "@modelcontextprotocol/core": "2.0.0",
@@ -50,7 +50,7 @@ test("SBOM parser retains scoped pnpm package names", () => {
 
 test("SBOM generation derives release version, commit, and direct dependency inventory", () => {
   const sbom = makeSbom();
-  assert.equal(sbom.metadata.component.name, "my-pi");
+  assert.equal(sbom.metadata.component.name, "@koonwang03/my-pi");
   assert.equal(sbom.metadata.component.version, appPackage.version);
   assert.equal(sbom.metadata.properties.find((property) => property.name === "my-pi:commit").value, RELEASE_COMMIT);
   assert.deepEqual(

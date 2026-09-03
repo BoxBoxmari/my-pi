@@ -8,12 +8,12 @@ import { createReleaseManifest } from "../../scripts/create-release-manifest.mjs
 
 const ROOT = process.cwd();
 const RELEASE_COMMIT = execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
-const policy = { version: "0.1.0-alpha.1", releaseChannel: "alpha" };
-const appPackage = { name: "my-pi", version: policy.version };
+const policy = { packageName: "@koonwang03/my-pi", version: "0.1.0-alpha.1", releaseChannel: "alpha" };
+const appPackage = { name: policy.packageName, version: policy.version };
 
 async function fixture() {
   const dir = await mkdtemp(path.join(os.tmpdir(), "my-pi-release-manifest-"));
-  const artifactPath = path.join(dir, "my-pi-0.1.0-alpha.1.tgz");
+  const artifactPath = path.join(dir, "koonwang03-my-pi-0.1.0-alpha.1.tgz");
   const sbomPath = path.join(dir, "SBOM.cdx.json");
   const benchmarkPath = path.join(dir, "traversal-release.json");
   const outputPath = path.join(dir, "release-manifest.json");
