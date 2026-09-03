@@ -7,6 +7,7 @@
  * without being repacked.
  */
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { promises as fs } from "node:fs";
 import { gunzip } from "node:zlib";
 import os from "node:os";
@@ -22,6 +23,14 @@ const gunzipAsync = promisify(gunzip);
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
+function resolveWindowsCommand(command) {
+  if (process.platform !== "win32") return command;
+  const candidates = [];
+  if (process.env.PNPM_HOME) candidates.push(path.join(process.env.PNPM_HOME, command));
+  candidates.push(path.join(path.dirname(process.execPath), command));
+  return candidates.find((candidate) => existsSync(candidate)) ?? command;
+}
+
 function quoteWindowsArg(value) {
   const text = String(value);
   if (/[&|<>^()%!`"\r\n]/.test(text)) throw new Error("unsafe Windows command argument");
@@ -29,16 +38,17 @@ function quoteWindowsArg(value) {
 }
 
 function runShellCommand(command, args, options) {
-  if (process.platform === "win32" && /\.(cmd|bat)$/i.test(command)) {
+  const executable = resolveWindowsCommand(command);
+  if (process.platform === "win32" && /\.(cmd|bat)$/i.test(executable)) {
     const quote = String.fromCharCode(34);
-    const commandLine = `${quote}${quote}${command}${quote}${args.length > 0 ? ` ${args.map(quoteWindowsArg).join(" ")}` : ""}${quote}`;
+    const commandLine = `${quote}${quote}${executable}${quote}${args.length > 0 ? ` ${args.map(quoteWindowsArg).join(" ")}` : ""}${quote}`;
     return execFileSync(process.env.ComSpec ?? process.env.comspec ?? "cmd.exe", ["/d", "/s", "/c", commandLine], {
       ...options,
       shell: false,
       windowsVerbatimArguments: true,
     });
   }
-  return execFileSync(command, args, { ...options, shell: false });
+  return execFileSync(executable, args, { ...options, shell: false });
 }
 
 function parseArgs(args) {
