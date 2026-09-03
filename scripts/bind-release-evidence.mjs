@@ -5,6 +5,7 @@
  * This is an explicit generation step. verify-gates.mjs and verify-release.mjs
  * remain read-only consumers of the resulting evidence.
  */
+import { realpathSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -12,6 +13,16 @@ import { fileURLToPath } from "node:url";
 import { resolveReleaseCommit } from "./release-identity.mjs";
 
 const ROOT = process.cwd();
+
+function isMainModule(metaUrl) {
+  const invokedPath = process.argv[1];
+  if (!invokedPath) return false;
+  try {
+    return realpathSync(invokedPath) === realpathSync(fileURLToPath(metaUrl));
+  } catch {
+    return path.resolve(invokedPath) === path.resolve(fileURLToPath(metaUrl));
+  }
+}
 
 function requiredEvidenceIds(policy) {
   const ids = new Set(policy.requiredGates ?? []);
@@ -43,8 +54,7 @@ export async function main() {
   }
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (isMain) {
+if (isMainModule(import.meta.url)) {
   await main().catch((err) => {
     console.error(`[EVIDENCE] Binding failed: ${err.message}`);
     process.exitCode = 1;

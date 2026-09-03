@@ -7,6 +7,7 @@
  * candidate commit identity, git tags, and benchmark integrity.
  * Usage: node scripts/verify-release.mjs [--strict]
  */
+import { realpathSync } from "node:fs";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -19,6 +20,16 @@ const POLICY_FILE = path.join(ROOT, "release", "release-policy.json");
 const EVIDENCE_DIR = path.join(ROOT, "evidence");
 const ROOT_PACKAGE = path.join(ROOT, "package.json");
 const APP_PACKAGE = path.join(ROOT, "apps", "my-pi-mcp", "package.json");
+
+function isMainModule(metaUrl) {
+  const invokedPath = process.argv[1];
+  if (!invokedPath) return false;
+  try {
+    return realpathSync(invokedPath) === realpathSync(fileURLToPath(metaUrl));
+  } catch {
+    return path.resolve(invokedPath) === path.resolve(fileURLToPath(metaUrl));
+  }
+}
 
 async function fileExists(filePath) {
   try {
@@ -337,7 +348,7 @@ export async function run() {
   return true;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   await run().catch((err) => {
     console.error(`[RELEASE VERIFIER] ${err.message}`);
     process.exitCode = 1;
