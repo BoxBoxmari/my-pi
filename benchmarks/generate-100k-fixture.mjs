@@ -117,11 +117,11 @@ temp/
     private: true,
   }, null, 2), "utf8");
 
-  // 2. Sensitive paths (to verify policy security during search/grep)
-  const secretsDir = path.join(targetDir, ".aws");
-  await fs.mkdir(secretsDir, { recursive: true });
-  await fs.writeFile(path.join(secretsDir, "credentials"), "[default]\naws_access_key_id = AKIA_BENCHMARK_FAKE\naws_secret_access_key = SECRET_KEY\n", "utf8");
-  await fs.writeFile(path.join(targetDir, ".env"), "DATABASE_URL=postgres://user:pass@localhost:5432/bench\nAPI_KEY=SECRET_123\n", "utf8");
+  // 2. Sensitive paths (synthetic markers only; no credential-shaped values)
+  const deniedAwsDir = path.join(targetDir, ".aws");
+  await fs.mkdir(deniedAwsDir, { recursive: true });
+  await fs.writeFile(path.join(deniedAwsDir, "credentials"), "[benchmark-deny-marker]\npath_policy_marker = BENCHMARK_DENIED_PATH_VALUE\n", "utf8");
+  await fs.writeFile(path.join(targetDir, ".env"), "BENCHMARK_DENIED_PATH_MARKER=synthetic-local-value\n", "utf8");
 
   // 3. Unicode paths
   const unicodeDir = path.join(targetDir, "src", "i18n", "日本語");

@@ -102,9 +102,9 @@ async function runBenchmark() {
   const grepMs = performance.now() - t0Grep;
   console.log(`[benchmark] Grep found ${grepRes.data.totalCount} matches in ${grepMs.toFixed(2)}ms`);
 
-  // 3. Sensitive path check: grep for SECRET_KEY (should find 0 because .aws and .env are denied)
+  // 3. Sensitive path check: grep for the synthetic marker (should find 0 because .aws and .env are denied)
   console.log("[benchmark] Verifying sensitive path security...");
-  const secRes = await searchCap.execute({ mode: "grep", pattern: "SECRET_KEY" }, ctx);
+  const secRes = await searchCap.execute({ mode: "grep", pattern: "BENCHMARK_DENIED_PATH_VALUE" }, ctx);
   if (secRes.data.totalCount === 0) {
     console.log("  ✓ PASS: Sensitive credentials were NOT searched or leaked.");
   } else {

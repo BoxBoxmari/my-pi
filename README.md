@@ -5,21 +5,21 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
-  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-%3E%3D22.6.0%20%7C%2024%20LTS-brightgreen.svg" alt="Node.js" /></a>
-  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP%20Protocol-2025--11--25-6366f1.svg" alt="MCP Protocol Era" /></a>
-  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9%20Strict-3178c6.svg" alt="TypeScript" /></a>
-  <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-2021%20Stable-dea584.svg" alt="Rust" /></a>
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Multi-Platform" />
-  <img src="https://img.shields.io/badge/Architecture-Local--First%20%2F%20Zero--Inference-059669.svg" alt="Local-first architecture" />
+  <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/release.yml"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/release.yml/badge.svg" alt="Release qualification status" /></a>
+  <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/codeql.yml?query=branch%3Amain"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/codeql.yml/badge.svg?branch=main" alt="CodeQL status" /></a>
+  <a href="https://github.com/BoxBoxmari/my-pi/releases/tag/v0.1.0-alpha.1"><img src="https://img.shields.io/github/v/tag/BoxBoxmari/my-pi?sort=semver&label=release" alt="Latest release tag" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/BoxBoxmari/my-pi" alt="License" /></a>
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D22.6.0%20%7C%2024%20LTS-339933?logo=node.js&logoColor=white" alt="Node.js support" />
+  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP%20SDK-2.0.0-6366f1" alt="Model Context Protocol SDK" /></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey" alt="Supported platforms" />
 </p>
 
 ---
 
 ## 📌 Executive Summary
 
-**my-pi** is a high-performance, deterministic coding capability runtime exposed through the official **Model Context Protocol (MCP)**. Engineered as a unified execution foundation for autonomous coding agents (such as Claude Code, OpenCode, Cursor, and Google Antigravity), **my-pi** bridges LLMs and local workspaces with strict safety invariants, zero-distortion file operations, and native-grade intelligence.
+**my-pi** is a deterministic coding capability runtime exposed through the official **Model Context Protocol (MCP)**. It gives coding agents a controlled interface to local workspaces through explicit workspace authority, bounded reads, compare-and-swap writes, structural search, language-server integration, and Git operations.
 
 Rather than granting unrestricted shell access or relying on fragile line-based edits, **my-pi** enforces **Compare-And-Swap (CAS)** atomic mutations, pre-read credential protection, Tree-Sitter AST structural search, and multi-language Language Server Protocol (LSP) intelligence directly over a local stdio transport.
 
@@ -29,8 +29,8 @@ Rather than granting unrestricted shell access or relying on fragile line-based 
 
 | Feature | Description | Guarantee |
 | :--- | :--- | :--- |
-| **🛡️ Compare-And-Swap (CAS)** | All file updates verify raw SHA-256 byte fingerprints before write | Zero accidental overwrites or stale race conditions |
-| **🔒 Pre-Read Security Policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Zero secret leakage to LLM context |
+| **🛡️ Compare-And-Swap (CAS)** | File updates verify raw SHA-256 byte fingerprints before write | Rejects stale or unguarded overwrites |
+| **🔒 Pre-Read Security Policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Sensitive files stay outside model context |
 | **⚡ Deterministic AST Search** | Structural syntax tree queries via Tree-Sitter for 5 core languages | Accurate AST node filtering across large codebases |
 | **🧠 Multi-Language LSP Engine** | Integrated lifecycle for TypeScript, Python, Rust, and Go when compatible host servers are available | Hover, definition, references, and diagnostics |
 | **📦 Large Diff Spillover** | Massive VCS diffs automatically spill into local artifact storage | Token context conservation & bounded memory |
@@ -67,8 +67,8 @@ Rather than granting unrestricted shell access or relying on fragile line-based 
                                  │
                  ┌───────────────┴───────────────┐
                  ▼                               ▼
-        Native Rust Engine              Pure Node.js Fallback
-         (napi-rs bridge)              (Zero-Dependency Core)
+        Native backend boundary          Pure Node.js Fallback
+            (deferred)                 (authoritative for alpha)
 ```
 
 ---
@@ -122,6 +122,7 @@ pnpm build
 ### 2. Start MCP Server Locally
 ```bash
 # Install and run the published package for a target workspace
+# (available after registry publication)
 pnpm add --global my-pi@0.1.0-alpha.1
 my-pi-mcp --workspace /path/to/your/project
 ```
@@ -156,7 +157,7 @@ Deterministic synthetic benchmarks run automatically across generated repository
 
 - **MCP Stdio Latency**: The stdio benchmark records observed overhead per run; no cross-runner latency threshold is used for alpha release admission.
 - **Glob and Grep Throughput**: Candidate-bound benchmark results record observed timings for the 5,000-file smoke profile; the pure Node.js fallback remains authoritative for this alpha.
-- **Release Scalability**: 100,000-file traversal is pending candidate-bound release qualification and is not yet a certified release claim.
+- **Release Scalability**: 100,000-file traversal passed candidate-bound qualification for `v0.1.0-alpha.1`; the release workflow badge above reflects the current candidate.
 - **Memory Footprint**: Strict RSS delta control with bounded stream buffers.
 
 ---
@@ -189,9 +190,9 @@ node scripts/pr-smoke.mjs
 
 | OS Platform | Node 22 LTS | Node 24 LTS | Status |
 | :--- | :---: | :---: | :---: |
-| **Ubuntu Linux** (`ubuntu-latest`) | Configured | Configured | Candidate run required |
-| **Microsoft Windows** (`windows-latest`) | — | Configured | Candidate run required |
-| **Apple macOS** (`macos-latest`) | — | Configured | Candidate run required |
+| **Ubuntu Linux** (`ubuntu-latest`) | Passed | Passed | See CI status badge |
+| **Microsoft Windows** (`windows-latest`) | — | Passed | See CI status badge |
+| **Apple macOS** (`macos-latest`) | — | Passed | See CI status badge |
 
 ---
 
