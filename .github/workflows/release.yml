@@ -211,6 +211,9 @@ jobs:
       - name: Clean-install smoke on the checksum candidate
         run: node scripts/pr-smoke.mjs --artifact "dist-release/${{ needs.prepare.outputs.artifact_name }}"
 
+      - name: Build source runtime for release benchmark
+        run: pnpm build
+
       - name: Release traversal benchmark (100k minimum)
         run: node benchmarks/traversal-benchmark.mjs --profile release
 
