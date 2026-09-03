@@ -19,6 +19,9 @@
       "path": "../workspace-runtime"
     },
     {
+      "path": "../policy"
+    },
+    {
       "path": "../artifact-store"
     }
   ]

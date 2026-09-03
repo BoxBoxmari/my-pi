@@ -80,7 +80,7 @@ test("LSP language and root detection", () => {
 test("LSP TypeScript server capabilities (status, hover, symbols)", { timeout: 60_000 }, async () => {
   const registry = new LspRegistry();
   const runtime = new WorkspaceRuntime();
-  const ws = await runtime.open({ root: dir });
+  const ws = await runtime.open({ root: dir, capabilities: { lsp: true } });
   const caps = createLspCapabilities(runtime, registry);
 
   const statusCap = caps.get("lsp_status")!;
@@ -119,7 +119,7 @@ test("LSP Python pyright server integration", { timeout: 60_000 }, async () => {
 
   const registry = new LspRegistry();
   const runtime = new WorkspaceRuntime();
-  const ws = await runtime.open({ root: dir });
+  const ws = await runtime.open({ root: dir, capabilities: { lsp: true } });
 
   try {
     const client = await registry.getClient(ws.id, ws.root, "python");

@@ -31,6 +31,6 @@ export interface Workspace {
 }
 
 export const DEFAULT_WORKSPACE_POLICY: WorkspacePolicy = {
-  mode: "workspace-write",
+  mode: "read-only",
   allowedSensitivePaths: [],
 };

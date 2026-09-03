@@ -15,6 +15,7 @@ export interface ServerStatusInfo {
 
 export class LspRegistry {
   private readonly clients = new Map<string, LspClient>();
+  private readonly starting = new Map<string, Promise<LspClient>>();
 
   async getClient(
     workspaceId: string,
@@ -23,14 +24,26 @@ export class LspRegistry {
     configHash = "default",
   ): Promise<LspClient> {
     const key = registryKey(workspaceId, language, configHash);
-    let client = this.clients.get(key);
-    if (!client || !client.running) {
-      const root = findWorkspaceRoot(workspaceRoot, language);
-      client = new LspClient(root, language, configHash);
+    const existing = this.clients.get(key);
+    if (existing?.running) return existing;
+    const pending = this.starting.get(key);
+    if (pending) return pending;
+
+    const start = (async () => {
+      const current = this.clients.get(key);
+      if (current?.running) return current;
+      const root = findWorkspaceRoot(workspaceRoot, language, workspaceRoot);
+      const client = new LspClient(root, language, configHash);
       this.clients.set(key, client);
       await client.start();
+      return client;
+    })();
+    this.starting.set(key, start);
+    try {
+      return await start;
+    } finally {
+      if (this.starting.get(key) === start) this.starting.delete(key);
     }
-    return client;
   }
 
   async getClientForFile(

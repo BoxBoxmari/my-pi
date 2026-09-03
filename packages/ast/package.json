@@ -14,7 +14,7 @@
     "@my-pi/contracts": "workspace:*",
     "@my-pi/native-ports": "workspace:*",
     "@my-pi/workspace-runtime": "workspace:*",
-    "tree-sitter-wasms": "^0.1.13",
-    "web-tree-sitter": "^0.22.6"
+    "tree-sitter-wasms": "0.1.13",
+    "web-tree-sitter": "0.22.6"
   }
 }

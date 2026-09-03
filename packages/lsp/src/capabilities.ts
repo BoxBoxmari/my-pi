@@ -6,6 +6,7 @@ import {
 } from "@my-pi/contracts";
 import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { defaultLspRegistry, LspRegistry } from "./registry.js";
+import { pathToUri, type NavigationResult } from "./client.js";
 import { detectLanguageFromPath } from "./root-detection.js";
 
 type Ctx = CapabilityContext;
@@ -44,6 +45,30 @@ export interface LspNavigateInput {
   column?: number;
 }
 
+type NavigationLocation = NonNullable<NavigationResult["locations"]>[number];
+
+async function authorizeLocations(
+  runtime: WorkspaceRuntime,
+  ctx: Ctx,
+  locations: NavigationLocation[],
+): Promise<{ locations: NavigationLocation[]; filteredExternal: number }> {
+  const authorized: NavigationLocation[] = [];
+  let filteredExternal = 0;
+  for (const location of locations) {
+    try {
+      const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, location.path);
+      authorized.push({
+        ...location,
+        uri: pathToUri(resolved.absolute),
+        path: resolved.relPosix,
+      });
+    } catch {
+      filteredExternal++;
+    }
+  }
+  return { locations: authorized, filteredExternal };
+}
+
 export function createLspCapabilities(
   runtime: WorkspaceRuntime,
   registry: LspRegistry = defaultLspRegistry,
@@ -67,20 +92,21 @@ export function createLspCapabilities(
       const t0 = performance.now();
       const { path: relPath } = input as LspDiagnosticsInput;
       const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, relPath);
-      const lang = detectLanguageFromPath(resolved.absolute);
+      const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+      const lang = detectLanguageFromPath(authorized.absolute);
 
       if (!lang) {
-        return result(ctx, { path: resolved.relPosix, diagnostics: [] }, t0);
+        return result(ctx, { path: authorized.relPosix, diagnostics: [] }, t0);
       }
 
       try {
         const client = await registry.getClient(ctx.workspace.id, ctx.workspace.root, lang);
-        await client.openDocument(resolved.absolute);
-        await client.waitForDiagnostics(resolved.absolute);
-        const diags = client.getDiagnosticsForFile(resolved.absolute);
-        return result(ctx, { path: resolved.relPosix, diagnostics: diags }, t0);
+        await client.openDocument(authorized.absolute);
+        await client.waitForDiagnostics(authorized.absolute);
+        const diags = client.getDiagnosticsForFile(authorized.absolute);
+        return result(ctx, { path: authorized.relPosix, diagnostics: diags }, t0);
       } catch (e: any) {
-        return result(ctx, { path: resolved.relPosix, diagnostics: [], error: e.message }, t0, { degraded: true });
+        return result(ctx, { path: authorized.relPosix, diagnostics: [], error: e.message }, t0, { degraded: true });
       }
     },
   });
@@ -92,15 +118,21 @@ export function createLspCapabilities(
       const t0 = performance.now();
       const { path: relPath } = input as LspSymbolsInput;
       const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, relPath);
-      const lang = detectLanguageFromPath(resolved.absolute);
+      const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+      const lang = detectLanguageFromPath(authorized.absolute);
 
       if (!lang) {
-        return result(ctx, { path: resolved.relPosix, symbols: [] }, t0);
+        return result(ctx, { path: authorized.relPosix, symbols: [] }, t0);
       }
 
       const client = await registry.getClient(ctx.workspace.id, ctx.workspace.root, lang);
-      const symbols = await client.documentSymbols(resolved.absolute);
-      return result(ctx, { path: resolved.relPosix, symbols }, t0);
+      const symbols = (await client.documentSymbols(authorized.absolute)).map((symbol) => ({
+        ...symbol,
+        // Document symbols describe the authorized input document; never let
+        // a server-provided URI become a second filesystem authority.
+        uri: pathToUri(authorized.absolute),
+      }));
+      return result(ctx, { path: authorized.relPosix, symbols }, t0);
     },
   });
 
@@ -111,7 +143,8 @@ export function createLspCapabilities(
       const t0 = performance.now();
       const { action, path: relPath, line = 0, column = 0 } = input as LspNavigateInput;
       const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, relPath);
-      const lang = detectLanguageFromPath(resolved.absolute);
+      const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+      const lang = detectLanguageFromPath(authorized.absolute);
 
       if (!lang) {
         throw err.invalidArgument(`Unsupported language for path: ${relPath}`);
@@ -120,14 +153,16 @@ export function createLspCapabilities(
       const client = await registry.getClient(ctx.workspace.id, ctx.workspace.root, lang);
 
       if (action === "hover") {
-        const content = await client.hover(resolved.absolute, line, column);
-        return result(ctx, { action, path: resolved.relPosix, content }, t0);
+        const content = await client.hover(authorized.absolute, line, column);
+        return result(ctx, { action, path: authorized.relPosix, content }, t0);
       } else if (action === "definition") {
-        const locations = await client.definition(resolved.absolute, line, column);
-        return result(ctx, { action, path: resolved.relPosix, locations }, t0);
+        const locations = await client.definition(authorized.absolute, line, column);
+        const filtered = await authorizeLocations(runtime, ctx, locations ?? []);
+        return result(ctx, { action, path: authorized.relPosix, ...filtered }, t0);
       } else if (action === "references") {
-        const locations = await client.references(resolved.absolute, line, column);
-        return result(ctx, { action, path: resolved.relPosix, locations }, t0);
+        const locations = await client.references(authorized.absolute, line, column);
+        const filtered = await authorizeLocations(runtime, ctx, locations ?? []);
+        return result(ctx, { action, path: authorized.relPosix, ...filtered }, t0);
       }
 
       throw err.invalidArgument(`Unknown navigation action: ${action}`);

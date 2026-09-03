@@ -212,3 +212,11 @@ test("AST: createAstCapabilities integration with WorkspaceRuntime", async () =>
   assert.ok(res.data.totalCount >= 1, "ast_search should find calculateSum in workspace");
   assert.equal(res.data.matches[0].path, "calc.ts");
 });
+
+test("AST: invalid Tree-sitter query is an explicit typed failure", async () => {
+  const backend = new TreeSitterAstBackend();
+  await assert.rejects(
+    backend.search({ pattern: "(function_definition", paths: [pyPath], mode: "query" }, new AbortController().signal),
+    (error: unknown) => (error as { code?: string }).code === "ERR_PARSE_FAILED",
+  );
+});

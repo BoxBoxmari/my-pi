@@ -14,18 +14,22 @@ test("REQUIRED_PROFILES: two blocking, seven monitoring", () => {
 test("renderProfile: opencode and cursor JSON shapes (my-pi primary + ccr alias)", () => {
   const opencode = renderProfile(REQUIRED_PROFILES.find((p) => p.id === "opencode-current-local")!, {
     command: "my-pi-mcp",
+    workspace: "${workspaceFolder}",
   });
   assert.equal(opencode.type, "json");
   const j = (opencode as { json: Record<string, unknown> }).json;
   assert.ok((j["mcp"] as Record<string, unknown>)["my-pi"]);
   assert.ok((j["mcp"] as Record<string, unknown>)["ccr"]);
+  assert.match(JSON.stringify(j), /security-profile.*read-only/);
 
   const cursor = renderProfile(REQUIRED_PROFILES.find((p) => p.id === "cursor-local")!, {
     command: "my-pi-mcp",
+    workspace: "${workspaceFolder}",
   });
   const cj = (cursor as { json: Record<string, unknown> }).json;
   assert.ok((cj["mcpServers"] as Record<string, unknown>)["my-pi"]);
   assert.ok((cj["mcpServers"] as Record<string, unknown>)["ccr"]);
+  assert.match(JSON.stringify(cj), /security-profile.*read-only/);
 });
 
 test("renderProfile: claude-code renders a CLI command, not JSON", () => {

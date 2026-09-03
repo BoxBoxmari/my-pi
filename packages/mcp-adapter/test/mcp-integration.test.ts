@@ -20,7 +20,7 @@ before(async () => {
   await fs.writeFile(path.join(dir, ".env"), "SECRET=1");
 
   runtime = new WorkspaceRuntime();
-  await runtime.open({ root: dir });
+  await runtime.open({ root: dir, policy: { mode: "workspace-write" }, capabilities: { write: true, lsp: true } });
   server = new MyPiServer({
     name: "my-pi-test",
     version: "0.0.1",

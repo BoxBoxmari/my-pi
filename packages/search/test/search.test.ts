@@ -165,3 +165,11 @@ test("R0.1.2: sensitive matcher treats .aws and .ssh roots as sensitive", () => 
   assert.equal(p.isSensitive(".ssh/id_rsa"), ".ssh/**");
   assert.equal(p.isSensitive(".env"), ".env");
 });
+
+test("search rejects an oversized regular-expression pattern", async () => {
+  const backend = new NodeFallbackSearchBackend();
+  await assert.rejects(
+    backend.search({ mode: "grep", pattern: "x".repeat(4097), roots: [dir] }, new AbortController().signal),
+    /pattern exceeds 4096 bytes/,
+  );
+});

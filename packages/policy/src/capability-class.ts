@@ -3,7 +3,7 @@ import type { CapabilityClass, WorkspacePolicyMode } from "@my-pi/contracts";
 
 export function classAllowedInMode(cls: CapabilityClass, mode: WorkspacePolicyMode): boolean {
   if (cls === "read") return true;
-  if (cls === "write") return mode === "workspace-write" || mode === "review-required";
+  if (cls === "write") return mode === "workspace-write";
   return false;
 }
 

@@ -42,13 +42,13 @@ importers:
         specifier: 2.0.0
         version: 2.0.0
       tree-sitter-wasms:
-        specifier: ^0.1.13
+        specifier: 0.1.13
         version: 0.1.13
       web-tree-sitter:
-        specifier: ^0.22.6
+        specifier: 0.22.6
         version: 0.22.6
       zod:
-        specifier: ^4.5.4
+        specifier: 4.5.4
         version: 4.5.4
     devDependencies:
       '@my-pi/contracts':
@@ -82,10 +82,10 @@ importers:
         specifier: workspace:*
         version: link:../workspace-runtime
       tree-sitter-wasms:
-        specifier: ^0.1.13
+        specifier: 0.1.13
         version: 0.1.13
       web-tree-sitter:
-        specifier: ^0.22.6
+        specifier: 0.22.6
         version: 0.22.6
 
   packages/contracts: {}
@@ -230,6 +230,9 @@ importers:
       '@my-pi/native-ports':
         specifier: workspace:*
         version: link:../native-ports
+      '@my-pi/policy':
+        specifier: workspace:*
+        version: link:../policy
       '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../workspace-runtime

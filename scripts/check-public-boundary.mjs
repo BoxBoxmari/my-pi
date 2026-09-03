@@ -21,6 +21,8 @@ const FORBIDDEN_PATTERNS = [
   /^\.claude\//i,
   /^\.codex\//i,
   /^\.grok\//i,
+  /^\.cursor\//i,
+  /^\.opencode\//i,
   /^completion-card\.ya?ml$/i,
   /^STACK\.md$/i,
   /^X_HARNESS\.md$/i,

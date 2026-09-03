@@ -1,10 +1,33 @@
 {
   "id": "G4",
-  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
+  "commit": "61701726331df28d1c9aabea86be3e048a1c84c5",
   "status": "PASS",
-  "environment": { "os": "win32", "node": "v26.7.0" },
+  "environment": {
+    "os": "win32",
+    "node": "v26.7.0"
+  },
   "criteria": [
-    { "id": "vcs-status-diff", "status": "PASS", "evidence": ["vcs.test.ts: cwd isolation, non-git typed, diff isolation"] },
-    { "id": "ast-search", "status": "PASS", "evidence": ["ast.test.ts: TreeSitterAstBackend 5 languages (TS, JS, Python, Rust, Go)"] }
+    {
+      "id": "vcs-status-diff",
+      "status": "PASS",
+      "evidence": [
+        "vcs.test.ts: cwd isolation, non-git typed, diff isolation"
+      ]
+    },
+    {
+      "id": "ast-search",
+      "status": "PASS",
+      "evidence": [
+        "ast.test.ts: TreeSitterAstBackend 5 languages (TS, JS, Python, Rust, Go)"
+      ]
+    },
+    {
+      "id": "vcs-streaming-secret-filter",
+      "status": "PASS",
+      "evidence": [
+        "vcs-spill.test.ts: large diff is streamed to ArtifactWriter without legacy full-string spill",
+        "vcs-security.test.ts: tracked .env content is filtered before Git content diff"
+      ]
+    }
   ]
 }

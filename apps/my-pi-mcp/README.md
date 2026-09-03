@@ -16,6 +16,16 @@ npm install -g @koonwang03/my-pi
 my-pi-mcp --workspace /path/to/project
 ```
 
+The server starts in the read-only security profile. Enable writes and
+language-server processes explicitly when the workspace is trusted:
+
+```bash
+my-pi-mcp --workspace /path/to/project --security-profile trusted
+```
+
+Starting without `--workspace` or `MY_PI_WORKSPACE_ROOT` fails closed. Use
+`--allow-cwd` only as an intentional opt-in to the current directory.
+
 The package includes the bundled MCP executable and its runtime dependencies. Language-server integrations for TypeScript, Python, Rust, and Go use compatible server executables that must be installed separately in the host environment when those features are needed.
 
 The primary executable is `my-pi-mcp`; `ccr-mcp` is retained as a compatibility alias.

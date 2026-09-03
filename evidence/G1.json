@@ -1,10 +1,49 @@
 {
   "id": "G1",
-  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
+  "commit": "61701726331df28d1c9aabea86be3e048a1c84c5",
   "status": "PASS",
-  "environment": { "os": "win32", "node": "v26.7.0" },
+  "environment": {
+    "os": "win32",
+    "node": "v26.7.0"
+  },
   "criteria": [
-    { "id": "cancellation-deterministic", "status": "PASS", "evidence": ["mcp-integration.test.ts: R0.1.6 ERR_ABORTED", "stdio-subprocess.test.ts: P0.4 client cancellation"] },
-    { "id": "lsp-feasibility-spike", "status": "PASS", "evidence": ["lsp-spike.test.ts: TypeScript full lifecycle passes", "lsp-multi-lang.test.ts: 4-language registration/root detection; host server executables are prerequisites"] }
+    {
+      "id": "cancellation-deterministic",
+      "status": "PASS",
+      "evidence": [
+        "mcp-integration.test.ts: R0.1.6 ERR_ABORTED",
+        "stdio-subprocess.test.ts: P0.4 client cancellation"
+      ]
+    },
+    {
+      "id": "lsp-feasibility-spike",
+      "status": "PASS",
+      "evidence": [
+        "lsp-spike.test.ts: TypeScript full lifecycle passes",
+        "lsp-multi-lang.test.ts: 4-language registration/root detection; host server executables are prerequisites"
+      ]
+    },
+    {
+      "id": "lsp-byte-framing",
+      "status": "PASS",
+      "evidence": [
+        "frame-decoder.test.ts: UTF-8, arbitrary chunk boundaries, multiple frames, malformed headers, and max frame size"
+      ]
+    },
+    {
+      "id": "lsp-process-safety",
+      "status": "PASS",
+      "evidence": [
+        "spawn-utils.test.ts: credential/code-injection environment variables removed",
+        "lsp-spike.test.ts: shell-free Windows command shim and lifecycle pass"
+      ]
+    },
+    {
+      "id": "lsp-navigation-authority",
+      "status": "PASS",
+      "evidence": [
+        "authority.test.ts: parent root cannot escape boundary and external navigation locations are filtered"
+      ]
+    }
   ]
 }

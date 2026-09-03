@@ -7,6 +7,9 @@ Stable domain contracts, protocol-version independent. Implemented in `@my-pi/co
 interface Workspace { id; root; additionalRoots; revision; policy; capabilities }
 ```
 One configured workspace per process (stdio); model cannot open/close arbitrary workspaces in V1.
+The CLI starts `read-only` by default. `--security-profile trusted` is required
+for workspace writes and LSP processes; `--allow-cwd` is a separate explicit
+opt-in for using the process working directory as the workspace.
 
 ## File fingerprint (A11)
 ```ts
@@ -14,6 +17,11 @@ interface FileFingerprint { algorithm: "sha256"; digest; size }
 ```
 Raw bytes are hashed **before** decoding. Short display anchor = uppercase hex prefix (12–16);
 ambiguity never silently selects a version (`ERR_AMBIGUOUS_ANCHOR`).
+
+`fs_read.offset` and `fs_read.max_bytes` are raw-byte values. The returned text
+never cuts a UTF-8 or UTF-16 code unit sequence; `content_offset` identifies the
+safe aligned start and `next_offset` continues from the next raw byte window.
+The full-file hash and metadata are computed incrementally.
 
 ## Snapshot metadata (not a journal)
 ```ts
@@ -45,4 +53,8 @@ binary → `ERR_BINARY_FILE`. Mutations preserve encoding/BOM/newline/final-newl
 
 ## V1 tool surface (13)
 `workspace_info` · `fs_read, fs_stat, fs_write, fs_patch` · `search(mode=grep|glob)` ·
-`ast_search` · `lsp_status, lsp_diagnostics, lsp_symbols, lsp_navigate` · `vcs_status, vcs_diff`.
+`ast_search(mode=text|query)` · `lsp_status, lsp_diagnostics, lsp_symbols, lsp_navigate` · `vcs_status, vcs_diff`.
+
+An invalid Tree-Sitter query returns `ERR_PARSE_FAILED`; it does not silently
+fall back to text matching. LSP navigation filters locations outside the
+authorized workspace before exposing them as locations.

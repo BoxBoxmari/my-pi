@@ -6,7 +6,7 @@
  * Release qualification passes --artifact <path> so the artifact is tested
  * without being repacked.
  */
-import { execFileSync, execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import { gunzip } from "node:zlib";
 import os from "node:os";
@@ -22,17 +22,23 @@ const gunzipAsync = promisify(gunzip);
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
-function shellQuote(value) {
+function quoteWindowsArg(value) {
   const text = String(value);
-  if (process.platform === "win32") {
-    if (/["`\r\n%!&|<>^]/.test(text)) throw new Error(`unsafe shell path: ${text}`);
-    return `"${text}"`;
-  }
-  return `'${text.replaceAll("'", "'\\''")}'`;
+  if (/[&|<>^()%!`"\r\n]/.test(text)) throw new Error("unsafe Windows command argument");
+  return `"${text}"`;
 }
 
 function runShellCommand(command, args, options) {
-  return execSync([command, ...args.map(shellQuote)].join(" "), options);
+  if (process.platform === "win32" && /\.(cmd|bat)$/i.test(command)) {
+    const quote = String.fromCharCode(34);
+    const commandLine = `${quote}${quote}${command}${quote}${args.length > 0 ? ` ${args.map(quoteWindowsArg).join(" ")}` : ""}${quote}`;
+    return execFileSync(process.env.ComSpec ?? process.env.comspec ?? "cmd.exe", ["/d", "/s", "/c", commandLine], {
+      ...options,
+      shell: false,
+      windowsVerbatimArguments: true,
+    });
+  }
+  return execFileSync(command, args, { ...options, shell: false });
 }
 
 function parseArgs(args) {
@@ -268,7 +274,7 @@ def greet(name: str) -> str:
     console.log("[5/6] Launching installed my-pi-mcp server process over stdio...");
     const transport = new StdioClientTransport({
       command: process.execPath,
-      args: [installedBinary, "--workspace", tempDir],
+      args: [installedBinary, "--workspace", tempDir, "--security-profile", "trusted"],
       cwd: tempDir,
       stderr: "inherit",
     });

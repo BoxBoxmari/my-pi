@@ -1,5 +1,8 @@
 # G4 — AST Search + VCS Read Plane
 
+> Historical gate snapshot from before streamed VCS output and current AST
+> query semantics. Do not use this file as the current capability status.
+
 Status: **PARTIAL** — VCS read plane DONE; AST search BLOCKED (native supplier qualification pending G0).
 
 ## VCS (implemented, tested)

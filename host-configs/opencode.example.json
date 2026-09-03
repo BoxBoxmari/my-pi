@@ -9,7 +9,9 @@
         "--experimental-strip-types",
         "apps/my-pi-mcp/dist/main.js",
         "--workspace",
-        "fixtures/demo"
+        "fixtures/demo",
+        "--security-profile",
+        "read-only"
       ]
     },
     "ccr": {
@@ -20,7 +22,9 @@
         "--experimental-strip-types",
         "apps/my-pi-mcp/dist/main.js",
         "--workspace",
-        "fixtures/demo"
+        "fixtures/demo",
+        "--security-profile",
+        "read-only"
       ]
     }
   }

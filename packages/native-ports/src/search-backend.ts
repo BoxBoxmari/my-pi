@@ -50,6 +50,7 @@ export interface SearchBackend {
 export interface AstSearchRequest {
   pattern: string;
   paths: string[];
+  mode?: "text" | "query";
   limit?: number;
 }
 

@@ -3,7 +3,7 @@
 **Package Name:** `@koonwang03/my-pi`
 **CLI Binaries:** `my-pi-mcp` (primary), `ccr-mcp` (deprecated 1-major alias)  
 **Intended Registry:** npm / GitHub Packages
-**Current workflow state:** `@koonwang03/my-pi@0.1.0-alpha.1` is published on npm; qualification artifacts are retained by GitHub Actions.
+**Current workflow state:** the release workflow qualifies and uploads a candidate; registry publication is a separate controlled step and is not performed by this workflow.
 **Supported Node Engine:** `>=22.6.0` (Node 22 and Node 24 qualification lanes are configured; candidate run evidence is retained by the release workflow)
 
 ---
@@ -29,6 +29,7 @@ Excluded from tarball:
 - Benchmark fixtures (`fixtures/`)
 - Engineering logs (`evidence/*.log`)
 - Agent & harness metadata (`.agent/`, `.agt/`, `.knowns/`, `.x-harness/`)
+- Repository-only host examples such as `host-configs/opencode.example.json`
 
 The release smoke path validates this allowlist from the TGZ itself, then
 installs that same TGZ into a fresh consumer directory. Release qualification
@@ -49,6 +50,9 @@ npm install -g @koonwang03/my-pi
 
 # Run MCP server
 my-pi-mcp --workspace /path/to/project
+
+# Explicitly enable workspace writes and LSP processes
+my-pi-mcp --workspace /path/to/project --security-profile trusted
 
 # Direct execution via npx
 npx --yes --package @koonwang03/my-pi@0.1.0-alpha.1 my-pi-mcp --workspace /path/to/project

@@ -37,17 +37,19 @@ export function detectRoot(files: string[], language: string): string | undefine
   return markers.find((m) => files.includes(m));
 }
 
-export function findWorkspaceRoot(startDir: string, language: string): string {
+export function findWorkspaceRoot(startDir: string, language: string, boundaryRoot = startDir): string {
   const markers = ROOT_MARKERS[language] ?? [];
   let cur = path.resolve(startDir);
+  const boundary = path.resolve(boundaryRoot);
   while (true) {
     for (const marker of markers) {
       if (fs.existsSync(path.join(cur, marker))) {
         return cur;
       }
     }
+    if (cur === boundary) break;
     const parent = path.dirname(cur);
-    if (parent === cur) break;
+    if (parent === cur || !parent.startsWith(`${boundary}${path.sep}`)) break;
     cur = parent;
   }
   return startDir;

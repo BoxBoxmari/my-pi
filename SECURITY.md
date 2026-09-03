@@ -19,3 +19,9 @@ Please include:
 - Potential impact and suggested mitigation if known.
 
 Maintainers will acknowledge receipt within 48 hours and provide updates on resolution timeline.
+
+## Repository governance
+
+Beta branch-protection and release-security requirements are documented in
+[`docs/GITHUB_GOVERNANCE.md`](docs/GITHUB_GOVERNANCE.md). These settings must be
+verified in GitHub; the repository cannot enforce them from source alone.

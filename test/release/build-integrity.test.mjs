@@ -20,6 +20,23 @@ test("build integrity: final bundle has a matching external source map", async (
   assert.ok(Array.isArray(sourceMap.sources) && sourceMap.sources.length > 0);
 });
 
+test("security workflow integrity: actions are immutable and audits are fail-closed", async () => {
+  const workflowPaths = [".github/workflows/ci.yml", ".github/workflows/codeql.yml", ".github/workflows/release.yml"];
+  for (const workflowPath of workflowPaths) {
+    const workflow = await readFile(workflowPath, "utf8");
+    assert.doesNotMatch(workflow, /uses:\s+[^\s]+@(v\d|stable|main)(?:\s|$)/i, `${workflowPath} contains a mutable action reference`);
+  }
+  const ci = await readFile(".github/workflows/ci.yml", "utf8");
+  const release = await readFile(".github/workflows/release.yml", "utf8");
+  const codeql = await readFile(".github/workflows/codeql.yml", "utf8");
+  assert.match(ci, /gitleaks\/gitleaks-action@[0-9a-f]{40}/);
+  assert.doesNotMatch(ci, /pnpm audit --prod\s*\|\|/);
+  assert.doesNotMatch(ci, /continue-on-error:\s*true/);
+  assert.doesNotMatch(codeql, /continue-on-error:\s*true/);
+  assert.match(release, /runtime-boundaries\.mjs/);
+  assert.match(release, /runtime-boundaries\.json/);
+});
+
 test("supply-chain integrity: cargo-deny discovers the policy and the workflow pins its tool version", async () => {
   const denyConfig = await readFile("deny.toml", "utf8");
   const releaseWorkflow = await readFile(".github/workflows/release.yml", "utf8");

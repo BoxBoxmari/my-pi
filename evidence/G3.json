@@ -1,21 +1,126 @@
 {
   "id": "G3",
-  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
+  "commit": "61701726331df28d1c9aabea86be3e048a1c84c5",
   "status": "PARTIAL",
-  "environment": { "os": "win32", "node": "v26.7.0 (local)", "platforms": ["windows-x64", "ci-matrix-configured"] },
+  "environment": {
+    "os": "win32",
+    "node": "v26.7.0 (local)",
+    "platforms": [
+      "windows-x64",
+      "ci-matrix-configured"
+    ]
+  },
   "criteria": [
-    { "id": "read-patch", "status": "PASS", "evidence": ["g3-matrix.test.ts: UTF-8 plain"] },
-    { "id": "search-read-patch", "status": "PASS", "evidence": ["g3-matrix.test.ts: patch primitives + search.test.ts scope"] },
-    { "id": "stale-hash", "status": "PASS", "evidence": ["g3-matrix.test.ts: stale expected_hash", "mcp-integration.test.ts: P0.8 stale rejected"] },
-    { "id": "missing-hash-overwrite", "status": "PASS", "evidence": ["mcp-integration.test.ts: P0.8 fs_write existing without expected_hash rejected", "mcp-integration.test.ts: R0.1.3 fs_patch without expected_hash rejected"] },
-    { "id": "concurrent-writers", "status": "PASS", "evidence": ["g3-matrix.test.ts: concurrent writers serialize via mutex"] },
-    { "id": "encoding-bom", "status": "PASS", "evidence": ["g3-matrix.test.ts: UTF-8/UTF-8 BOM/UTF-16LE/BE preserved", "mcp-integration.test.ts: P0.7 UTF-16 end-to-end"] },
-    { "id": "newlines", "status": "PASS", "evidence": ["g3-matrix.test.ts: LF/CRLF/mixed/final-newline preserved"] },
-    { "id": "binary-encoding-reject", "status": "PASS", "evidence": ["mcp-integration.test.ts: P0.7 binary typed ERR_BINARY_FILE", "g3-matrix.test.ts: binary + empty + unsupported"] },
-    { "id": "no-clobber-create", "status": "PASS", "evidence": ["workspace-runtime.test.ts: R0.1.4 atomicCreateNoReplace no-clobber"] },
-    { "id": "atomic-failure", "status": "PASS", "evidence": ["atomic-replace.ts: read-only target ERR_FILE_BUSY fail-closed", "workspace-runtime.test.ts: P0.9 read-only fails closed"] },
-    { "id": "read-back-verify", "status": "PASS", "evidence": ["g3-matrix.test.ts: committed-byte verification", "atomic-replace.ts: read-back digest check"] },
-    { "id": "posix-exec-bit", "status": "BLOCKED", "evidence": ["workspace-runtime.test.ts: auto-skip on win32; executed on ubuntu-latest / macos-latest CI lanes"] },
-    { "id": "windows-lock-injection", "status": "PASS", "evidence": ["windows-lock-injection.test.ts: exclusive file handle sharing violation fails closed with ERR_FILE_BUSY"] }
+    {
+      "id": "read-patch",
+      "status": "PASS",
+      "evidence": [
+        "g3-matrix.test.ts: UTF-8 plain"
+      ]
+    },
+    {
+      "id": "search-read-patch",
+      "status": "PASS",
+      "evidence": [
+        "g3-matrix.test.ts: patch primitives + search.test.ts scope"
+      ]
+    },
+    {
+      "id": "stale-hash",
+      "status": "PASS",
+      "evidence": [
+        "g3-matrix.test.ts: stale expected_hash",
+        "mcp-integration.test.ts: P0.8 stale rejected"
+      ]
+    },
+    {
+      "id": "missing-hash-overwrite",
+      "status": "PASS",
+      "evidence": [
+        "mcp-integration.test.ts: P0.8 fs_write existing without expected_hash rejected",
+        "mcp-integration.test.ts: R0.1.3 fs_patch without expected_hash rejected"
+      ]
+    },
+    {
+      "id": "concurrent-writers",
+      "status": "PASS",
+      "evidence": [
+        "g3-matrix.test.ts: concurrent writers serialize via mutex"
+      ]
+    },
+    {
+      "id": "encoding-bom",
+      "status": "PASS",
+      "evidence": [
+        "g3-matrix.test.ts: UTF-8/UTF-8 BOM/UTF-16LE/BE preserved",
+        "mcp-integration.test.ts: P0.7 UTF-16 end-to-end"
+      ]
+    },
+    {
+      "id": "newlines",
+      "status": "PASS",
+      "evidence": [
+        "g3-matrix.test.ts: LF/CRLF/mixed/final-newline preserved"
+      ]
+    },
+    {
+      "id": "binary-encoding-reject",
+      "status": "PASS",
+      "evidence": [
+        "mcp-integration.test.ts: P0.7 binary typed ERR_BINARY_FILE",
+        "g3-matrix.test.ts: binary + empty + unsupported"
+      ]
+    },
+    {
+      "id": "no-clobber-create",
+      "status": "PASS",
+      "evidence": [
+        "workspace-runtime.test.ts: R0.1.4 atomicCreateNoReplace no-clobber"
+      ]
+    },
+    {
+      "id": "atomic-failure",
+      "status": "PASS",
+      "evidence": [
+        "atomic-replace.ts: read-only target ERR_FILE_BUSY fail-closed",
+        "workspace-runtime.test.ts: P0.9 read-only fails closed"
+      ]
+    },
+    {
+      "id": "read-back-verify",
+      "status": "PASS",
+      "evidence": [
+        "g3-matrix.test.ts: committed-byte verification",
+        "atomic-replace.ts: read-back digest check"
+      ]
+    },
+    {
+      "id": "posix-exec-bit",
+      "status": "BLOCKED",
+      "evidence": [
+        "workspace-runtime.test.ts: auto-skip on win32; executed on ubuntu-latest / macos-latest CI lanes"
+      ]
+    },
+    {
+      "id": "windows-lock-injection",
+      "status": "PASS",
+      "evidence": [
+        "windows-lock-injection.test.ts: exclusive file handle sharing violation fails closed with ERR_FILE_BUSY"
+      ]
+    },
+    {
+      "id": "utf16-write-metadata",
+      "status": "PASS",
+      "evidence": [
+        "bounded-read.test.ts: UTF-16LE fs_write returns encoding/newline/finalNewline metadata correctly"
+      ]
+    },
+    {
+      "id": "security-profile",
+      "status": "PASS",
+      "evidence": [
+        "security-profile.test.ts: default read-only profile denies write/LSP and reports disabled capabilities"
+      ]
+    }
   ]
 }

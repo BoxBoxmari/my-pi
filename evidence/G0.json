@@ -1,12 +1,46 @@
 {
   "id": "G0",
-  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
+  "commit": "61701726331df28d1c9aabea86be3e048a1c84c5",
   "status": "PARTIAL",
-  "environment": { "os": "win32", "node": "v26.7.0", "platforms": ["windows-x64", "ci-matrix-configured"] },
+  "environment": {
+    "os": "win32",
+    "node": "v26.7.0",
+    "platforms": [
+      "windows-x64",
+      "ci-matrix-configured"
+    ]
+  },
   "criteria": [
-    { "id": "native-napi-spike", "status": "BLOCKED", "evidence": ["crates/my-pi-native: cargo check passes; cross-platform .node build matrix defined in CI workflow"] },
-    { "id": "supply-chain-audit", "status": "PASS", "evidence": ["scripts/generate-sbom.mjs: provenance/SBOM.cdx.json generated (54 npm, 1 cargo)", "pnpm audit --prod: 0 vulnerabilities", "deny.toml + cargo-deny 0.20.2: licenses/advisories/bans/sources pass"] },
-    { "id": "era-probe", "status": "PASS", "evidence": ["scripts/probe-hosts.mjs: negotiated 2025-11-25 with Claude Code 2.1.224", "docs/protocol-evidence.json"] },
-    { "id": "supplier-qualification", "status": "PASS", "evidence": ["provenance/SUPPLIER_DEPENDENCIES.json: explicit ACCEPT/DEFER/REJECT decisions documented"] }
+    {
+      "id": "native-napi-spike",
+      "status": "BLOCKED",
+      "evidence": [
+        "crates/my-pi-native: cargo check passes; cross-platform .node build matrix defined in CI workflow"
+      ]
+    },
+    {
+      "id": "supply-chain-audit",
+      "status": "PASS",
+      "evidence": [
+        "scripts/generate-sbom.mjs: provenance/SBOM.cdx.json generated (54 npm, 1 cargo)",
+        "pnpm audit --prod: 0 vulnerabilities",
+        "deny.toml + cargo-deny 0.20.2: licenses/advisories/bans/sources pass"
+      ]
+    },
+    {
+      "id": "era-probe",
+      "status": "PASS",
+      "evidence": [
+        "scripts/probe-hosts.mjs: negotiated 2025-11-25 with Claude Code 2.1.224",
+        "docs/protocol-evidence.json"
+      ]
+    },
+    {
+      "id": "supplier-qualification",
+      "status": "PASS",
+      "evidence": [
+        "provenance/SUPPLIER_DEPENDENCIES.json: explicit ACCEPT/DEFER/REJECT decisions documented"
+      ]
+    }
   ]
 }

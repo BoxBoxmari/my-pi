@@ -21,6 +21,7 @@ import {
 } from "@my-pi/contracts";
 import { atomicCreateNoReplace, atomicReplaceBytes, type WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { applyHunks, parsePatch } from "@my-pi/hashline";
+import { BoundedReadError, DEFAULT_FS_READ_BYTES, MAX_FS_READ_BYTES, MAX_FS_WRITE_BYTES, readBoundedFile } from "./bounded-read.js";
 
 type Ctx = CapabilityContext;
 
@@ -57,7 +58,8 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
       const t0 = performance.now();
       const { path: p } = input as { path: string };
       const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, p);
-      const st = await fs.stat(resolved.absolute);
+      const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+      const st = await fs.stat(authorized.absolute);
       return result(ctx, {
         path: resolved.relPosix,
         exists: true,
@@ -75,62 +77,57 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
     risk: "read",
     async execute(input: unknown, ctx: Ctx) {
       const t0 = performance.now();
-      // G2 output budget: optional window over the file. Default 48 KiB.
+      // G2 output budget: byte-oriented window over the file. The bounded
+      // reader also keeps the full-file hash and metadata streaming.
       const { path: p, offset = 0, max_bytes } = input as {
         path: string;
         offset?: number;
         max_bytes?: number;
       };
-      const windowBytes = max_bytes !== undefined ? max_bytes : 48 * 1024;
-      if (offset < 0 || windowBytes <= 0) throw err.invalidArgument("offset>=0 and max_bytes>0 required");
-
-      const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, p);
-      const raw = new Uint8Array(await fs.readFile(resolved.absolute));
-
-      if (isLikelyBinary(raw)) throw err.binaryFile(`binary file: ${resolved.relPosix}`);
-
-      const detected = detectEncoding(raw);
-      let fullText: string;
-      try {
-        fullText = decodeText(raw, detected);
-      } catch {
-        throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
+      const windowBytes = max_bytes !== undefined ? max_bytes : DEFAULT_FS_READ_BYTES;
+      if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(windowBytes) || windowBytes <= 0 || windowBytes > MAX_FS_READ_BYTES) {
+        throw err.invalidArgument(`offset must be >=0 and max_bytes must be between 1 and ${MAX_FS_READ_BYTES}`);
       }
 
-      // Fingerprint + snapshot are over the FULL file (raw-byte authority),
-      // never the window.
-      const fp = fingerprintBytes(raw);
+      const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, p);
+      const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+      let bounded;
+      try {
+        bounded = await readBoundedFile(authorized.absolute, offset, windowBytes);
+      } catch (e) {
+        if (e instanceof RangeError) throw err.invalidArgument(e.message);
+        if (e instanceof BoundedReadError && e.kind === "binary") throw err.binaryFile(`binary file: ${resolved.relPosix}`);
+        if (e instanceof BoundedReadError && e.kind === "encoding") throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
+        throw e;
+      }
+
+      const fp = { algorithm: "sha256" as const, digest: bounded.digest, size: bounded.size };
       const snapshot = runtime.snapshots.record({
         path: resolved.relPosix,
         fingerprint: fp,
-        encoding: detected.encoding,
-        bom: detected.bom,
-        newline: detectNewline(fullText),
-        finalNewline: hasFinalNewline(fullText),
+        encoding: bounded.encoding,
+        bom: bounded.bom,
+        newline: bounded.newline,
+        finalNewline: bounded.finalNewline,
         workspaceRevision: ctx.workspace.revision,
       });
-      runtime.snapshots.cacheContent(snapshot.id, raw);
-
-      // Window the decoded text by CHARACTER offset (not byte), bounded.
-      const clampedOffset = Math.max(0, Math.min(offset, fullText.length));
-      const window = fullText.slice(clampedOffset, clampedOffset + windowBytes);
-      const truncated = clampedOffset + window.length < fullText.length;
-      const nextOffset = truncated ? clampedOffset + window.length : undefined;
 
       return result(ctx, {
         path: resolved.relPosix,
         snapshot_id: snapshot.id,
         content_hash: `sha256:${fp.digest}`,
         anchor: shortAnchor(fp.digest),
-        encoding: detected.encoding,
-        newline: detectNewline(fullText),
-        finalNewline: hasFinalNewline(fullText),
+        encoding: bounded.encoding,
+        newline: bounded.newline,
+        finalNewline: bounded.finalNewline,
         size: fp.size,
-        offset: clampedOffset,
+        offset: Math.min(offset, fp.size),
+        content_offset: bounded.contentOffset,
         max_bytes: windowBytes,
-        truncated,
-        next_offset: nextOffset,
-        content: window,
+        truncated: bounded.nextOffset !== undefined,
+        next_offset: bounded.nextOffset,
+        content_bytes: bounded.contentBytes,
+        content: bounded.content,
       }, t0);
     },
   });
@@ -141,12 +138,18 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
     async execute(input: unknown, ctx: Ctx) {
       const t0 = performance.now();
       const { path: p, content, expected_hash } = input as { path: string; content: string; expected_hash?: string };
+      if (typeof content !== "string") throw err.invalidArgument("content must be a string");
+      if (Buffer.byteLength(content, "utf8") > MAX_FS_WRITE_BYTES) {
+        throw err.outputLimit(`fs_write content exceeds ${MAX_FS_WRITE_BYTES} bytes`);
+      }
       const resolved = await runtime.pathPolicy.resolveForWrite(ctx.workspace, p);
       await runtime.mutatePath(resolved.relPosix, async () => {
+        const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "write");
+        const target = authorized.absolute;
         let detected = detectEncoding(new Uint8Array());
         let existed = false;
         try {
-          const existing = new Uint8Array(await fs.readFile(resolved.absolute));
+          const existing = new Uint8Array(await fs.readFile(target));
           existed = true;
           if (isLikelyBinary(existing) === false) {
             detected = detectEncoding(existing);
@@ -170,30 +173,40 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
           // R0.1.4: no-clobber atomic create — link() fails with EEXIST if a
           // target appeared since the read. This replaces the TOCTOU-prone
           // access()-then-rename flow.
-          await atomicCreateNoReplace(resolved.absolute, encodeText(content, detected.encoding), { signal: ctx.signal });
+          await atomicCreateNoReplace(target, encodeText(content, detected.encoding), { signal: ctx.signal });
           return;
         }
         const newBytes = encodeText(content, detected.encoding);
-        await atomicReplaceBytes(resolved.absolute, newBytes, { signal: ctx.signal });
+        await atomicReplaceBytes(target, newBytes, { signal: ctx.signal });
       });
-      const after = new Uint8Array(await fs.readFile(resolved.absolute));
+      const afterResolved = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+      const after = new Uint8Array(await fs.readFile(afterResolved.absolute));
       const fp = fingerprintBytes(after);
+      const afterDetected = detectEncoding(after);
+      let afterText: string;
+      try {
+        afterText = decodeText(after, afterDetected);
+      } catch {
+        throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
+      }
       const snap = runtime.snapshots.record({
         path: resolved.relPosix,
         fingerprint: fp,
-        encoding: detectEncoding(after).encoding,
-        bom: detectEncoding(after).bom,
-        newline: detectNewline(new TextDecoder().decode(after)),
-        finalNewline: hasFinalNewline(new TextDecoder().decode(after)),
+        encoding: afterDetected.encoding,
+        bom: afterDetected.bom,
+        newline: detectNewline(afterText),
+        finalNewline: hasFinalNewline(afterText),
         workspaceRevision: ctx.workspace.revision,
       });
-      runtime.snapshots.cacheContent(snap.id, after);
       return result(ctx, {
         path: resolved.relPosix,
         snapshot_id: snap.id,
         content_hash: `sha256:${fp.digest}`,
         anchor: shortAnchor(fp.digest),
         size: fp.size,
+        encoding: afterDetected.encoding,
+        newline: detectNewline(afterText),
+        finalNewline: hasFinalNewline(afterText),
       }, t0, { backend: "typescript" });
     },
   });
@@ -217,9 +230,11 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
       const parsed = parsePatch(patch);
       let newDigest = "";
       await runtime.mutatePath(resolved.relPosix, async () => {
+        const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "write");
+        const target = authorized.absolute;
         let raw: Uint8Array;
         try {
-          raw = new Uint8Array(await fs.readFile(resolved.absolute));
+          raw = new Uint8Array(await fs.readFile(target));
         } catch {
           throw err.pathNotFound(`path not found: ${p}`);
         }
@@ -237,10 +252,11 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
         }
         const newText = applyHunks(text, parsed.hunks);
         const newBytes = encodeText(newText, detected.encoding);
-        await atomicReplaceBytes(resolved.absolute, newBytes, { signal: ctx.signal });
+        await atomicReplaceBytes(target, newBytes, { signal: ctx.signal });
         newDigest = fingerprintBytes(newBytes).digest;
       });
-      const after = new Uint8Array(await fs.readFile(resolved.absolute));
+      const afterResolved = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+      const after = new Uint8Array(await fs.readFile(afterResolved.absolute));
       const fp = fingerprintBytes(after);
       return result(ctx, {
         path: resolved.relPosix,

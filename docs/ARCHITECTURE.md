@@ -33,14 +33,17 @@ Forbidden: `workspace-runtime -> mcp-adapter`, `contracts -> host-profiles`, cap
 - **A18** Cancellation is a platform contract (G1).
 - **A19/A22** Supply-chain/SBOM/advisory are G0; no gate passes on static inspection alone.
 
-## Current implemented surface (foundation)
+## Current implemented surface
 
 - Contracts, policy, workspace-runtime, observability, artifact-store, native-ports (ports only).
-- MCP adapter with the 13-tool surface; `workspace_info`, `fs_stat`, `fs_read` functional;
-  the remaining 10 tools return typed `ERR_UNSUPPORTED_CAPABILITY` until their gates.
+- MCP adapter with the 13-tool surface. Read/search/AST/VCS capabilities are
+  implemented; workspace mutation and LSP processes require the explicit
+  `trusted` security profile.
 - Host profiles + `my-pi host-config`.
 
 ## Status
 
-Foundation built and green (26 tests, in-process MCP conformance). Native (G0), LSP (G1 spike),
-host certification (G6) are **BLOCKED** in this environment; see `docs/gates/`.
+The current source has deterministic framing, byte-bounded reads, streamed
+search/VCS paths, and both in-process and real-stdio tests. Native acceleration
+and external host certification remain separate qualification work; their
+historical gate reports are not current runtime status.

@@ -1,9 +1,11 @@
-import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { spawnSync, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { err } from "@my-pi/contracts";
 import { LSP_MAX_RESTARTS, LSP_IDLE_TIMEOUT_MS, type LspState } from "./lifecycle.js";
 import { resolveServerCommand } from "./registry-contract.js";
+import { LspFrameDecoder, LspFrameError } from "./frame-decoder.js";
+import { sanitizedLspEnvironment, spawnSafeChild } from "./spawn-utils.js";
 
 const LSP_REQUEST_TIMEOUT_MS = 25_000;
 
@@ -67,7 +69,6 @@ export class LspClient {
   private proc: ChildProcess | null = null;
   private nextId = 1;
   private pending = new Map<number, PendingRequest>();
-  private buffer = "";
   private stateVal: LspState = "STOPPED";
   private restartCount = 0;
   private diagnosticsCache = new Map<string, DiagnosticItem[]>();
@@ -76,6 +77,7 @@ export class LspClient {
   private openedDocuments = new Set<string>();
   private idleTimer: NodeJS.Timeout | null = null;
   private isKilled = false;
+  private readonly frameDecoder = new LspFrameDecoder();
 
   constructor(
     readonly workspaceRoot: string,
@@ -132,15 +134,12 @@ export class LspClient {
       throw err.lspUnavailable(`No language server found for ${this.language}`);
     }
 
-    const isWin = process.platform === "win32";
-    const useShell = isWin && /\.(cmd|bat|ps1)$/i.test(resolved.command);
-
     try {
-      this.proc = spawn(resolved.command, resolved.args, {
-        cwd: process.cwd(),
+      this.proc = spawnSafeChild(resolved.command, resolved.args, {
+        cwd: this.workspaceRoot,
+        env: sanitizedLspEnvironment(),
         stdio: ["pipe", "pipe", "pipe"],
         windowsHide: true,
-        ...(useShell ? { shell: true } : {}),
       });
     } catch (e: any) {
       this.stateVal = "STOPPED";
@@ -152,8 +151,7 @@ export class LspClient {
       throw err.lspUnavailable(`LSP server process failed to spawn for ${this.language}`);
     }
 
-    this.proc.stdout!.setEncoding("utf8");
-    this.proc.stdout!.on("data", (chunk: string) => this.onData(chunk));
+    this.proc.stdout!.on("data", (chunk: Buffer) => this.onData(chunk));
     this.proc.on("error", (e) => this.handleProcessExit(e));
     this.proc.on("close", () => this.handleProcessExit());
 
@@ -229,27 +227,22 @@ export class LspClient {
     this.pending.clear();
   }
 
-  private onData(chunk: string): void {
-    this.buffer += chunk;
-    for (;;) {
-      const headerEnd = this.buffer.indexOf("\r\n\r\n");
-      if (headerEnd === -1) return;
-      const header = this.buffer.slice(0, headerEnd);
-      const m = header.match(/Content-Length:\s*(\d+)/i);
-      if (!m) {
-        this.buffer = this.buffer.slice(headerEnd + 4);
-        continue;
-      }
-      const len = parseInt(m[1]!, 10);
-      if (this.buffer.length < headerEnd + 4 + len) return;
-      const body = this.buffer.slice(headerEnd + 4, headerEnd + 4 + len);
-      this.buffer = this.buffer.slice(headerEnd + 4 + len);
-      try {
-        const msg = JSON.parse(body);
+  private onData(chunk: Buffer): void {
+    try {
+      for (const body of this.frameDecoder.push(chunk)) {
+        let msg: unknown;
+        try {
+          msg = JSON.parse(body.toString("utf8"));
+        } catch (e) {
+          throw new LspFrameError(`invalid LSP JSON body: ${e instanceof Error ? e.message : String(e)}`);
+        }
         this.handleMessage(msg);
-      } catch {
-        // tolerate parsing anomalies
       }
+    } catch (e) {
+      const failure = e instanceof Error ? e : new Error(String(e));
+      this.rejectAll(failure);
+      this.forceKill();
+      this.stateVal = "DEGRADED";
     }
   }
 

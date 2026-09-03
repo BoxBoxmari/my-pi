@@ -30,9 +30,9 @@
   "dependencies": {
     "@modelcontextprotocol/core": "2.0.0",
     "@modelcontextprotocol/server": "2.0.0",
-    "tree-sitter-wasms": "^0.1.13",
-    "web-tree-sitter": "^0.22.6",
-    "zod": "^4.5.4"
+    "tree-sitter-wasms": "0.1.13",
+    "web-tree-sitter": "0.22.6",
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@my-pi/contracts": "workspace:*",

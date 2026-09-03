@@ -201,6 +201,61 @@ async function verifyBenchmark(filePath, config, policyVersion, canonicalCommit,
   return failures;
 }
 
+async function verifyRuntimePerformance(filePath, policyVersion, canonicalCommit, required) {
+  let data;
+  try {
+    data = JSON.parse(await readFile(filePath, "utf8"));
+  } catch (err) {
+    if (required) {
+      console.error(`  ✗ Missing required runtime performance evidence at ${filePath}: ${err.message}`);
+      return 1;
+    }
+    return 0;
+  }
+
+  let failures = 0;
+  if (data.releaseVersion !== policyVersion) {
+    console.error(`  ✗ Runtime performance release version mismatch: got ${data.releaseVersion}, expected ${policyVersion}`);
+    failures++;
+  }
+  if (typeof data.commit !== "string" || data.commit.trim() === "") {
+    console.error("  ✗ Runtime performance evidence is missing candidate commit");
+    failures++;
+  } else {
+    try {
+      if (canonicalCommit && normalizeCommit(data.commit, { cwd: ROOT }) !== canonicalCommit) {
+        console.error(`  ✗ Runtime performance evidence is stale: expected ${canonicalCommit}, observed ${data.commit}`);
+        failures++;
+      }
+    } catch (err) {
+      console.error(`  ✗ Runtime performance evidence has invalid commit ${data.commit}: ${err.message}`);
+      failures++;
+    }
+  }
+  if (data.measurementProcess !== "spawned MCP server" || !Number.isInteger(data.serverPid) || data.serverPid <= 0) {
+    console.error("  ✗ Runtime performance evidence does not identify a spawned MCP server process");
+    failures++;
+  }
+  if (!Number.isInteger(data.serverRssPeakBytes) || data.serverRssPeakBytes <= 0 || !Number.isInteger(data.serverRssSamples) || data.serverRssSamples < 1) {
+    console.error("  ✗ Runtime performance evidence is missing child-process RSS samples");
+    failures++;
+  }
+  if (!Number.isInteger(data.largeFsRead?.contentBytes) || !Number.isInteger(data.largeFsRead?.maxBytes) || data.largeFsRead.contentBytes > data.largeFsRead.maxBytes) {
+    console.error("  ✗ Large fs_read evidence exceeded its requested byte bound");
+    failures++;
+  }
+  if (data.largeVcsDiff?.truncated !== true || data.largeVcsDiff?.hasArtifact !== true) {
+    console.error("  ✗ Large vcs_diff evidence did not demonstrate streamed spillover");
+    failures++;
+  }
+  if (data.cancellation?.outcome !== "aborted") {
+    console.error(`  ✗ Cancellation evidence did not abort: ${data.cancellation?.outcome}`);
+    failures++;
+  }
+  if (failures === 0) console.log(`  ✓ Runtime performance evidence verified (${data.serverRssSamples} child RSS samples)`);
+  return failures;
+}
+
 export async function run() {
   let policy;
   try {
@@ -321,6 +376,15 @@ export async function run() {
     const required = config.requiredInStrictMode === true && (STRICT || process.env.REQUIRE_RELEASE_BENCHMARK === "true");
     if (required || await fileExists(filePath)) {
       failures += await verifyBenchmark(filePath, config, policy.version, canonicalCommit, required);
+    }
+  }
+
+  const runtimePerformance = policy.runtimePerformanceEvidence;
+  if (runtimePerformance?.file) {
+    const runtimePath = path.resolve(ROOT, runtimePerformance.file);
+    const required = runtimePerformance.requiredInStrictMode === true && (STRICT || process.env.REQUIRE_RUNTIME_PERFORMANCE === "true");
+    if (required || await fileExists(runtimePath)) {
+      failures += await verifyRuntimePerformance(runtimePath, policy.version, canonicalCommit, required);
     }
   }
 

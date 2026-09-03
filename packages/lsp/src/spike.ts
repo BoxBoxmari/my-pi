@@ -9,8 +9,10 @@
  * This is a SPIKE: it proves the lifecycle contract with a real language
  * server, and freezes that contract. It is intentionally self-contained.
  */
-import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { spawnSync, type ChildProcess } from "node:child_process";
 import { err, type ArtifactRef } from "@my-pi/contracts";
+import { LspFrameDecoder, LspFrameError } from "./frame-decoder.js";
+import { sanitizedLspEnvironment, spawnSafeChild } from "./spawn-utils.js";
 
 const LSP_TIMEOUT_MS = 30_000;
 
@@ -35,9 +37,9 @@ export class LspJsonRpcConnection {
   private proc: ChildProcess | null = null;
   private nextId = 1;
   private pending = new Map<number, Pending>();
-  private buffer = "";
   private handlers = new Map<string, (params: unknown) => void>();
   private isKilled = false;
+  private readonly frameDecoder = new LspFrameDecoder();
 
   get pid(): number | undefined {
     return this.proc?.pid;
@@ -48,18 +50,13 @@ export class LspJsonRpcConnection {
   }
 
   async spawnServer(command: string, args: string[], cwd: string): Promise<void> {
-    // Windows npm shims (.cmd) require shell spawning; on POSIX, spawn direct.
-    const useShell = process.platform === "win32" && /\.(cmd|bat)$/i.test(command);
-    this.proc = spawn(command, args, {
-      // NOTE: typescript-language-server resolves `typescript` from
-      // node_modules upward of the CWD; the repo root provides it.
-      cwd: process.cwd(),
+    this.proc = spawnSafeChild(command, args, {
+      cwd,
+      env: sanitizedLspEnvironment(),
       stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true,
-      ...(useShell ? { shell: true } : {}),
     });
-    this.proc.stdout!.setEncoding("utf8");
-    this.proc.stdout!.on("data", (chunk: string) => this.onData(chunk));
+    this.proc.stdout!.on("data", (chunk: Buffer) => this.onData(chunk));
     this.proc.on("error", (e) => this.rejectAll(e));
     this.proc.on("close", () => this.rejectAll(new Error("LSP server exited")));
   }
@@ -73,21 +70,15 @@ export class LspJsonRpcConnection {
     this.pending.clear();
   }
 
-  private onData(chunk: string): void {
-    this.buffer += chunk;
-    // LSP framing: Content-Length: N\r\n\r\n{json}
-    for (;;) {
-      const headerEnd = this.buffer.indexOf("\r\n\r\n");
-      if (headerEnd === -1) return;
-      const header = this.buffer.slice(0, headerEnd);
-      const m = header.match(/Content-Length:\s*(\d+)/i);
-      if (!m) { this.buffer = this.buffer.slice(headerEnd + 4); continue; }
-      const len = parseInt(m[1]!, 10);
-      if (this.buffer.length < headerEnd + 4 + len) return;
-      const body = this.buffer.slice(headerEnd + 4, headerEnd + 4 + len);
-      this.buffer = this.buffer.slice(headerEnd + 4 + len);
-      try {
-        const msg = JSON.parse(body);
+  private onData(chunk: Buffer): void {
+    try {
+      for (const body of this.frameDecoder.push(chunk)) {
+        let msg: any;
+        try {
+          msg = JSON.parse(body.toString("utf8"));
+        } catch (e) {
+          throw new LspFrameError(`invalid LSP JSON body: ${e instanceof Error ? e.message : String(e)}`);
+        }
         if (msg.id !== undefined && (msg.result !== undefined || msg.error !== undefined)) {
           const p = this.pending.get(msg.id);
           if (p) {
@@ -99,9 +90,10 @@ export class LspJsonRpcConnection {
           const h = this.handlers.get(msg.method);
           if (h) h(msg.params);
         }
-      } catch {
-        // tolerate malformed chunks in the spike
       }
+    } catch (e) {
+      this.rejectAll(e instanceof Error ? e : new Error(String(e)));
+      this.forceKill();
     }
   }
 

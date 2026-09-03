@@ -14,7 +14,7 @@ import {
 } from "@my-pi/contracts";
 import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { SensitivePathPolicy } from "@my-pi/policy";
-import { NodeFallbackSearchBackend } from "./fallback.js";
+import { MAX_SEARCH_PATTERN_BYTES, NodeFallbackSearchBackend } from "./fallback.js";
 
 type Ctx = CapabilityContext;
 
@@ -61,13 +61,17 @@ export function createSearchCapability(runtime: WorkspaceRuntime): Capability<un
       const { mode, pattern, path: scope } = input as SearchInput;
       if (mode !== "grep" && mode !== "glob") throw err.invalidArgument("mode must be grep or glob");
       if (typeof pattern !== "string" || pattern === "") throw err.invalidArgument("pattern is required");
+      if (Buffer.byteLength(pattern, "utf8") > MAX_SEARCH_PATTERN_BYTES) {
+        throw err.invalidArgument(`pattern exceeds ${MAX_SEARCH_PATTERN_BYTES} bytes`);
+      }
 
       let searchRoot: string;
       if (scope) {
         const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, scope);
-        const st = await import("node:fs").then((m) => m.promises.stat(resolved.absolute));
+        const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+        const st = await import("node:fs").then((m) => m.promises.stat(authorized.absolute));
         if (st.isFile()) throw err.invalidArgument(`search path is a file, not a directory: ${resolved.relPosix}`);
-        searchRoot = resolved.absolute;
+        searchRoot = authorized.absolute;
       } else {
         searchRoot = ctx.workspace.root;
       }
@@ -81,8 +85,12 @@ export function createSearchCapability(runtime: WorkspaceRuntime): Capability<un
       const isAllowed = (scopeRelPath: string): boolean => {
         const abs = path.resolve(searchRoot, scopeRelPath);
         const policyRel = toPosix(path.relative(ctx.workspace.root, abs));
-        if (sensitive.isSensitive(policyRel) === undefined) return true;
-        return allowList.some((a) => policyRel === a || policyRel.startsWith(a + "/"));
+        const rootName = path.basename(searchRoot);
+        const candidates = rootName ? [policyRel, `${toPosix(rootName)}/${toPosix(scopeRelPath)}`] : [policyRel];
+        return candidates.every((candidate) => {
+          if (sensitive.isSensitive(candidate) === undefined) return true;
+          return allowList.some((a) => candidate === a || candidate.startsWith(a + "/"));
+        });
       };
 
       const res = await backend.search(

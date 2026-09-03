@@ -1,13 +1,62 @@
 {
   "id": "G2",
-  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
+  "commit": "61701726331df28d1c9aabea86be3e048a1c84c5",
   "status": "PARTIAL",
-  "environment": { "os": "win32", "node": "v26.7.0" },
+  "environment": {
+    "os": "win32",
+    "node": "v26.7.0"
+  },
   "criteria": [
-    { "id": "sensitive-path-pre-read", "status": "PASS", "evidence": ["search.test.ts: read-spy proves denied visible files never opened"] },
-    { "id": "scope-relative-policy", "status": "PASS", "evidence": ["search.test.ts: R0.1.2 policy workspace-relative", "mcp-integration.test.ts: R0.1.2 scope=.aws denied"] },
-    { "id": "exact-total-count", "status": "PASS", "evidence": ["search.test.ts: Contract A totalCount exact past limit"] },
-    { "id": "native-search", "status": "BLOCKED", "evidence": ["native module compilation deferred to CI; Node fallback fully operational"] },
-    { "id": "backend-parity", "status": "PASS", "evidence": ["backend-parity.test.ts: loader fallback and glob/grep precision verified"] }
+    {
+      "id": "sensitive-path-pre-read",
+      "status": "PASS",
+      "evidence": [
+        "search.test.ts: read-spy proves denied visible files never opened"
+      ]
+    },
+    {
+      "id": "scope-relative-policy",
+      "status": "PASS",
+      "evidence": [
+        "search.test.ts: R0.1.2 policy workspace-relative",
+        "mcp-integration.test.ts: R0.1.2 scope=.aws denied"
+      ]
+    },
+    {
+      "id": "exact-total-count",
+      "status": "PASS",
+      "evidence": [
+        "search.test.ts: Contract A totalCount exact past limit"
+      ]
+    },
+    {
+      "id": "native-search",
+      "status": "BLOCKED",
+      "evidence": [
+        "native module compilation deferred to CI; Node fallback fully operational"
+      ]
+    },
+    {
+      "id": "backend-parity",
+      "status": "PASS",
+      "evidence": [
+        "backend-parity.test.ts: loader fallback and glob/grep precision verified"
+      ]
+    },
+    {
+      "id": "fs-read-byte-bounded",
+      "status": "PASS",
+      "evidence": [
+        "bounded-read.test.ts: large file is hashed/metadata-scanned incrementally and returns content_bytes <= max_bytes across Unicode boundaries"
+      ]
+    },
+    {
+      "id": "search-streaming-ignore",
+      "status": "PASS",
+      "evidence": [
+        "gitignore.test.ts: incremental traversal covers nested rules, negation, globstar, escaping, and anchors",
+        "traversal-release.json: 100007 files traversed with candidate-bound timings"
+      ]
+    }
   ]
 }

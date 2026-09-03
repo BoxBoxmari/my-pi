@@ -1,5 +1,8 @@
 # R0 — Production Foundation Readiness (Remediation Gate)
 
+> Historical pre-beta remediation evidence. It is retained for traceability and
+> is superseded by the current hardening changes and strict release verifier.
+
 Date: 2026-09-01 · Verdict: **PASS** — with explicitly documented environment BLOCKED items
 
 ## P0 closure table

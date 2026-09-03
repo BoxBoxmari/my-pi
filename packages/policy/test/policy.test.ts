@@ -38,6 +38,8 @@ test("PolicyEngine enforces secret deny and mode gating", () => {
   const readOnly: WorkspacePolicy = { mode: "read-only", allowedSensitivePaths: [] };
   assert.deepEqual(engine.authorize(readOnly, "read", "src/foo.ts"), { allowed: true });
   assert.deepEqual(engine.authorize(readOnly, "write", "src/foo.ts"), { allowed: false, reason: "mode-denied" });
+  const reviewRequired: WorkspacePolicy = { mode: "review-required", allowedSensitivePaths: [] };
+  assert.deepEqual(engine.authorize(reviewRequired, "write", "src/foo.ts"), { allowed: false, reason: "mode-denied" });
   const withAllow: WorkspacePolicy = { mode: "workspace-write", allowedSensitivePaths: [".env.local"] };
   assert.deepEqual(engine.authorize(withAllow, "read", ".env.local"), { allowed: true });
   assert.deepEqual(engine.authorize(withAllow, "read", ".env"), { allowed: false, reason: "secret-path-denied" });

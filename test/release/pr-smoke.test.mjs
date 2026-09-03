@@ -13,11 +13,30 @@ const SCRIPT = path.join(ROOT, "scripts", "pr-smoke.mjs");
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
+function quoteWindowsArg(value) {
+  const text = String(value);
+  if (/[&|<>^()%!`"\r\n]/.test(text)) throw new Error("unsafe Windows command argument");
+  return `"${text}"`;
+}
+
+function execPackageManager(command, args, options) {
+  if (process.platform === "win32" && /\.(cmd|bat)$/i.test(command)) {
+    const quote = String.fromCharCode(34);
+    const commandLine = `${quote}${quote}${command}${quote}${args.length > 0 ? ` ${args.map(quoteWindowsArg).join(" ")}` : ""}${quote}`;
+    return execFileAsync(process.env.ComSpec ?? process.env.comspec ?? "cmd.exe", ["/d", "/s", "/c", commandLine], {
+      ...options,
+      shell: false,
+      windowsVerbatimArguments: true,
+    });
+  }
+  return execFileAsync(command, args, { ...options, shell: false });
+}
+
 async function packCurrentArtifact(destination) {
-  await execFileAsync(pnpmCommand, ["--filter", "@koonwang03/my-pi", "pack", "--pack-destination", destination], {
+  await execPackageManager(pnpmCommand, ["--filter", "@koonwang03/my-pi", "pack", "--pack-destination", destination], {
     cwd: ROOT,
     encoding: "utf8",
-    shell: true,
+    shell: false,
   });
   const tarballs = (await fs.readdir(destination)).filter((file) => file.endsWith(".tgz"));
   assert.equal(tarballs.length, 1);
@@ -53,7 +72,7 @@ test("pr-smoke: rejects an artifact with the wrong package identity", { skip: pr
     await fs.writeFile(path.join(sourceDir, "dist", "main.js.map"), JSON.stringify({ version: 3, sources: ["main.ts"] }), "utf8");
     await fs.writeFile(path.join(sourceDir, "README.md"), "test\n", "utf8");
     await fs.writeFile(path.join(sourceDir, "LICENSE"), "test\n", "utf8");
-    await execFileAsync(npmCommand, ["pack", "--pack-destination", outputDir], { cwd: sourceDir, encoding: "utf8", shell: true });
+    await execPackageManager(npmCommand, ["pack", "--pack-destination", outputDir], { cwd: sourceDir, encoding: "utf8" });
     const artifact = path.join(outputDir, (await fs.readdir(outputDir)).find((file) => file.endsWith(".tgz")));
 
     await assert.rejects(

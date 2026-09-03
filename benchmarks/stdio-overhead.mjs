@@ -12,15 +12,45 @@
  * Writes: benchmarks/results/stdio-overhead.json
  */
 import { promises as fs } from "node:fs";
+import { execFile } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
+import { resolveReleaseCommit } from "../scripts/release-identity.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ITER = Number(process.argv[2] ?? 150);
 const WARMUP = 25;
+const execFileAsync = promisify(execFile);
+
+async function processRssBytes(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return undefined;
+  try {
+    if (process.platform === "win32") {
+      const { stdout } = await execFileAsync("powershell.exe", [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        `(Get-Process -Id ${pid} -ErrorAction Stop).WorkingSet64`,
+      ], { encoding: "utf8", windowsHide: true });
+      const value = Number(stdout.trim());
+      return Number.isFinite(value) && value > 0 ? value : undefined;
+    }
+    if (process.platform === "linux") {
+      const status = await fs.readFile(`/proc/${pid}/status`, "utf8");
+      const kb = Number(status.match(/^VmRSS:\s+(\d+)\s+kB$/m)?.[1]);
+      return Number.isFinite(kb) && kb > 0 ? kb * 1024 : undefined;
+    }
+    const { stdout } = await execFileAsync("ps", ["-o", "rss=", "-p", String(pid)], { encoding: "utf8" });
+    const kb = Number(stdout.trim());
+    return Number.isFinite(kb) && kb > 0 ? kb * 1024 : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function stats(arr) {
   const s = [...arr].sort((a, b) => a - b);
@@ -70,23 +100,41 @@ async function main() {
   for (let i = 0; i < WARMUP; i++) {
     await client.callTool({ name: "fs_read", arguments: { path: "bench.txt" } });
   }
-  const rssBefore = process.memoryUsage.rss();
+  const serverPid = transport.pid;
+  const serverRssSamples = [];
+  const sampleEvery = Math.max(1, Math.floor(ITER / 10));
+  const parentRssBefore = process.memoryUsage.rss();
+  const beforeServerRss = await processRssBytes(serverPid);
+  if (beforeServerRss !== undefined) serverRssSamples.push(beforeServerRss);
   for (let i = 0; i < ITER; i++) {
     const t0 = performance.now();
     await client.callTool({ name: "fs_read", arguments: { path: "bench.txt" } });
     mcpTimes.push(performance.now() - t0);
+    if ((i + 1) % sampleEvery === 0 || i === ITER - 1) {
+      const rss = await processRssBytes(serverPid);
+      if (rss !== undefined) serverRssSamples.push(rss);
+    }
   }
-  const rssAfter = process.memoryUsage.rss();
+  const afterServerRss = await processRssBytes(serverPid);
+  if (afterServerRss !== undefined && serverRssSamples[serverRssSamples.length - 1] !== afterServerRss) serverRssSamples.push(afterServerRss);
+  const parentRssAfter = process.memoryUsage.rss();
 
   const result = {
     generatedAt: new Date().toISOString(),
+    commit: resolveReleaseCommit({ cwd: repoRoot }),
     node: process.version,
     platform: process.platform,
     iterations: ITER,
     warmup: WARMUP,
     directCapabilityC: stats(directTimes),
     mcpStdioD: stats(mcpTimes),
-    rssDeltaBytes: rssAfter - rssBefore,
+    serverPid,
+    serverRssMeasurement: "child-working-set-sampled",
+    serverRssBeforeBytes: beforeServerRss,
+    serverRssAfterBytes: afterServerRss,
+    serverRssPeakBytes: serverRssSamples.length > 0 ? Math.max(...serverRssSamples) : undefined,
+    serverRssSamples: serverRssSamples.length,
+    parentRssDeltaBytes: parentRssAfter - parentRssBefore,
     targets: { stdioP50MaxMs: 5, stdioP95MaxMs: 15 },
   };
   // Overhead = D - C (approximation of pure MCP/transport cost).
@@ -101,7 +149,7 @@ async function main() {
   console.log(`direct capability (C): median=${result.directCapabilityC.medianMs}ms p95=${result.directCapabilityC.p95Ms}ms`);
   console.log(`MCP stdio (D):        median=${result.mcpStdioD.medianMs}ms p95=${result.mcpStdioD.p95Ms}ms p99=${result.mcpStdioD.p99Ms}ms`);
   console.log(`overhead (D-C):       p50≈${result.mcpOverheadP50Ms}ms`);
-  console.log(`RSS delta:            ${result.rssDeltaBytes} bytes over ${ITER} calls`);
+  console.log(`Server RSS samples:   pid=${result.serverPid} before=${result.serverRssBeforeBytes ?? "unavailable"} after=${result.serverRssAfterBytes ?? "unavailable"} peak=${result.serverRssPeakBytes ?? "unavailable"} bytes`);
   console.log(`written: ${out}`);
 
   await client.close();

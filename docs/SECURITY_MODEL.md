@@ -6,8 +6,8 @@ enforced server-side.
 ## Path resolution pipeline
 ```
 input -> normalize separators -> resolve vs workspace -> canonicalize/realpath
-      -> resolve symlink/junction -> containment check
-      -> sensitive-path policy -> capability-class policy -> execute
+       -> resolve symlink/junction -> containment check
+       -> sensitive-path policy -> capability-class policy -> revalidate -> execute
 ```
 Hard deny: traversal outside workspace, symlink/junction escape, unauthorized UNC/alternate
 drive, explicitly denied path.
@@ -21,12 +21,16 @@ A **model tool argument can never self-authorize a sensitive path**. V1 does no
 content-based secret scanning.
 
 ## Capability classes
-`read/write/network/exec/debug/secret`. V1: read allowed in-workspace; write policy-controlled
-(`workspace-write`/`review-required`); `network/exec/debug/secret` unavailable.
+`read/write/network/exec/debug/secret`. The default CLI profile is `read-only`.
+The explicit `trusted` profile enables workspace writes and LSP processes;
+`review-required` remains fail-closed until a real approval mechanism exists.
+`network/exec/debug/secret` remain unavailable through the MCP capability guard.
 
 ## Mutation safety
 - Single-file only (A7); per-workspace mutex (A8).
 - Temp-file + fsync + atomic rename + read-back hash verify.
+- `fs_read` uses a raw-byte window and streams the full-file hash/metadata without
+  retaining the complete file in memory.
 - Never truncate-and-overwrite; Windows busy → bounded retry → `ERR_FILE_BUSY` / `ERR_ATOMIC_REPLACE_FAILED`.
 - Git is never automatic rollback (A10).
 
@@ -38,11 +42,20 @@ content-based secret scanning.
 
 ## Transport & observability
 - `stdout` = MCP protocol only; logs to `stderr`.
-- No content/secret/auth-header logging by default (`@my-pi/observability` redaction).
+- The built-in request log shape contains only tool, outcome, duration, and
+  typed error code; it does not include source content or credentials.
+- `@my-pi/observability` redaction helpers are defense in depth for future
+  telemetry and are not the workspace authorization boundary.
+- LSP subprocesses use byte-correct framing, workspace-bound roots, a sanitized
+  environment, and no Node `shell:true` argument joining.
+- VCS diff disables external diff/textconv, filters sensitive changed paths, and
+  streams overflow into a private expiring artifact directory.
 - HTTP is post-V1; if enabled later it is disabled by default and requires bearer auth
   before non-loopback exposure.
 
 ## Verified evidence
 - Containment/traversal + secret denial + mode gating: unit + end-to-end MCP tests PASS.
 - End-to-end `.env` denial through the MCP tool surface: PASS.
-- Native/HTTP/LSP hardening: NOT yet exercised (blocked in this environment).
+- LSP byte framing, root authority, navigation filtering, and process lifecycle:
+  covered by deterministic unit tests plus host-dependent integration tests.
+- Native acceleration and network/HTTP transport remain deferred by design.

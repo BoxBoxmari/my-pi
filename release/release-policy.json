@@ -22,10 +22,15 @@
     "G0:supplier-qualification",
     "G1:cancellation-deterministic",
     "G1:lsp-feasibility-spike",
+    "G1:lsp-byte-framing",
+    "G1:lsp-process-safety",
+    "G1:lsp-navigation-authority",
     "G2:sensitive-path-pre-read",
     "G2:scope-relative-policy",
     "G2:exact-total-count",
     "G2:backend-parity",
+    "G2:fs-read-byte-bounded",
+    "G2:search-streaming-ignore",
     "G3:read-patch",
     "G3:search-read-patch",
     "G3:stale-hash",
@@ -38,8 +43,11 @@
     "G3:atomic-failure",
     "G3:read-back-verify",
     "G3:windows-lock-injection",
+    "G3:utf16-write-metadata",
+    "G3:security-profile",
     "G4:vcs-status-diff",
     "G4:ast-search",
+    "G4:vcs-streaming-secret-filter",
     "G5:lsp-lifecycle",
     "G6:host-connection",
     "G6:host-same-task-certification",
@@ -52,7 +60,10 @@
     "R0:R0.1.7-era-truth",
     "R0:R0.1.8-capability-layering",
     "R0:R0.1.9-operational-capability-model",
-    "R0:R0.1.10-evidence-framework"
+    "R0:R0.1.10-evidence-framework",
+    "R0:explicit-workspace-authority",
+    "R0:request-concurrency-limit",
+    "R0:runtime-boundary-performance"
   ],
   "deferredCapabilities": [
     {
@@ -93,5 +104,9 @@
       "minTarget": 100000,
       "requiredInStrictMode": true
     }
+  },
+  "runtimePerformanceEvidence": {
+    "file": "benchmarks/results/runtime-boundaries.json",
+    "requiredInStrictMode": true
   }
 }

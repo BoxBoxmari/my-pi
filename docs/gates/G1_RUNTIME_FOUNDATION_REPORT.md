@@ -1,5 +1,8 @@
 # G1 — Runtime Foundation, Policy, Cancellation, LSP Spike
 
+> Historical gate snapshot from before the beta hardening pass. Current runtime
+> status is maintained in `docs/ARCHITECTURE.md` and `docs/SECURITY_MODEL.md`.
+
 Status: **PARTIAL** — Node foundation implemented, built, and 26/26 tests pass (in-process MCP conformance included). Blocked items: LSP feasibility spike (no language server), OS-pipe subprocess response capture (harness EOF race), real host conformance.
 
 ## Implemented

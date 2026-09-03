@@ -1,9 +1,19 @@
 {
   "id": "G5",
-  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
+  "commit": "61701726331df28d1c9aabea86be3e048a1c84c5",
   "status": "PASS",
-  "environment": { "os": "win32", "node": "v26.7.0" },
+  "environment": {
+    "os": "win32",
+    "node": "v26.7.0"
+  },
   "criteria": [
-    { "id": "lsp-lifecycle", "status": "PASS", "evidence": ["lsp-spike.test.ts: TypeScript full lifecycle + crash recovery", "lsp-multi-lang.test.ts: 4-language registration/root detection; host server executables are prerequisites"] }
+    {
+      "id": "lsp-lifecycle",
+      "status": "PASS",
+      "evidence": [
+        "lsp-spike.test.ts: TypeScript full lifecycle + crash recovery",
+        "lsp-multi-lang.test.ts: 4-language registration/root detection; host server executables are prerequisites"
+      ]
+    }
   ]
 }

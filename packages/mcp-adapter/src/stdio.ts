@@ -19,36 +19,103 @@ import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import type { Transport } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import {
+  err,
   createRequestId,
   isMyPiError,
   type Capability,
   type CapabilityContext,
+  type WorkspaceCapabilities,
 } from "@my-pi/contracts";
 import type { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { getDesiredEra, setObservedEra, getObservedEra, type McpEra } from "./era.js";
 import { myPiCodeToMcpCode } from "./error-map.js";
 import { ToolRegistry, type ToolDefinition } from "./tool-registry.js";
 
+const MAX_FS_READ_BYTES = 1024 * 1024;
+const MAX_FS_WRITE_BYTES = 8 * 1024 * 1024;
+const MAX_PATCH_HUNKS = 1000;
+const MAX_PATCH_TEXT_BYTES = 1024 * 1024;
+const MAX_AST_QUERY_BYTES = 8192;
+const MAX_AST_PATHS = 2000;
+
+export class RequestLimiter {
+  private active = 0;
+  private readonly waiters: Array<{ signal: AbortSignal; resolve: (release: () => void) => void; reject: (error: Error) => void; onAbort: () => void }> = [];
+
+  constructor(private readonly maxConcurrent: number, private readonly maxQueued = 32) {
+    if (!Number.isSafeInteger(maxConcurrent) || maxConcurrent < 1) throw new Error("maxConcurrent must be at least 1");
+    if (!Number.isSafeInteger(maxQueued) || maxQueued < 0) throw new Error("maxQueued must be non-negative");
+  }
+
+  acquire(signal: AbortSignal): Promise<() => void> {
+    if (signal.aborted) return Promise.reject(err.aborted("request aborted while waiting for a request slot"));
+    if (this.active < this.maxConcurrent) {
+      this.active++;
+      return Promise.resolve(() => this.release());
+    }
+    if (this.waiters.length >= this.maxQueued) return Promise.reject(err.outputLimit("request concurrency queue is full"));
+    return new Promise((resolve, reject) => {
+      const waiter = {
+        signal,
+        resolve,
+        reject,
+        onAbort: () => {
+          const index = this.waiters.indexOf(waiter);
+          if (index >= 0) this.waiters.splice(index, 1);
+          signal.removeEventListener("abort", waiter.onAbort);
+          reject(err.aborted("request aborted while waiting for a request slot"));
+        },
+      };
+      this.waiters.push(waiter);
+      signal.addEventListener("abort", waiter.onAbort, { once: true });
+    });
+  }
+
+  private release(): void {
+    const waiter = this.waiters.shift();
+    if (!waiter) {
+      this.active--;
+      return;
+    }
+    waiter.signal.removeEventListener("abort", waiter.onAbort);
+    if (waiter.signal.aborted) {
+      waiter.reject(err.aborted("request aborted while waiting for a request slot"));
+      this.release();
+      return;
+    }
+    waiter.resolve(() => this.release());
+  }
+}
+
+function capabilityKeyForTool(name: string): keyof WorkspaceCapabilities {
+  if (name === "fs_write" || name === "fs_patch") return "write";
+  if (name === "search") return "search";
+  if (name === "ast_search") return "ast";
+  if (name.startsWith("lsp_")) return "lsp";
+  if (name.startsWith("vcs_")) return "vcs";
+  return "read";
+}
+
 const SCHEMAS: Record<string, StandardSchemaWithJSON> = {
   workspace_info: z.object({}),
   fs_read: z.object({
     path: z.string(),
     offset: z.number().int().min(0).optional(),
-    max_bytes: z.number().int().positive().optional(),
+    max_bytes: z.number().int().min(1).max(MAX_FS_READ_BYTES).optional(),
   }),
   fs_stat: z.object({ path: z.string() }),
-  fs_write: z.object({ path: z.string(), content: z.string(), expected_hash: z.string().optional() }),
+  fs_write: z.object({ path: z.string(), content: z.string().max(MAX_FS_WRITE_BYTES), expected_hash: z.string().optional() }),
   fs_patch: z.object({
     path: z.string(),
-    patch: z.object({ hunks: z.array(z.object({ old: z.string(), new: z.string() })) }),
+    patch: z.object({ hunks: z.array(z.object({ old: z.string().max(MAX_PATCH_TEXT_BYTES), new: z.string().max(MAX_PATCH_TEXT_BYTES) })).max(MAX_PATCH_HUNKS) }),
     expected_hash: z.string().optional(),
   }),
   search: z.object({ mode: z.enum(["grep", "glob"]), pattern: z.string(), path: z.string().optional() }),
-  ast_search: z.object({ pattern: z.string(), paths: z.array(z.string()) }),
+  ast_search: z.object({ pattern: z.string().max(MAX_AST_QUERY_BYTES), paths: z.array(z.string()).max(MAX_AST_PATHS), mode: z.enum(["text", "query"]).optional() }),
   lsp_status: z.object({}),
   lsp_diagnostics: z.object({ path: z.string() }),
   lsp_symbols: z.object({ path: z.string() }),
-  lsp_navigate: z.object({ action: z.enum(["definition", "references", "hover"]), path: z.string(), line: z.number().optional(), column: z.number().optional() }),
+  lsp_navigate: z.object({ action: z.enum(["definition", "references", "hover"]), path: z.string(), line: z.number().int().min(0).max(1_000_000).optional(), column: z.number().int().min(0).max(1_000_000).optional() }),
   vcs_status: z.object({ path: z.string().optional() }),
   vcs_diff: z.object({ path: z.string().optional() }),
 };
@@ -96,11 +163,14 @@ export interface MyPiServerOptions {
   runtime: WorkspaceRuntime;
   capabilities: Map<string, Capability<unknown, unknown>>;
   requestLog?: (row: { tool: string; ok: boolean; ms: number; errorCode?: string }) => void;
+  maxConcurrentRequests?: number;
+  maxQueuedRequests?: number;
 }
 
 export class MyPiServer {
   private readonly server: McpServer;
   private readonly registry = new ToolRegistry();
+  private readonly requestLimiter: RequestLimiter;
 
   constructor(private readonly opts: MyPiServerOptions) {
     const server = new McpServer(
@@ -108,6 +178,7 @@ export class MyPiServer {
       { capabilities: { tools: {} } },
     );
     this.server = server;
+    this.requestLimiter = new RequestLimiter(opts.maxConcurrentRequests ?? 8, opts.maxQueuedRequests ?? 32);
 
     // P0.6: record the actual negotiated protocol era at initialize time.
     // The client transport exposes getNegotiatedProtocolVersion; on stdio we
@@ -146,10 +217,20 @@ export class MyPiServer {
         // P0.4: use the SDK's per-request signal — host cancellation reaches here.
         const signal = ctx.mcpReq?.signal ?? (ctx as unknown as { signal?: AbortSignal }).signal ?? new AbortController().signal;
         const started = performance.now();
+        let release: (() => void) | undefined;
         try {
+          release = await this.requestLimiter.acquire(signal);
+          const workspace = this.opts.runtime.workspaceOrThrow;
+          const capabilityKey = capabilityKeyForTool(def.name);
+          if (!workspace.capabilities[capabilityKey]) {
+            throw err.permissionDenied(`capability disabled by security profile: ${capabilityKey}`);
+          }
+          if (def.capability.risk === "write" && workspace.policy.mode !== "workspace-write") {
+            throw err.permissionDenied("write capability requires the trusted workspace security profile");
+          }
           const mcpCtx: CapabilityContext = {
             requestId,
-            workspace: this.opts.runtime.workspaceOrThrow,
+            workspace,
             signal,
             // P0.6: report the OBSERVED era, never a configured placeholder.
             trace: { negotiated_mcp_era_observed: getObservedEra() ?? "unobserved", transport: "stdio" },
@@ -167,6 +248,8 @@ export class MyPiServer {
             throw err;
           }
           throw e;
+        } finally {
+          release?.();
         }
       },
     );

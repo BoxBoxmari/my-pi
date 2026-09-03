@@ -26,6 +26,7 @@ evidence/*.log
 .knowns/
 .opencode/
 .x-harness/
+opencode.json
 AGENTS.md
 CLAUDE.md
 STACK.md

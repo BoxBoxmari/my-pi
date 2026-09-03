@@ -46,14 +46,13 @@ export const CATALOG_CAPABILITIES: WorkspaceCapabilities = {
   vcs: true,
 };
 
-/** R0.1.9: what is ACTUALLY operational today (8 tools). AST/LSP are false
- * until their gates (G4/G5) pass and a healthy provider is registered. */
+/** Default operational posture. Write and LSP are explicit trusted-profile capabilities. */
 export const OPERATIONAL_CAPABILITIES: WorkspaceCapabilities = {
   read: true,
-  write: true,
+  write: false,
   search: true,
   ast: true,
-  lsp: true,
+  lsp: false,
   vcs: true,
 };
 
@@ -73,7 +72,7 @@ export class WorkspaceRuntime {
       ...OPERATIONAL_CAPABILITIES,
       ...opts.capabilities,
     };
-    const additionalRoots = (opts.additionalRoots ?? []).map((r) => path.resolve(r));
+    const additionalRoots = (opts.additionalRoots ?? []).map((r) => path.resolve(real, r));
     this.workspace = {
       id: createWorkspaceId(),
       root: real,

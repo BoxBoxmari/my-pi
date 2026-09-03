@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:3f5ea22e-3703-5a93-acd7-6be035abd5a0",
+  "serialNumber": "urn:uuid:68384640-ea7c-5a88-b2be-6d8db6227aa1",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-02T17:45:49.201Z",
+    "timestamp": "2026-09-03T19:31:27.957Z",
     "component": {
       "type": "application",
-      "name": "my-pi",
+      "name": "@koonwang03/my-pi",
       "version": "0.1.0-alpha.1"
     },
     "tools": [
@@ -19,7 +19,7 @@
     "properties": [
       {
         "name": "my-pi:commit",
-        "value": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321"
+        "value": "61701726331df28d1c9aabea86be3e048a1c84c5"
       },
       {
         "name": "my-pi:source",

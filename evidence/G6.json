@@ -1,10 +1,27 @@
 {
   "id": "G6",
-  "commit": "b7d2d4e2bd4b14e714b3acac7d2bb269b8d55321",
+  "commit": "61701726331df28d1c9aabea86be3e048a1c84c5",
   "status": "PASS",
-  "environment": { "os": "win32", "node": "v26.7.0" },
+  "environment": {
+    "os": "win32",
+    "node": "v26.7.0"
+  },
   "criteria": [
-    { "id": "host-connection", "status": "PASS", "evidence": ["opencode mcp list: my-pi connected", "claude mcp list: my-pi connected"] },
-    { "id": "host-same-task-certification", "status": "PASS", "evidence": ["pr-smoke.mjs: 13-tool catalog discovered over stdio; representative core tools exercised", "stdio-subprocess.test.ts: stdio protocol and era negotiation"] }
+    {
+      "id": "host-connection",
+      "status": "PASS",
+      "evidence": [
+        "opencode mcp list: my-pi connected",
+        "claude mcp list: my-pi connected"
+      ]
+    },
+    {
+      "id": "host-same-task-certification",
+      "status": "PASS",
+      "evidence": [
+        "pr-smoke.mjs: 13-tool catalog discovered over stdio; representative core tools exercised",
+        "stdio-subprocess.test.ts: stdio protocol and era negotiation"
+      ]
+    }
   ]
 }

@@ -72,24 +72,24 @@ export function resolveServerCommand(language: string, cwd = process.cwd()): { c
   if (!spec) return undefined;
 
   const isWin = process.platform === "win32";
+  // A language server may come from the host runtime's own dependencies or the
+  // explicitly selected workspace. Do not search arbitrary ancestors: a parent
+  // project can then silently become the executable authority for this one.
   const searchBinDirs = [
     path.resolve(process.cwd(), "node_modules", ".bin"),
     path.resolve(cwd, "node_modules", ".bin"),
-  ];
-
-  let cur = path.resolve(cwd);
-  while (true) {
-    searchBinDirs.push(path.join(cur, "node_modules", ".bin"));
-    const parent = path.dirname(cur);
-    if (parent === cur) break;
-    cur = parent;
-  }
+  ].filter((value, index, values) => values.indexOf(value) === index);
 
   for (const candidate of spec.commandCandidates) {
     for (const binDir of searchBinDirs) {
       const localBin = path.join(binDir, candidate);
-      if (fs.existsSync(localBin)) {
+      if ((!isWin || candidate.endsWith(".exe") || candidate.endsWith(".cmd") || candidate.endsWith(".bat")) && fs.existsSync(localBin)) {
         return { command: localBin, args: spec.args };
+      }
+      if (isWin && !candidate.endsWith(".exe") && !candidate.endsWith(".cmd") && !candidate.endsWith(".bat")) {
+        for (const ext of [".exe", ".cmd", ".bat"]) {
+          if (fs.existsSync(localBin + ext)) return { command: localBin + ext, args: spec.args };
+        }
       }
     }
 
@@ -98,15 +98,14 @@ export function resolveServerCommand(language: string, cwd = process.cwd()): { c
     const dirs = envPath.split(path.delimiter);
     for (const d of dirs) {
       const p = path.join(d, candidate);
-      if (fs.existsSync(p)) {
-        return { command: p, args: spec.args };
-      }
       if (isWin && !candidate.endsWith(".exe") && !candidate.endsWith(".cmd") && !candidate.endsWith(".bat")) {
         for (const ext of [".exe", ".cmd", ".bat"]) {
           if (fs.existsSync(p + ext)) {
             return { command: p + ext, args: spec.args };
           }
         }
+      } else if (fs.existsSync(p)) {
+        return { command: p, args: spec.args };
       }
     }
   }

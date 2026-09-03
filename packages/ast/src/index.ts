@@ -19,6 +19,9 @@ let Parser: any = null;
 
 export const AST_LANGUAGES = ["typescript", "javascript", "python", "rust", "go"] as const;
 export type AstLanguage = (typeof AST_LANGUAGES)[number];
+export const MAX_AST_QUERY_BYTES = 8192;
+export const MAX_AST_PATHS = 2000;
+export const MAX_AST_FILE_BYTES = 8 * 1024 * 1024;
 
 export const EXTENSION_TO_LANG: Record<string, AstLanguage> = {
   ".ts": "typescript",
@@ -58,19 +61,6 @@ export class TreeSitterAstBackend implements AstBackend {
 
   private resolveWasmPath(lang: AstLanguage): string {
     const wasmName = `tree-sitter-${lang}.wasm`;
-    const searchDirs = [
-      path.resolve(process.cwd(), "node_modules", "tree-sitter-wasms", "out"),
-      path.resolve(process.cwd(), "packages", "ast", "node_modules", "tree-sitter-wasms", "out"),
-    ];
-
-    let cur = path.resolve(process.cwd());
-    while (true) {
-      searchDirs.push(path.join(cur, "node_modules", "tree-sitter-wasms", "out"));
-      const parent = path.dirname(cur);
-      if (parent === cur) break;
-      cur = parent;
-    }
-
     try {
       const resolved = require.resolve(`tree-sitter-wasms/out/${wasmName}`);
       if (fs.existsSync(resolved)) return resolved;
@@ -78,12 +68,7 @@ export class TreeSitterAstBackend implements AstBackend {
       // ignore
     }
 
-    for (const dir of searchDirs) {
-      const p = path.join(dir, wasmName);
-      if (fs.existsSync(p)) return p;
-    }
-
-    throw new Error(`Tree-sitter WASM not found for language: ${lang}`);
+    throw new Error(`Tree-sitter WASM dependency is unavailable for language: ${lang}`);
   }
 
   private async getLanguage(lang: AstLanguage): Promise<any> {
@@ -99,6 +84,9 @@ export class TreeSitterAstBackend implements AstBackend {
 
   async search(request: AstSearchRequest, signal: AbortSignal): Promise<AstSearchResult> {
     signal.throwIfAborted();
+    if (Buffer.byteLength(request.pattern, "utf8") > MAX_AST_QUERY_BYTES) {
+      throw err.outputLimit(`AST pattern exceeds ${MAX_AST_QUERY_BYTES} bytes`);
+    }
     await this.ensureInitialized();
 
     const limit = request.limit ?? 50;
@@ -113,6 +101,8 @@ export class TreeSitterAstBackend implements AstBackend {
 
       let content: string;
       try {
+        const stat = await fs.promises.stat(filePath);
+        if (stat.size > MAX_AST_FILE_BYTES) continue;
         content = await fs.promises.readFile(filePath, "utf8");
       } catch {
         continue;
@@ -129,7 +119,8 @@ export class TreeSitterAstBackend implements AstBackend {
       const tree = this.parser.parse(content);
       const rootNode = tree.rootNode;
 
-      const isQueryPattern = request.pattern.startsWith("(") || request.pattern.includes("@");
+      const isQueryPattern = request.mode === "query"
+        || (request.mode === undefined && (request.pattern.startsWith("(") || request.pattern.includes("@")));
 
       if (isQueryPattern) {
         try {
@@ -161,11 +152,8 @@ export class TreeSitterAstBackend implements AstBackend {
               });
             }
           }
-        } catch {
-          // If query parsing fails, fallback to structural node walker
-          this.walkNodes(rootNode, request.pattern, filePath, matches, limit, () => {
-            totalCount++;
-          }, signal);
+        } catch (e) {
+          throw err.parseFailed(`invalid Tree-sitter query: ${e instanceof Error ? e.message : String(e)}`);
         }
       } else {
         this.walkNodes(rootNode, request.pattern, filePath, matches, limit, () => {
@@ -247,6 +235,7 @@ function result<T>(
 export interface AstSearchInput {
   pattern: string;
   paths?: string[];
+  mode?: "text" | "query";
 }
 
 export function createAstCapabilities(
@@ -260,19 +249,28 @@ export function createAstCapabilities(
     risk: "read",
     async execute(input: unknown, ctx: Ctx) {
       const t0 = performance.now();
-      const { pattern, paths: inputPaths = [] } = input as AstSearchInput;
+      const { pattern, paths: inputPaths = [], mode } = input as AstSearchInput;
 
       if (!pattern || typeof pattern !== "string") {
         throw err.invalidArgument("pattern is required for ast_search");
       }
+      if (Buffer.byteLength(pattern, "utf8") > MAX_AST_QUERY_BYTES) {
+        throw err.outputLimit(`AST pattern exceeds ${MAX_AST_QUERY_BYTES} bytes`);
+      }
+      if (!Array.isArray(inputPaths) || inputPaths.length > MAX_AST_PATHS) {
+        throw err.outputLimit(`ast_search accepts at most ${MAX_AST_PATHS} paths`);
+      }
 
       // Resolve candidate file paths within workspace
       const targetPaths: string[] = [];
+      let pathLimitReached = false;
       if (inputPaths.length > 0) {
         for (const p of inputPaths) {
           try {
             const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, p);
-            targetPaths.push(resolved.absolute);
+            const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+            targetPaths.push(authorized.absolute);
+            if (targetPaths.length >= MAX_AST_PATHS) break;
           } catch {
             // ignore inaccessible / non-existent paths
           }
@@ -280,6 +278,10 @@ export function createAstCapabilities(
       } else {
         // Collect files in workspace matching AST languages
         const walkDir = async (dir: string): Promise<void> => {
+          if (targetPaths.length >= MAX_AST_PATHS) {
+            pathLimitReached = true;
+            return;
+          }
           ctx.signal.throwIfAborted();
           let entries: fs.Dirent[];
           try {
@@ -288,6 +290,10 @@ export function createAstCapabilities(
             return;
           }
           for (const e of entries) {
+            if (targetPaths.length >= MAX_AST_PATHS) {
+              pathLimitReached = true;
+              return;
+            }
             ctx.signal.throwIfAborted();
             if (e.name.startsWith(".") || e.name === "node_modules" || e.name === "target" || e.name === "dist") {
               continue;
@@ -298,8 +304,13 @@ export function createAstCapabilities(
             } else if (e.isFile() && detectAstLanguage(full)) {
               try {
                 const rel = path.relative(ctx.workspace.root, full);
-                await runtime.pathPolicy.resolveForRead(ctx.workspace, rel);
-                targetPaths.push(full);
+                const resolved = await runtime.pathPolicy.resolveForRead(ctx.workspace, rel);
+                const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
+                targetPaths.push(authorized.absolute);
+                if (targetPaths.length >= MAX_AST_PATHS) {
+                  pathLimitReached = true;
+                  return;
+                }
               } catch {
                 // skip denied
               }
@@ -309,7 +320,7 @@ export function createAstCapabilities(
         await walkDir(ctx.workspace.root);
       }
 
-      const res = await backend.search({ pattern, paths: targetPaths }, ctx.signal);
+      const res = await backend.search({ pattern, paths: targetPaths, mode }, ctx.signal);
 
       // Map absolute paths back to workspace-relative POSIX paths
       const formattedMatches = res.matches.map((m) => ({
@@ -321,7 +332,7 @@ export function createAstCapabilities(
         ctx,
         {
           matches: formattedMatches,
-          truncated: res.truncated,
+          truncated: res.truncated || pathLimitReached,
           totalCount: res.totalCount,
         },
         t0,

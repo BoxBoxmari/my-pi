@@ -22,6 +22,7 @@
     "host-config": "node apps/my-pi-mcp/dist/main.js host-config",
     "bench:smoke": "node benchmarks/traversal-benchmark.mjs --profile smoke",
     "bench:release": "node benchmarks/traversal-benchmark.mjs --profile release",
+    "bench:boundaries": "node benchmarks/runtime-boundaries.mjs",
     "check:refs": "node scripts/check-project-references.mjs",
     "check:arch": "node scripts/architecture-check.mjs",
     "check:boundary": "node scripts/check-public-boundary.mjs",

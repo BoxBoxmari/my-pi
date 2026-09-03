@@ -313,6 +313,23 @@ test("verify-release: strict mode requires candidate-bound release benchmark evi
   }
 });
 
+test("verify-release: strict mode requires spawned-server runtime performance evidence", async () => {
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-rel-runtime-evidence-missing-"));
+  try {
+    await copyReleaseFixture(tmpDir);
+    await assert.rejects(
+      execFileAsync(process.execPath, [path.join(tmpDir, "scripts", "verify-release.mjs"), "--strict"], { cwd: tmpDir, env: testEnv() }),
+      (err) => {
+        assert.equal(err.code, 1);
+        assert.match(err.stderr || err.stdout, /Missing required runtime performance evidence/);
+        return true;
+      },
+    );
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
+});
+
 test("verify-release: strict mode rejects an undersized release benchmark", async () => {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-rel-release-benchmark-small-"));
   try {

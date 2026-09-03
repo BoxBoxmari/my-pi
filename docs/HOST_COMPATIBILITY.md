@@ -26,6 +26,10 @@ Host differences belong in config/profile/compatibility evidence, not capability
 `my-pi host-config <profile>` renders configuration; it never silently mutates host settings.
 Verified for `cursor-local` (JSON), `claude-code-local` (CLI), `opencode-current-local` (JSON), and unknown profile error rejection.
 
+Generated configurations include an explicit workspace and the `read-only`
+security profile. Add `--security-profile trusted` deliberately when a host is
+allowed to mutate the workspace or start language-server processes.
+
 ## Compatibility status (updated)
 - **Both blocking hosts connect to my-pi-mcp**:
   - OpenCode `opencode mcp list` → `my-pi ✓ connected`.

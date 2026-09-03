@@ -7,6 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -28,19 +31,21 @@ jobs:
       CI: "true"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
         with:
           version: 11.2.2
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0 # stable at 2026-09-04
 
       - name: Runner diagnostics
         run: |
@@ -88,17 +93,21 @@ jobs:
       - name: PR smoke test (pack + tarball + my-pi-mcp stdio)
         run: node scripts/pr-smoke.mjs
 
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Supply-chain - pnpm audit
-        run: pnpm audit --prod || echo "pnpm audit completed with non-blocking notices"
+        run: pnpm audit --prod
 
       - name: Supply-chain - cargo audit & deny (ubuntu only)
         if: matrix.os == 'ubuntu-latest' && matrix.node == 24
-        continue-on-error: true
         run: |
-          cargo install cargo-audit --version 0.22.2 --locked || true
-          cargo install cargo-deny --version 0.20.2 --locked || true
-          cargo audit || echo "cargo audit reported notices"
-          cargo deny check licenses || echo "cargo deny check completed"
+          cargo install cargo-audit --version 0.22.2 --locked
+          cargo install cargo-deny --version 0.20.2 --locked
+          cargo audit
+          cargo deny check licenses advisories bans sources
 
       - name: Supply-chain - SBOM generation & verification
         run: |
@@ -109,3 +118,7 @@ jobs:
         run: |
           node benchmarks/stdio-overhead.mjs 50
           node benchmarks/traversal-benchmark.mjs --profile smoke
+
+      - name: Runtime boundary evidence (spawned MCP server)
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 24
+        run: node benchmarks/runtime-boundaries.mjs
