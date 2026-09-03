@@ -40,6 +40,8 @@ jobs:
           cache: pnpm
 
       - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0 # stable at 2026-09-04
+        with:
+          toolchain: stable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -131,6 +133,8 @@ jobs:
           cache: pnpm
 
       - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0 # stable at 2026-09-04
+        with:
+          toolchain: stable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -195,6 +199,8 @@ jobs:
           cache: pnpm
 
       - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0 # stable at 2026-09-04
+        with:
+          toolchain: stable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

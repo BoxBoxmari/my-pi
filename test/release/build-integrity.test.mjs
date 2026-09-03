@@ -30,9 +30,11 @@ test("security workflow integrity: actions are immutable and audits are fail-clo
   const release = await readFile(".github/workflows/release.yml", "utf8");
   const codeql = await readFile(".github/workflows/codeql.yml", "utf8");
   assert.match(ci, /gitleaks\/gitleaks-action@[0-9a-f]{40}/);
+  assert.match(ci, /dtolnay\/rust-toolchain@[0-9a-f]{40}[\s\S]*toolchain:\s*stable/);
   assert.doesNotMatch(ci, /pnpm audit --prod\s*\|\|/);
   assert.doesNotMatch(ci, /continue-on-error:\s*true/);
   assert.doesNotMatch(codeql, /continue-on-error:\s*true/);
+  assert.equal((release.match(/dtolnay\/rust-toolchain@[0-9a-f]{40}[\s\S]*?toolchain:\s*stable/g) ?? []).length, 3);
   assert.match(release, /runtime-boundaries\.mjs/);
   assert.match(release, /runtime-boundaries\.json/);
 });
