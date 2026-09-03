@@ -32,6 +32,7 @@ test("security workflow integrity: actions are immutable and audits are fail-clo
   const smoke = await readFile("scripts/pr-smoke.mjs", "utf8");
   const smokeTests = await readFile("test/release/pr-smoke.test.mjs", "utf8");
   assert.match(ci, /gitleaks\/gitleaks-action@[0-9a-f]{40}/);
+  assert.match(ci, /name: Secret scan\s+if: matrix\.os == 'ubuntu-latest' && matrix\.node == 24/);
   assert.match(ci, /dtolnay\/rust-toolchain@[0-9a-f]{40}[\s\S]*toolchain:\s*stable/);
   assert.doesNotMatch(ci, /pnpm audit --prod\s*\|\|/);
   assert.doesNotMatch(ci, /continue-on-error:\s*true/);
