@@ -1,0 +1,19 @@
+schemaVersion: "1"
+name: production-next-dogfood
+authority: stable-n-1
+criteria:
+  - id: build
+    kind: test
+    required: true
+    severity: critical
+    evaluatorRef: deterministic-local
+    expected: pass
+  - id: candidate-bound-evidence
+    kind: artifact
+    required: true
+    severity: critical
+    evaluatorRef: stable-release-verifier
+    expected: current-commit
+retry:
+  maxAttempts: 2
+  autonomousSpawn: false

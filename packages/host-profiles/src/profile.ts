@@ -6,6 +6,7 @@ export interface HostProfile {
   preferredTransport: "stdio";
   configDialect: "claude-code" | "opencode" | "cursor" | "antigravity" | "copilot-vscode" | "copilot-cli";
   observedMcpEra?: string;
+  coordination?: boolean;
   knownQuirks: string[];
 }
 
@@ -19,4 +20,11 @@ export const REQUIRED_PROFILES: HostProfile[] = [
   { id: "copilot-vscode-local", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "copilot-vscode", knownQuirks: [] },
   { id: "copilot-cli-local", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "copilot-cli", knownQuirks: [] },
   { id: "copilot-cloud-local-in-agent", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "copilot-vscode", knownQuirks: ["local-in-agent profile"] },
+];
+
+/** Opt-in coordination variants; the legacy profile catalog remains unchanged. */
+export const COORDINATION_PROFILES: HostProfile[] = [
+  { id: "claude-code-local-coord", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "claude-code", coordination: true, knownQuirks: ["requires a running local my-pi daemon"] },
+  { id: "opencode-local-coord", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "opencode", coordination: true, knownQuirks: ["requires a running local my-pi daemon"] },
+  { id: "cursor-local-coord", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "cursor", coordination: true, knownQuirks: ["requires a running local my-pi daemon"] },
 ];

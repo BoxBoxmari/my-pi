@@ -1,0 +1,31 @@
+{
+  "id": "schema-migration",
+  "workloadClass": "schema-migration",
+  "targetPath": "packages/coordination-store/migrations/0001_initial.sql",
+  "entities": [
+    { "id": "entity-migration", "path": "packages/coordination-store/migrations/0001_initial.sql", "displayName": "0001_initial.sql", "kind": "file" },
+    { "id": "entity-store", "path": "packages/coordination-store/src/sqlite-store.ts", "displayName": "sqlite-store.ts", "kind": "file" },
+    { "id": "entity-daemon", "path": "apps/my-pi-daemon/src/main.ts", "displayName": "daemon main", "kind": "file" },
+    { "id": "entity-benchmark", "path": "benchmarks/event-store-growth.mjs", "displayName": "event-store-growth.mjs", "kind": "file" }
+  ],
+  "edges": [
+    { "from": "entity-store", "to": "entity-migration", "kind": "references", "confidence": "strong" },
+    { "from": "entity-daemon", "to": "entity-store", "kind": "imports", "confidence": "strong" },
+    { "from": "entity-benchmark", "to": "entity-store", "kind": "imports", "confidence": "weak" }
+  ],
+  "workItems": [
+    { "id": "work-source", "title": "migration change", "assignee": "session-source" },
+    { "id": "work-store", "title": "store migration adapter", "assignee": "session-store" },
+    { "id": "work-daemon", "title": "daemon schema health", "assignee": "session-daemon" },
+    { "id": "work-benchmark", "title": "benchmark maintenance", "assignee": "session-benchmark" }
+  ],
+  "intents": [
+    { "id": "intent-source", "workItemId": "work-source", "agentSessionId": "session-source", "kind": "change_contract", "summary": "change migration", "targets": [{ "type": "path", "value": "packages/coordination-store/migrations/0001_initial.sql" }] },
+    { "id": "intent-store", "workItemId": "work-store", "agentSessionId": "session-store", "kind": "modify", "summary": "adapt store", "targets": [{ "type": "path", "value": "packages/coordination-store/src/sqlite-store.ts" }] },
+    { "id": "intent-daemon", "workItemId": "work-daemon", "agentSessionId": "session-daemon", "kind": "modify", "summary": "adapt daemon", "targets": [{ "type": "path", "value": "apps/my-pi-daemon/src/main.ts" }] },
+    { "id": "intent-benchmark", "workItemId": "work-benchmark", "agentSessionId": "session-benchmark", "kind": "modify", "summary": "adapt benchmark", "targets": [{ "type": "path", "value": "benchmarks/event-store-growth.mjs" }] }
+  ],
+  "dependencies": [{ "from": "work-source", "to": "work-store", "type": "depends_on" }],
+  "expectedAffectedWorkItems": ["work-source", "work-store", "work-daemon"],
+  "expectedRelevantAgents": ["session-source", "session-store", "session-daemon"]
+}

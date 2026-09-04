@@ -1,0 +1,10 @@
+schemaVersion: "1"
+id: daemon-ipc
+title: Build local daemon IPC
+state: completed
+ownerRole: daemon-ipc
+dependsOn:
+  - coordination-store
+scopes:
+  - apps/my-pi-daemon/**
+  - packages/coordination-client/**

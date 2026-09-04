@@ -1,0 +1,15 @@
+schemaVersion: "1"
+id: seeded-coordination
+comparison:
+  - worktrees-and-task-board
+  - my-pi-intent-impact-feedback
+workload:
+  - shared-contract-change
+  - dependent-work-item
+  - stale-evaluation-evidence
+metrics:
+  - integration-repair-iterations
+  - stale-contract-mistakes
+  - routed-context-precision
+  - time-to-accepted-outcome
+authority: stable-n-1

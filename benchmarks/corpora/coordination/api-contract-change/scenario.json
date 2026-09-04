@@ -1,0 +1,30 @@
+{
+  "id": "api-contract-change",
+  "workloadClass": "api-contract-change",
+  "targetPath": "packages/contracts/src/project.ts",
+  "entities": [
+    { "id": "entity-project-contract", "path": "packages/contracts/src/project.ts", "displayName": "project.ts", "kind": "file" },
+    { "id": "entity-coordination", "path": "packages/coordination-runtime/src/runtime.ts", "displayName": "coordination runtime", "kind": "file" },
+    { "id": "entity-evaluation", "path": "packages/evaluation-runtime/src/runtime.ts", "displayName": "evaluation runtime", "kind": "file" },
+    { "id": "entity-docs", "path": "docs/CONTRACTS.md", "displayName": "CONTRACTS.md", "kind": "file" }
+  ],
+  "edges": [
+    { "from": "entity-coordination", "to": "entity-project-contract", "kind": "imports", "confidence": "strong" },
+    { "from": "entity-evaluation", "to": "entity-project-contract", "kind": "imports", "confidence": "strong" }
+  ],
+  "workItems": [
+    { "id": "work-source", "title": "project contract change", "assignee": "session-source" },
+    { "id": "work-coordination", "title": "adapt coordination runtime", "assignee": "session-coordination" },
+    { "id": "work-evaluation", "title": "adapt evaluation runtime", "assignee": "session-evaluation" },
+    { "id": "work-docs", "title": "unrelated docs", "assignee": "session-docs" }
+  ],
+  "intents": [
+    { "id": "intent-source", "workItemId": "work-source", "agentSessionId": "session-source", "kind": "change_contract", "summary": "change project contract", "targets": [{ "type": "path", "value": "packages/contracts/src/project.ts" }] },
+    { "id": "intent-coordination", "workItemId": "work-coordination", "agentSessionId": "session-coordination", "kind": "modify", "summary": "adapt coordination", "targets": [{ "type": "path", "value": "packages/coordination-runtime/src/runtime.ts" }] },
+    { "id": "intent-evaluation", "workItemId": "work-evaluation", "agentSessionId": "session-evaluation", "kind": "modify", "summary": "adapt evaluation", "targets": [{ "type": "path", "value": "packages/evaluation-runtime/src/runtime.ts" }] },
+    { "id": "intent-docs", "workItemId": "work-docs", "agentSessionId": "session-docs", "kind": "modify", "summary": "edit docs", "targets": [{ "type": "path", "value": "docs/CONTRACTS.md" }] }
+  ],
+  "dependencies": [],
+  "expectedAffectedWorkItems": ["work-source", "work-coordination", "work-evaluation"],
+  "expectedRelevantAgents": ["session-source", "session-coordination", "session-evaluation"]
+}

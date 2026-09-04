@@ -1,0 +1,9 @@
+[
+  {
+    "id": "backend-contract-downstream-frontend",
+    "targetPath": "src/backend.ts",
+    "expectedAffectedWorkItems": ["work-frontend"],
+    "expectedUnrelatedWorkItems": ["work-docs"],
+    "edge": { "from": "entity-frontend", "to": "entity-backend", "kind": "imports", "confidence": "strong" }
+  }
+]

@@ -5,6 +5,33 @@
       "path": "packages/contracts"
     },
     {
+      "path": "packages/coordination-store"
+    },
+    {
+      "path": "packages/coordination-client"
+    },
+    {
+      "path": "packages/coordination-runtime"
+    },
+    {
+      "path": "packages/code-state"
+    },
+    {
+      "path": "packages/impact-engine"
+    },
+    {
+      "path": "packages/context-router"
+    },
+    {
+      "path": "packages/change-runtime"
+    },
+    {
+      "path": "packages/evaluation-runtime"
+    },
+    {
+      "path": "apps/my-pi-daemon"
+    },
+    {
       "path": "packages/policy"
     },
     {

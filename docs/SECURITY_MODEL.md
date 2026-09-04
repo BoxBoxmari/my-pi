@@ -59,3 +59,11 @@ The explicit `trusted` profile enables workspace writes and LSP processes;
 - LSP byte framing, root authority, navigation filtering, and process lifecycle:
   covered by deterministic unit tests plus host-dependent integration tests.
 - Native acceleration and network/HTTP transport remain deferred by design.
+
+## Production Next local coordination (experimental)
+
+The local daemon is the coordination authority for one logical project. Local IPC uses a project-specific Unix socket or Windows named pipe under a restricted runtime directory; no public TCP listener is created. Lock and health metadata support stale-crash recovery but do not authenticate a human identity.
+
+Client-supplied host names, roles, and agent labels remain untrusted attribution metadata. Trusted `PrincipalRef` values can only come from an authenticated adapter or enterprise control plane. Policy decisions are separate from enforcement, and approval bindings include operation, plan digest, resource preconditions, policy version, principal, and expiry.
+
+Evaluation output is untrusted input. Required evidence must match the exact target state, evaluator errors remain distinct from code failures, evidence and feedback are bounded, and arbitrary model-supplied shell is not an evaluator definition. Source content is excluded from audit records by default.

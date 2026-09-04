@@ -118,6 +118,22 @@ const SCHEMAS: Record<string, StandardSchemaWithJSON> = {
   lsp_navigate: z.object({ action: z.enum(["definition", "references", "hover"]), path: z.string(), line: z.number().int().min(0).max(1_000_000).optional(), column: z.number().int().min(0).max(1_000_000).optional() }),
   vcs_status: z.object({ path: z.string().optional() }),
   vcs_diff: z.object({ path: z.string().optional() }),
+  coord_join: z.object({
+    project: z.object({ displayName: z.string().max(256).optional(), policyRef: z.object({ id: z.string().max(128), version: z.string().max(64).optional() }).optional() }).optional(),
+    repository: z.object({ id: z.string().min(1).max(256), projectId: z.string().min(1).max(256), vcs: z.literal("git"), canonicalIdentity: z.string().min(1).max(1024) }),
+    worktree: z.object({ id: z.string().min(1).max(256), repositoryId: z.string().min(1).max(256), root: z.string().min(1).max(4096), head: z.string().max(256).optional(), branch: z.string().max(256).optional(), observedAt: z.string().max(64) }),
+    host: z.string().min(1).max(128),
+    clientInstance: z.string().max(256).optional(),
+    role: z.string().max(128).optional(),
+  }),
+  coord_claim: z.object({ projectId: z.string().min(1).max(256), agentSessionId: z.string().min(1).max(256), workItemId: z.string().min(1).max(256), expectedVersion: z.number().int().min(0), allowShared: z.boolean().optional() }),
+  coord_intent: z.object({ projectId: z.string().min(1).max(256), agentSessionId: z.string().min(1).max(256), workItemId: z.string().max(256).optional(), kind: z.enum(["modify", "refactor", "change_contract", "add", "remove", "verify", "investigate"]), summary: z.string().min(1).max(2000), targets: z.array(z.unknown()).max(100), expiresAt: z.string().max(64).optional() }),
+  coord_sync: z.object({ projectId: z.string().min(1).max(256), agentSessionId: z.string().min(1).max(256), sinceSequence: z.string().regex(/^\d+$/).optional(), maxEvents: z.number().int().min(1).max(1000).optional(), maxBytes: z.number().int().min(1).max(4 * 1024 * 1024).optional() }),
+  coord_publish: z.object({ projectId: z.string().min(1).max(256), agentSessionId: z.string().min(1).max(256), workItemId: z.string().max(256).optional(), kind: z.enum(["decision", "constraint", "interface_contract", "finding", "task_result", "failure", "handoff", "verification"]), contentDigest: z.string().min(8).max(256), scopeIds: z.array(z.string()).max(100).optional(), codeEntityIds: z.array(z.string()).max(100).optional(), classification: z.string().min(1).max(64), retention: z.string().min(1).max(128), supersedes: z.string().max(256).optional() }),
+  coord_complete: z.object({ projectId: z.string().min(1).max(256), agentSessionId: z.string().min(1).max(256), workItemId: z.string().min(1).max(256), evaluationRunId: z.string().max(256).optional() }),
+  eval_request: z.object({ specId: z.string().min(1).max(256), workItemId: z.string().min(1).max(256), intentId: z.string().max(256).optional(), changeReceiptId: z.string().max(256).optional(), repositoryStateRef: z.string().min(1).max(1024), attempt: z.number().int().min(1).max(100).optional() }),
+  eval_record: z.object({ runId: z.string().min(1).max(256), providerResultId: z.string().min(1).max(256), providerId: z.string().min(1).max(128), criterionId: z.string().min(1).max(128), result: z.object({ criterionId: z.string().min(1).max(128), outcome: z.enum(["pass", "fail", "error", "skipped", "inconclusive"]), evidence: z.array(z.unknown()).max(50), observed: z.unknown().optional(), reasonCode: z.string().max(256).optional() }) }),
+  eval_status: z.object({ runId: z.string().min(1).max(256) }),
 };
 
 /** P1.2: operational availability, distinct from the 13-tool CATALOG. */
@@ -135,6 +151,15 @@ const IMPLEMENTED_TOOLS = new Set([
   "lsp_navigate",
   "vcs_status",
   "vcs_diff",
+  "coord_join",
+  "coord_claim",
+  "coord_intent",
+  "coord_sync",
+  "coord_publish",
+  "coord_complete",
+  "eval_request",
+  "eval_record",
+  "eval_status",
 ]);
 
 export function toolAvailability(name: string): "implemented" | "planned" {
@@ -155,6 +180,15 @@ const DESCRIPTIONS: Record<string, string> = {
   lsp_navigate: "Navigate (definition/references/hover) via language server. Read-only.",
   vcs_status: "VCS status. Read-only.",
   vcs_diff: "VCS diff. Read-only.",
+  coord_join: "Attach an agent session to the local project coordination state.",
+  coord_claim: "Claim a versioned coordination work item.",
+  coord_intent: "Declare an immutable planned change and its scope.",
+  coord_sync: "Read bounded coordination context relevant to the current session.",
+  coord_publish: "Publish a typed coordination artifact by digest.",
+  coord_complete: "Complete a coordination work item, or place an evaluation-gated item into awaiting_evaluation without releasing it.",
+  eval_request: "Request evaluation against an approved spec and exact target state.",
+  eval_record: "Record bounded evaluator evidence for one criterion.",
+  eval_status: "Read the acceptance decision, feedback, and bounded retry state.",
 };
 
 export interface MyPiServerOptions {

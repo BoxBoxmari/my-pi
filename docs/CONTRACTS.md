@@ -28,6 +28,18 @@ The full-file hash and metadata are computed incrementally.
 interface FileSnapshotRef { id; path; fingerprint; encoding; bom; newline; finalNewline; workspaceRevision }
 ```
 
+Metadata history is immutable in the candidate `SnapshotStore`; latest-path lookup, active pins, content-cache eviction, and explicit pruning are separate concerns.
+
+## Production Next coordination contracts (experimental)
+
+`Project`, `Repository`, `Worktree`, and `AgentSession` identify the local coordination boundary. `WorkItem`, `Intent`, `Scope`, `ContextArtifact`, and `CoordinationEvent` describe work and typed context without importing MCP or a host SDK. Branded IDs do not embed paths; an agent-supplied label is attribution, not authentication.
+
+The local daemon exposes explicit handles and bounded cursors. Its initial coordination operations are `coord_join`, `coord_claim`, `coord_intent`, `coord_sync`, `coord_publish`, and `coord_complete`. A WorkItem with `evaluationSpecId` moves through `implementation_complete` and `awaiting_evaluation`; rejection produces `needs_retry`, review/inconclusive results produce `review_required`, and only an accepted evaluation run can authorize the final `done` transition. Existing 13-tool legacy mode remains unchanged and does not require this path.
+
+## Production Next evaluation contracts (experimental)
+
+`EvaluationSpec` is versioned and digested. Every `EvaluationRun` binds to a WorkItem, spec version/digest, attempt, and exact target-state reference. Missing, stale, skipped, or evaluator-error evidence cannot become an implicit pass. `FeedbackPacket` and `RetryCycle` are persisted state; my-pi never launches a replacement agent itself.
+
 ## Capability
 ```ts
 interface Capability<I,O> { name; risk: "read"|"write"|"network"|"exec"|"debug"|"secret"; execute(input, ctx) }
@@ -39,7 +51,7 @@ interface CapabilityContext { requestId; workspace; signal; deadline?; trace? }
 interface CapabilityResult<T> { schemaVersion:"1"; requestId; workspaceId; revision; data; warnings?; diagnostics?; artifacts?; backend?; degraded?; timing }
 ```
 
-## Error taxonomy (22 codes)
+## Error taxonomy
 `ERR_INVALID_ARGUMENT, ERR_WORKSPACE_NOT_FOUND, ERR_PATH_OUTSIDE_WORKSPACE, ERR_PATH_NOT_FOUND,
 ERR_PERMISSION_DENIED, ERR_SECRET_PATH_DENIED, ERR_STALE_RESOURCE, ERR_AMBIGUOUS_ANCHOR,
 ERR_FILE_BUSY, ERR_BINARY_FILE, ERR_UNSUPPORTED_ENCODING, ERR_ATOMIC_REPLACE_FAILED,

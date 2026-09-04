@@ -1,0 +1,10 @@
+[
+  { "id": "compile-error", "criterionKind": "test", "outcome": "fail", "reasonCode": "TYPE_ERROR", "expectedDecision": "rejected", "retryable": true, "repairModel": { "ordinary": true, "ordinaryResolves": true, "structured": true } },
+  { "id": "unit-contract", "criterionKind": "test", "outcome": "fail", "reasonCode": "ASSERTION_FAILED", "expectedDecision": "rejected", "retryable": true, "repairModel": { "ordinary": true, "ordinaryResolves": true, "structured": true } },
+  { "id": "api-mismatch", "criterionKind": "external", "outcome": "fail", "reasonCode": "SCHEMA_MISMATCH", "expectedDecision": "rejected", "retryable": true, "repairModel": { "ordinary": true, "ordinaryResolves": false, "structured": true } },
+  { "id": "regression", "criterionKind": "test", "outcome": "fail", "reasonCode": "REGRESSION", "expectedDecision": "rejected", "retryable": true, "repairModel": { "ordinary": true, "ordinaryResolves": false, "structured": true } },
+  { "id": "missing-evidence", "criterionKind": "artifact", "outcome": "inconclusive", "reasonCode": "MISSING_EVIDENCE", "expectedDecision": "inconclusive", "retryable": false, "repairModel": { "ordinary": false, "ordinaryResolves": false, "structured": false } },
+  { "id": "evaluator-unavailable", "criterionKind": "external", "outcome": "error", "reasonCode": "EVALUATOR_UNAVAILABLE", "expectedDecision": "inconclusive", "retryable": false, "repairModel": { "ordinary": false, "ordinaryResolves": false, "structured": false } },
+  { "id": "policy-denial", "criterionKind": "policy", "outcome": "fail", "reasonCode": "POLICY_DENIED", "expectedDecision": "rejected", "retryable": false, "repairModel": { "ordinary": false, "ordinaryResolves": false, "structured": false } },
+  { "id": "performance-threshold", "criterionKind": "performance", "outcome": "fail", "reasonCode": "THRESHOLD_EXCEEDED", "expectedDecision": "rejected", "retryable": true, "repairModel": { "ordinary": true, "ordinaryResolves": false, "structured": true } }
+]

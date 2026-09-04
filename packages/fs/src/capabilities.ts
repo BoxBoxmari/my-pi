@@ -18,9 +18,11 @@ import {
   type Capability,
   type CapabilityContext,
   type CapabilityResult,
+  type FileFingerprint,
 } from "@my-pi/contracts";
-import { atomicCreateNoReplace, atomicReplaceBytes, type WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import { type WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { applyHunks, parsePatch } from "@my-pi/hashline";
+import { ChangeRuntime, type ResourcePrecondition } from "@my-pi/change-runtime";
 import { BoundedReadError, DEFAULT_FS_READ_BYTES, MAX_FS_READ_BYTES, MAX_FS_WRITE_BYTES, readBoundedFile } from "./bounded-read.js";
 
 type Ctx = CapabilityContext;
@@ -50,6 +52,7 @@ function digestMatches(expected: string, digest: string): boolean {
 
 export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Capability<unknown, unknown>> {
   const map = new Map<string, Capability<unknown, unknown>>();
+  const changeRuntime = new ChangeRuntime(runtime);
 
   map.set("fs_stat", {
     name: "fs_stat",
@@ -143,42 +146,26 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
         throw err.outputLimit(`fs_write content exceeds ${MAX_FS_WRITE_BYTES} bytes`);
       }
       const resolved = await runtime.pathPolicy.resolveForWrite(ctx.workspace, p);
-      await runtime.mutatePath(resolved.relPosix, async () => {
-        const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "write");
-        const target = authorized.absolute;
-        let detected = detectEncoding(new Uint8Array());
-        let existed = false;
-        try {
-          const existing = new Uint8Array(await fs.readFile(target));
-          existed = true;
-          if (isLikelyBinary(existing) === false) {
-            detected = detectEncoding(existing);
-          }
-          // P0.8: existing-file overwrite REQUIRES expected_hash.
-          if (expected_hash === undefined) {
-            throw err.staleResource(
-              `fs_write on existing file requires expected_hash (read the file first): ${resolved.relPosix}`,
-            );
-          }
-          if (!digestMatches(expected_hash, fingerprintBytes(existing).digest)) {
-            throw err.staleResource(`stale write for ${resolved.relPosix}`);
-          }
-        } catch (e) {
-          if ((e as { code?: string }).code === "ERR_STALE_RESOURCE") throw e;
-          const nodeCode = (e as NodeJS.ErrnoException).code;
-          if (nodeCode !== "ENOENT" && existed === false) throw e;
-        }
-        // P0.8 (create): verify non-existence immediately before commit.
-        if (!existed && expected_hash === undefined) {
-          // R0.1.4: no-clobber atomic create — link() fails with EEXIST if a
-          // target appeared since the read. This replaces the TOCTOU-prone
-          // access()-then-rename flow.
-          await atomicCreateNoReplace(target, encodeText(content, detected.encoding), { signal: ctx.signal });
-          return;
-        }
-        const newBytes = encodeText(content, detected.encoding);
-        await atomicReplaceBytes(target, newBytes, { signal: ctx.signal });
-      });
+      let detected = detectEncoding(new Uint8Array());
+      let existed = false;
+      let currentFingerprint: FileFingerprint | undefined;
+      try {
+        const existing = new Uint8Array(await fs.readFile(resolved.absolute));
+        existed = true;
+        if (isLikelyBinary(existing) === false) detected = detectEncoding(existing);
+        currentFingerprint = fingerprintBytes(existing);
+        // P0.8: existing-file overwrite REQUIRES expected_hash.
+        if (expected_hash === undefined) throw err.staleResource(`fs_write on existing file requires expected_hash (read the file first): ${resolved.relPosix}`);
+        if (!digestMatches(expected_hash, currentFingerprint.digest)) throw err.staleResource(`stale write for ${resolved.relPosix}`);
+      } catch (e) {
+        if ((e as { code?: string }).code === "ERR_STALE_RESOURCE") throw e;
+        const nodeCode = (e as NodeJS.ErrnoException).code;
+        if (nodeCode !== "ENOENT") throw e;
+      }
+      const precondition: ResourcePrecondition = existed && currentFingerprint
+        ? { path: resolved.relPosix, condition: "match", fingerprint: currentFingerprint }
+        : { path: resolved.relPosix, condition: "absent" };
+      await changeRuntime.applyBytes({ path: resolved.relPosix, bytes: encodeText(content, detected.encoding), precondition, signal: ctx.signal });
       const afterResolved = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
       const after = new Uint8Array(await fs.readFile(afterResolved.absolute));
       const fp = fingerprintBytes(after);
@@ -228,33 +215,32 @@ export function createFsCapabilities(runtime: WorkspaceRuntime): Map<string, Cap
       }
       const resolved = await runtime.pathPolicy.resolveForWrite(ctx.workspace, p);
       const parsed = parsePatch(patch);
-      let newDigest = "";
-      await runtime.mutatePath(resolved.relPosix, async () => {
-        const authorized = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "write");
-        const target = authorized.absolute;
-        let raw: Uint8Array;
-        try {
-          raw = new Uint8Array(await fs.readFile(target));
-        } catch {
-          throw err.pathNotFound(`path not found: ${p}`);
-        }
-        if (isLikelyBinary(raw)) throw err.binaryFile(`binary file: ${resolved.relPosix}`);
-        const detected = detectEncoding(raw);
-        let text: string;
-        try {
-          text = decodeText(raw, detected);
-        } catch {
-          throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
-        }
-        const cur = fingerprintBytes(raw);
-        if (!digestMatches(expected_hash, cur.digest)) {
-          throw err.staleResource(`stale patch for ${resolved.relPosix}`);
-        }
-        const newText = applyHunks(text, parsed.hunks);
-        const newBytes = encodeText(newText, detected.encoding);
-        await atomicReplaceBytes(target, newBytes, { signal: ctx.signal });
-        newDigest = fingerprintBytes(newBytes).digest;
+      let raw: Uint8Array;
+      try {
+        raw = new Uint8Array(await fs.readFile(resolved.absolute));
+      } catch {
+        throw err.pathNotFound(`path not found: ${p}`);
+      }
+      if (isLikelyBinary(raw)) throw err.binaryFile(`binary file: ${resolved.relPosix}`);
+      const initialFingerprint = fingerprintBytes(raw);
+      if (!digestMatches(expected_hash, initialFingerprint.digest)) throw err.staleResource(`stale patch for ${resolved.relPosix}`);
+      const precondition: ResourcePrecondition = { path: resolved.relPosix, condition: "match", fingerprint: initialFingerprint };
+      const receipt = await changeRuntime.applyTransform({
+        path: resolved.relPosix,
+        precondition,
+        signal: ctx.signal,
+        transform: (current) => {
+          const detected = detectEncoding(current);
+          let text: string;
+          try {
+            text = decodeText(current, detected);
+          } catch {
+            throw err.unsupportedEncoding(`unsupported encoding: ${resolved.relPosix}`);
+          }
+          return encodeText(applyHunks(text, parsed.hunks), detected.encoding);
+        },
       });
+      const newDigest = receipt.outputVersions?.[0]?.fingerprint?.digest ?? "";
       const afterResolved = await runtime.pathPolicy.revalidate(ctx.workspace, resolved, "read");
       const after = new Uint8Array(await fs.readFile(afterResolved.absolute));
       const fp = fingerprintBytes(after);

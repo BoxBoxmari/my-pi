@@ -1,0 +1,31 @@
+{
+  "id": "parallel-bugfix",
+  "workloadClass": "parallel-bugfix",
+  "targetPath": "packages/change-runtime/src/admission.ts",
+  "entities": [
+    { "id": "entity-admission", "path": "packages/change-runtime/src/admission.ts", "displayName": "admission.ts", "kind": "file" },
+    { "id": "entity-fs", "path": "packages/fs/src/capabilities.ts", "displayName": "fs capabilities", "kind": "file" },
+    { "id": "entity-tests", "path": "packages/change-runtime/test/change-runtime.test.ts", "displayName": "change runtime tests", "kind": "test" },
+    { "id": "entity-docs", "path": "docs/SECURITY_MODEL.md", "displayName": "SECURITY_MODEL.md", "kind": "file" }
+  ],
+  "edges": [
+    { "from": "entity-fs", "to": "entity-admission", "kind": "imports", "confidence": "strong" },
+    { "from": "entity-tests", "to": "entity-admission", "kind": "tests", "confidence": "strong" },
+    { "from": "entity-docs", "to": "entity-admission", "kind": "references", "confidence": "weak" }
+  ],
+  "workItems": [
+    { "id": "work-source", "title": "admission bugfix", "assignee": "session-source" },
+    { "id": "work-fs", "title": "fs integration fix", "assignee": "session-fs" },
+    { "id": "work-tests", "title": "regression test", "assignee": "session-tests" },
+    { "id": "work-docs", "title": "security docs", "assignee": "session-docs" }
+  ],
+  "intents": [
+    { "id": "intent-source", "workItemId": "work-source", "agentSessionId": "session-source", "kind": "modify", "summary": "fix admission", "targets": [{ "type": "path", "value": "packages/change-runtime/src/admission.ts" }] },
+    { "id": "intent-fs", "workItemId": "work-fs", "agentSessionId": "session-fs", "kind": "modify", "summary": "fix fs integration", "targets": [{ "type": "path", "value": "packages/fs/src/capabilities.ts" }] },
+    { "id": "intent-tests", "workItemId": "work-tests", "agentSessionId": "session-tests", "kind": "verify", "summary": "add regression test", "targets": [{ "type": "path", "value": "packages/change-runtime/test/change-runtime.test.ts" }] },
+    { "id": "intent-docs", "workItemId": "work-docs", "agentSessionId": "session-docs", "kind": "modify", "summary": "edit security docs", "targets": [{ "type": "path", "value": "docs/SECURITY_MODEL.md" }] }
+  ],
+  "dependencies": [{ "from": "work-source", "to": "work-tests", "type": "verifies" }],
+  "expectedAffectedWorkItems": ["work-source", "work-fs", "work-tests"],
+  "expectedRelevantAgents": ["session-source", "session-fs", "session-tests"]
+}

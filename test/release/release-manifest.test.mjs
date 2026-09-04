@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFile, mkdtemp, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -59,6 +60,37 @@ test("release manifest rejects stale benchmark evidence", async () => {
     await assert.rejects(
       createReleaseManifest({ ...paths, policy, appPackage, releaseCommit: RELEASE_COMMIT }),
       /benchmark.commit does not match the release commit/,
+    );
+  } finally {
+    await rm(paths.dir, { recursive: true, force: true });
+  }
+});
+
+test("Production Next manifest binds extended provenance and rejects a dirty candidate", async () => {
+  const paths = await fixture();
+  try {
+    const sbomDigest = createHash("sha256").update("candidate sbom bytes", "utf8").digest("hex");
+    const artifactDigest = createHash("sha256").update("candidate artifact bytes", "utf8").digest("hex");
+    const productionNext = {
+      sourceCommit: RELEASE_COMMIT,
+      bootstrapRuntimeVersion: "0.1.0-alpha.1",
+      candidatePackageHashes: { "@koonwang03/my-pi": artifactDigest },
+      sbomDigest,
+      coordinationSchemaVersion: "1",
+      evaluationSchemaVersion: "1",
+      dbMigrationVersion: 4,
+      protocolCompatibilityMatrix: { legacy: "qualified", coordination: "candidate" },
+      selfHostEvidenceId: "PN9",
+      evaluationBenchmarkEvidenceId: "PN8",
+      benchmarkEvidenceIds: ["PN12"],
+      candidateDirty: false,
+      promotionEligible: true,
+    };
+    const manifest = await createReleaseManifest({ ...paths, policy, appPackage, releaseCommit: RELEASE_COMMIT, productionNext });
+    assert.deepEqual(manifest.productionNext, productionNext);
+    await assert.rejects(
+      createReleaseManifest({ ...paths, policy, appPackage, releaseCommit: RELEASE_COMMIT, productionNext: { ...productionNext, candidateDirty: true } }),
+      /candidateDirty must be false/,
     );
   } finally {
     await rm(paths.dir, { recursive: true, force: true });

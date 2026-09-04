@@ -30,6 +30,19 @@ Generated configurations include an explicit workspace and the `read-only`
 security profile. Add `--security-profile trusted` deliberately when a host is
 allowed to mutate the workspace or start language-server processes.
 
+## Coordination profiles (experimental)
+
+These opt-in profiles require a running local `my-pi-daemon`:
+
+| Profile | Dialect | Additional behavior |
+|---|---|---|
+| claude-code-local-coord | claude-code | adds `--coordination` |
+| opencode-local-coord | opencode | adds `--coordination` |
+| cursor-local-coord | cursor | adds `--coordination` |
+
+They do not change stable legacy profile IDs. Evaluation tools are enabled separately with `--evaluation`; no host is currently promotion-qualified for the Production Next evaluation path.
+The machine-readable candidate matrix is kept in `provenance/production-next-protocol-matrix.json`; its `promotionQualified` field is deliberately `false` until the PN6/PN8/PN9 gates are independently admitted.
+
 ## Compatibility status (updated)
 - **Both blocking hosts connect to my-pi-mcp**:
   - OpenCode `opencode mcp list` → `my-pi ✓ connected`.

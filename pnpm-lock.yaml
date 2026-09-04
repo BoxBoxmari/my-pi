@@ -33,6 +33,27 @@ importers:
         specifier: 2.9.0
         version: 2.9.0
 
+  apps/my-pi-daemon:
+    dependencies:
+      '@my-pi/code-state':
+        specifier: workspace:*
+        version: link:../../packages/code-state
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@my-pi/coordination-client':
+        specifier: workspace:*
+        version: link:../../packages/coordination-client
+      '@my-pi/coordination-runtime':
+        specifier: workspace:*
+        version: link:../../packages/coordination-runtime
+      '@my-pi/coordination-store':
+        specifier: workspace:*
+        version: link:../../packages/coordination-store
+      '@my-pi/evaluation-runtime':
+        specifier: workspace:*
+        version: link:../../packages/evaluation-runtime
+
   apps/my-pi-mcp:
     dependencies:
       '@modelcontextprotocol/core':
@@ -54,6 +75,9 @@ importers:
       '@my-pi/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@my-pi/coordination-client':
+        specifier: workspace:*
+        version: link:../../packages/coordination-client
       '@my-pi/host-profiles':
         specifier: workspace:*
         version: link:../../packages/host-profiles
@@ -88,10 +112,79 @@ importers:
         specifier: 0.22.6
         version: 0.22.6
 
+  packages/change-runtime:
+    dependencies:
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@my-pi/workspace-runtime':
+        specifier: workspace:*
+        version: link:../workspace-runtime
+
+  packages/code-state:
+    dependencies:
+      '@my-pi/ast':
+        specifier: workspace:*
+        version: link:../ast
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@my-pi/coordination-store':
+        specifier: workspace:*
+        version: link:../coordination-store
+
+  packages/context-router:
+    dependencies:
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@my-pi/impact-engine':
+        specifier: workspace:*
+        version: link:../impact-engine
+
   packages/contracts: {}
+
+  packages/coordination-client:
+    dependencies:
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/coordination-runtime:
+    dependencies:
+      '@my-pi/context-router':
+        specifier: workspace:*
+        version: link:../context-router
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@my-pi/coordination-store':
+        specifier: workspace:*
+        version: link:../coordination-store
+      '@my-pi/impact-engine':
+        specifier: workspace:*
+        version: link:../impact-engine
+
+  packages/coordination-store:
+    dependencies:
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/evaluation-runtime:
+    dependencies:
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@my-pi/coordination-store':
+        specifier: workspace:*
+        version: link:../coordination-store
 
   packages/fs:
     dependencies:
+      '@my-pi/change-runtime':
+        specifier: workspace:*
+        version: link:../change-runtime
       '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -110,6 +203,15 @@ importers:
 
   packages/host-profiles:
     dependencies:
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/impact-engine:
+    dependencies:
+      '@my-pi/code-state':
+        specifier: workspace:*
+        version: link:../code-state
       '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -140,6 +242,9 @@ importers:
       '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@my-pi/coordination-client':
+        specifier: workspace:*
+        version: link:../coordination-client
       '@my-pi/fs':
         specifier: workspace:*
         version: link:../fs

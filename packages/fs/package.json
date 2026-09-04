@@ -7,6 +7,7 @@
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
   "dependencies": {
     "@my-pi/contracts": "workspace:*",
+    "@my-pi/change-runtime": "workspace:*",
     "@my-pi/workspace-runtime": "workspace:*",
     "@my-pi/hashline": "workspace:*"
   }

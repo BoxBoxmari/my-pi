@@ -192,6 +192,25 @@ test("SnapshotStore: anchor ambiguity rejection", () => {
   assert.equal(store.latestFor("y.ts")?.path, "y.ts");
 });
 
+test("SnapshotStore retains immutable history, pins active refs, and prunes explicitly", () => {
+  const store = new SnapshotStore();
+  const make = (digest: string) => ({ algorithm: "sha256" as const, digest, size: 3 });
+  const first = store.record({ path: "history.ts", fingerprint: make("1111111111111111111111111111111111111111111111111111111111111111"), encoding: "utf-8", bom: false, newline: "lf", finalNewline: true, workspaceRevision: 0 });
+  const second = store.record({ path: "history.ts", fingerprint: make("2222222222222222222222222222222222222222222222222222222222222222"), encoding: "utf-8", bom: false, newline: "lf", finalNewline: true, workspaceRevision: 1 });
+  assert.equal(store.size(), 2);
+  assert.equal(store.latestFor("history.ts")?.id, second.id);
+  assert.equal(store.resolve(first.id).fingerprint.digest, first.fingerprint.digest);
+  store.pin(first.id, "intent-1");
+  assert.equal(store.prune({ maxMetadata: 1 }).metadataRemoved, 0);
+  store.unpin(first.id, "intent-1");
+  assert.equal(store.prune({ maxMetadata: 1 }).metadataRemoved, 1);
+  assert.equal(store.size(), 1);
+  assert.equal(store.resolve(second.id).id, second.id);
+  store.invalidate("history.ts");
+  assert.equal(store.latestFor("history.ts"), undefined);
+  assert.equal(store.resolve(second.id).id, second.id);
+});
+
 test("encoding fidelity helpers round-trip CRLF + BOM", () => {
   const text = "a\r\nb\r\nc";
   const enc = "utf-8-bom";

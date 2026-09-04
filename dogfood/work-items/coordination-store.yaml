@@ -1,0 +1,7 @@
+schemaVersion: "1"
+id: coordination-store
+title: Build the local coordination store
+state: completed
+ownerRole: coordination-store
+scopes:
+  - packages/coordination-store/**

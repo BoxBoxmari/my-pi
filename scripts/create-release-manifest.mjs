@@ -43,6 +43,26 @@ function relativePath(filePath) {
   return path.relative(ROOT, filePath).replaceAll(path.sep, "/");
 }
 
+function validateProductionNext(productionNext, { releaseCommit, artifactSha256, sbomSha256 }) {
+  const errors = [];
+  if (!productionNext || typeof productionNext !== "object") return ["productionNext must be an object"];
+  if (!FULL_COMMIT_PATTERN.test(productionNext.sourceCommit ?? "") || productionNext.sourceCommit !== releaseCommit) errors.push(`productionNext.sourceCommit must equal candidate commit ${releaseCommit}`);
+  if (productionNext.candidateDirty !== false) errors.push("productionNext.candidateDirty must be false");
+  if (typeof productionNext.bootstrapRuntimeVersion !== "string" || !productionNext.bootstrapRuntimeVersion.trim()) errors.push("productionNext.bootstrapRuntimeVersion is missing");
+  if (productionNext.sbomDigest !== sbomSha256) errors.push("productionNext.sbomDigest must match the manifest SBOM digest");
+  if (!productionNext.coordinationSchemaVersion || !productionNext.evaluationSchemaVersion) errors.push("productionNext schema versions are required");
+  if (!Number.isSafeInteger(productionNext.dbMigrationVersion) || productionNext.dbMigrationVersion < 1) errors.push("productionNext.dbMigrationVersion must be a positive safe integer");
+  if (!productionNext.protocolCompatibilityMatrix || typeof productionNext.protocolCompatibilityMatrix !== "object") errors.push("productionNext.protocolCompatibilityMatrix is required");
+  if (productionNext.selfHostEvidenceId !== "PN9") errors.push("productionNext.selfHostEvidenceId must be PN9");
+  if (productionNext.evaluationBenchmarkEvidenceId !== "PN8") errors.push("productionNext.evaluationBenchmarkEvidenceId must be PN8");
+  if (!Array.isArray(productionNext.benchmarkEvidenceIds) || productionNext.benchmarkEvidenceIds.length === 0 || productionNext.benchmarkEvidenceIds.some((id) => typeof id !== "string" || id.length === 0)) errors.push("productionNext.benchmarkEvidenceIds must be a non-empty string array");
+  const packageHashes = productionNext.candidatePackageHashes;
+  if (!packageHashes || typeof packageHashes !== "object" || Array.isArray(packageHashes) || Object.keys(packageHashes).length === 0 || Object.values(packageHashes).some((digest) => !SHA256_PATTERN.test(digest ?? ""))) errors.push("productionNext.candidatePackageHashes must contain SHA-256 package hashes");
+  else if (!Object.values(packageHashes).includes(artifactSha256)) errors.push("productionNext.candidatePackageHashes must include the qualified artifact hash");
+  if (productionNext.promotionEligible !== true) errors.push("productionNext.promotionEligible must be true only after all product gates pass");
+  return errors;
+}
+
 function validateManifest(manifest, { policy, appPackage, releaseCommit, artifactPath, sbomPath, benchmarkPath, benchmark }) {
   const errors = [];
   if (manifest.schemaVersion !== 1) errors.push("schemaVersion must be 1");
@@ -70,10 +90,11 @@ function validateManifest(manifest, { policy, appPackage, releaseCommit, artifac
     errors.push("publishable package metadata does not match the release policy");
   }
   if (benchmark.observedFileCount < benchmark.targetFileCount) errors.push("benchmark observed count is below its target");
+  if (manifest.productionNext !== undefined) errors.push(...validateProductionNext(manifest.productionNext, { releaseCommit, artifactSha256: manifest.artifact.sha256, sbomSha256: manifest.sbom.sha256 }));
   return { ok: errors.length === 0, errors };
 }
 
-export async function createReleaseManifest({ artifactPath, sbomPath, benchmarkPath, outputPath, policy, appPackage, releaseCommit, now = new Date() }) {
+export async function createReleaseManifest({ artifactPath, sbomPath, benchmarkPath, outputPath, policy, appPackage, releaseCommit, productionNext, now = new Date() }) {
   const [artifactSha256, sbomSha256, benchmark] = await Promise.all([
     sha256File(artifactPath),
     sha256File(sbomPath),
@@ -95,6 +116,7 @@ export async function createReleaseManifest({ artifactPath, sbomPath, benchmarkP
       observedFileCount: benchmark.observedFileCount,
     },
     qualificationTimestamp: now.toISOString(),
+    ...(productionNext === undefined ? {} : { productionNext }),
   };
   const validation = validateManifest(manifest, { policy, appPackage, releaseCommit, artifactPath, sbomPath, benchmarkPath, benchmark });
   if (!validation.ok) throw new Error(`release manifest validation failed: ${validation.errors.join("; ")}`);

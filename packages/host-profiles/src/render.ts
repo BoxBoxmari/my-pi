@@ -33,6 +33,7 @@ function dualMcpServers(opts: RenderOptions, args: string[], entry: unknown): Re
 
 export function renderProfile(profile: HostProfile, opts: RenderOptions): RenderedConfig {
   const args = [...(opts.args ?? ["--transport", "stdio", "--security-profile", "read-only"])];
+  if (profile.coordination) args.push("--coordination");
   if (opts.workspace !== undefined) args.push("--workspace", opts.workspace);
 
   switch (profile.configDialect) {

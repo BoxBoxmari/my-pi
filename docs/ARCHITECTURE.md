@@ -47,3 +47,18 @@ The current source has deterministic framing, byte-bounded reads, streamed
 search/VCS paths, and both in-process and real-stdio tests. Native acceleration
 and external host certification remain separate qualification work; their
 historical gate reports are not current runtime status.
+
+## Production Next experimental layers
+
+The repository contains an additive candidate path above the frozen capability layer:
+
+```text
+MCP / CLI adapters
+  -> coordination-client
+  -> local my-pi-daemon
+  -> coordination-runtime + SQLite coordination-store
+  -> code-state -> impact-engine -> context-router
+  -> change-runtime -> evaluation-runtime
+```
+
+The daemon is one local authority per logical project and uses a Unix socket or Windows named pipe, never public TCP in the local profile. Coordination and evaluation are opt-in; the legacy MCP entry point remains usable without a daemon. The candidate records evidence and bounded retry state but does not spawn replacement agents. PN6, PN8, and PN9 remain empirical gates before enterprise positioning.

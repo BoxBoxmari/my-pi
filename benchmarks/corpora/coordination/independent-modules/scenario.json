@@ -1,0 +1,24 @@
+{
+  "id": "independent-modules",
+  "workloadClass": "independent-modules",
+  "targetPath": "src/catalog.ts",
+  "entities": [
+    { "id": "entity-catalog", "path": "src/catalog.ts", "displayName": "catalog.ts", "kind": "file" },
+    { "id": "entity-billing", "path": "src/billing.ts", "displayName": "billing.ts", "kind": "file" },
+    { "id": "entity-docs", "path": "README.md", "displayName": "README.md", "kind": "file" }
+  ],
+  "edges": [],
+  "workItems": [
+    { "id": "work-source", "title": "catalog change", "assignee": "session-source" },
+    { "id": "work-billing", "title": "billing maintenance", "assignee": "session-billing" },
+    { "id": "work-docs", "title": "docs maintenance", "assignee": "session-docs" }
+  ],
+  "intents": [
+    { "id": "intent-source", "workItemId": "work-source", "agentSessionId": "session-source", "kind": "modify", "summary": "change catalog", "targets": [{ "type": "path", "value": "src/catalog.ts" }] },
+    { "id": "intent-billing", "workItemId": "work-billing", "agentSessionId": "session-billing", "kind": "modify", "summary": "maintain billing", "targets": [{ "type": "path", "value": "src/billing.ts" }] },
+    { "id": "intent-docs", "workItemId": "work-docs", "agentSessionId": "session-docs", "kind": "modify", "summary": "maintain docs", "targets": [{ "type": "path", "value": "README.md" }] }
+  ],
+  "dependencies": [],
+  "expectedAffectedWorkItems": ["work-source"],
+  "expectedRelevantAgents": ["session-source"]
+}

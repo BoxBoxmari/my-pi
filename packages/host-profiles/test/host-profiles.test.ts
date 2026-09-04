@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
+import { COORDINATION_PROFILES, REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
 
 test("REQUIRED_PROFILES: two blocking, seven monitoring", () => {
   assert.equal(REQUIRED_PROFILES.filter((p) => p.releaseRole === "blocking").length, 2);
@@ -41,4 +41,11 @@ test("renderProfile: claude-code renders a CLI command, not JSON", () => {
   assert.match(claude.command, /claude mcp add my-pi/);
   assert.match(claude.command, /claude mcp add ccr/);
   assert.match(claude.command, /--workspace \./);
+});
+
+test("coordination profiles are opt-in and add only the coordination flag", () => {
+  assert.equal(REQUIRED_PROFILES.some((profile) => profile.coordination), false);
+  assert.deepEqual(COORDINATION_PROFILES.map((profile) => profile.id), ["claude-code-local-coord", "opencode-local-coord", "cursor-local-coord"]);
+  const cursor = renderProfile(COORDINATION_PROFILES.find((profile) => profile.id === "cursor-local-coord")!, { command: "my-pi-mcp" });
+  assert.match(JSON.stringify(cursor), /--coordination/);
 });

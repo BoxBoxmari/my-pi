@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1",
+  "legacy": {
+    "claude-code-local": "observed",
+    "opencode-current-local": "observed",
+    "cursor-local": "monitoring"
+  },
+  "coordination": {
+    "claude-code-local-coord": "candidate",
+    "opencode-local-coord": "candidate",
+    "cursor-local-coord": "candidate"
+  },
+  "mcpEras": {
+    "2025-11-25": "observed-over-stdio",
+    "2026-07-28": "not-promotion-qualified"
+  },
+  "source": "docs/HOST_COMPATIBILITY.md",
+  "promotionQualified": false
+}

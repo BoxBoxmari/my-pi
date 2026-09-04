@@ -20,6 +20,7 @@
   <a href="https://github.com/BoxBoxmari/my-pi/issues"><img src="https://img.shields.io/github/issues/BoxBoxmari/my-pi?logo=github&style=flat-square" alt="Open issues" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/BoxBoxmari/my-pi?style=flat-square" alt="MIT license" /></a>
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.6.0%20%7C%2024%20LTS-339933?logo=nodedotjs&logoColor=white&style=flat-square" alt="Node.js support" />
+  <img src="https://img.shields.io/badge/pnpm-11.2.2-F69220?logo=pnpm&logoColor=white&style=flat-square" alt="pnpm version" />
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP%20SDK-2.0.0-6366f1?style=flat-square" alt="Model Context Protocol SDK" /></a>
   <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat-square" alt="Supported platforms" />
 </p>
@@ -37,17 +38,46 @@ Rather than granting unrestricted shell access or relying on fragile line-based 
 
 ---
 
+## Product status
+
+The badges above link to the live GitHub Actions, npm, release, and repository views. The table below records the product metadata shipped by this checkout.
+
+| Signal | Current state |
+| :--- | :--- |
+| Public package | [`@koonwang03/my-pi@0.1.0-alpha.1`](https://www.npmjs.com/package/@koonwang03/my-pi) |
+| Release channel | Alpha; suitable for evaluation and controlled local development |
+| Runtime | Node.js `>=22.6.0` |
+| Package manager | pnpm `11.2.2` |
+| MCP integration | Official MCP SDK `2.0.0` over stdio |
+| Supported hosts | Windows, macOS, and Linux |
+| License | [MIT](LICENSE) |
+| CI entry point | GitHub Actions on pushes and pull requests targeting `main` |
+
+The npm download badge is maintained by npm and reflects its rolling download count. GitHub stars, issues, workflow results, and release tags are read directly from their linked GitHub views.
+
+---
+
+## Production Next (experimental)
+
+The checkout also contains an opt-in local coordination candidate. Start one daemon for a logical project with `my-pi-daemon --workspace /path/to/your/project`, then connect an agent host with `my-pi-mcp --workspace /path/to/your/project --coordination`. Add `--evaluation` only when the evaluation plane is required.
+
+The stable public claim remains the 13-tool MCP capability surface. Coordination, code-state, change-receipt, evaluation, and feedback behavior are experimental and remain subject to PN6/PN8/PN9 benchmark and promotion gates. The candidate keeps source and detailed code state local, does not select models or spawn agents, and does not require a hosted control plane.
+
+Candidate qualification commands are `pnpm bench:impact-arms`, `pnpm bench:evaluation-feedback-arms`, `pnpm dogfood:self-host`, `pnpm bench:local-reliability`, and `pnpm verify:production-next`. These commands report candidate evidence; they do not admit a release.
+
+---
+
 ## Key features
 
 | Feature | Description | Guarantee |
 | :--- | :--- | :--- |
-| **🛡️ Compare-And-Swap (CAS)** | File updates verify raw SHA-256 byte fingerprints before write | Rejects stale or unguarded overwrites |
-| **🔒 Pre-Read Security Policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Sensitive files stay outside model context |
-| **🔐 Explicit Security Profiles** | Read-only is the default; writes and LSP require `--security-profile trusted` | Workspace authority is never silently inherited from CWD |
-| **⚡ Deterministic AST Search** | Structural syntax tree queries via Tree-Sitter for 5 core languages | Accurate AST node filtering across large codebases |
-| **🧠 Multi-Language LSP Engine** | Integrated lifecycle for TypeScript, Python, Rust, and Go when compatible host servers are available | Hover, definition, references, and diagnostics |
-| **📦 Large Diff Spillover** | Massive VCS diffs stream into a private, expiring local artifact store | Token context conservation without full-diff buffering |
-| **🎯 No Paid API Dependency** | Local-first core with no secondary LLM or paid API dependency | Core execution stays on the host |
+| **Compare-and-swap (CAS)** | File updates verify raw SHA-256 byte fingerprints before write | Rejects stale or unguarded overwrites |
+| **Pre-read security policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Sensitive files stay outside model context |
+| **Explicit security profiles** | Read-only is the default; writes and LSP require `--security-profile trusted` | Workspace authority is never silently inherited from CWD |
+| **Deterministic AST search** | Structural syntax tree queries via Tree-Sitter for 5 core languages | Accurate AST node filtering across large codebases |
+| **Multi-language LSP engine** | Integrated lifecycle for TypeScript, Python, Rust, and Go when compatible host servers are available | Hover, definition, references, and diagnostics |
+| **Large diff spillover** | Massive VCS diffs stream into a private, expiring local artifact store | Token context conservation without full-diff buffering |
+| **No paid API dependency** | Local-first core with no secondary LLM or paid API dependency | Core execution stays on the host |
 
 ---
 
@@ -191,7 +221,7 @@ Every commit and pull request is checked by the configured multi-platform GitHub
 # Run local code, test, evidence, and smoke verification
 pnpm verify
 
-# Run the unit and integration test suite (135 cases on this checkout)
+# Run the full unit and integration test suite
 pnpm test
 
 # Verify all 50 gate evidence criteria
@@ -209,11 +239,11 @@ pnpm verify:release
 node scripts/pr-smoke.mjs
 ```
 
-| OS Platform | Node 22 LTS | Node 24 LTS | Status |
+| OS platform | Node 22 LTS | Node 24 LTS | CI configuration |
 | :--- | :---: | :---: | :---: |
-| **Ubuntu Linux** (`ubuntu-latest`) | Passed | Passed | See CI status badge |
-| **Microsoft Windows** (`windows-latest`) | — | Passed | See CI status badge |
-| **Apple macOS** (`macos-latest`) | — | Passed | See CI status badge |
+| **Ubuntu Linux** (`ubuntu-latest`) | Configured | Configured | See the live CI badge |
+| **Microsoft Windows** (`windows-latest`) | — | Configured | See the live CI badge |
+| **Apple macOS** (`macos-latest`) | — | Configured | See the live CI badge |
 
 ---
 
@@ -235,7 +265,14 @@ packages/
 ├── lsp/                # Multi-language LSP client and process pool
 ├── vcs/                # Git-backed status and diff engine
 ├── mcp-adapter/        # Official Model Context Protocol stdio server
-└── host-profiles/      # Configuration renderers for IDE hosts
+├── host-profiles/      # Configuration renderers for IDE hosts
+├── change-runtime/     # Compare-and-swap proposals and receipts
+├── code-state/         # AST, filesystem, LSP, and VCS code state
+├── coordination-client/ # Versioned local daemon client
+├── coordination-runtime/ # Claims, work graph, intents, and sync
+├── coordination-store/ # SQLite event and projection store
+├── evaluation-runtime/ # Evaluation, feedback, and acceptance flow
+└── impact-engine/      # Bounded impact and routing decisions
 ```
 
 OpenCode examples live under `host-configs/`; the repository root intentionally

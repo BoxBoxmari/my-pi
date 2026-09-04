@@ -1,0 +1,34 @@
+{
+  "id": "hub-refactor",
+  "workloadClass": "hub-refactor",
+  "targetPath": "packages/contracts/src/ids.ts",
+  "entities": [
+    { "id": "entity-ids", "path": "packages/contracts/src/ids.ts", "displayName": "ids.ts", "kind": "file" },
+    { "id": "entity-coordination", "path": "packages/coordination-runtime/src/runtime.ts", "displayName": "coordination runtime", "kind": "file" },
+    { "id": "entity-change", "path": "packages/change-runtime/src/runtime.ts", "displayName": "change runtime", "kind": "file" },
+    { "id": "entity-evaluation", "path": "packages/evaluation-runtime/src/runtime.ts", "displayName": "evaluation runtime", "kind": "file" },
+    { "id": "entity-unrelated", "path": "packages/search/src/search-capability.ts", "displayName": "search capability", "kind": "file" }
+  ],
+  "edges": [
+    { "from": "entity-coordination", "to": "entity-ids", "kind": "imports", "confidence": "strong" },
+    { "from": "entity-change", "to": "entity-ids", "kind": "imports", "confidence": "strong" },
+    { "from": "entity-evaluation", "to": "entity-ids", "kind": "imports", "confidence": "strong" }
+  ],
+  "workItems": [
+    { "id": "work-source", "title": "identity hub refactor", "assignee": "session-source" },
+    { "id": "work-coordination", "title": "coordination identity update", "assignee": "session-coordination" },
+    { "id": "work-change", "title": "change identity update", "assignee": "session-change" },
+    { "id": "work-evaluation", "title": "evaluation identity update", "assignee": "session-evaluation" },
+    { "id": "work-unrelated", "title": "search maintenance", "assignee": "session-unrelated" }
+  ],
+  "intents": [
+    { "id": "intent-source", "workItemId": "work-source", "agentSessionId": "session-source", "kind": "refactor", "summary": "refactor identity hub", "targets": [{ "type": "path", "value": "packages/contracts/src/ids.ts" }] },
+    { "id": "intent-coordination", "workItemId": "work-coordination", "agentSessionId": "session-coordination", "kind": "modify", "summary": "update coordination identity", "targets": [{ "type": "path", "value": "packages/coordination-runtime/src/runtime.ts" }] },
+    { "id": "intent-change", "workItemId": "work-change", "agentSessionId": "session-change", "kind": "modify", "summary": "update change identity", "targets": [{ "type": "path", "value": "packages/change-runtime/src/runtime.ts" }] },
+    { "id": "intent-evaluation", "workItemId": "work-evaluation", "agentSessionId": "session-evaluation", "kind": "modify", "summary": "update evaluation identity", "targets": [{ "type": "path", "value": "packages/evaluation-runtime/src/runtime.ts" }] },
+    { "id": "intent-unrelated", "workItemId": "work-unrelated", "agentSessionId": "session-unrelated", "kind": "modify", "summary": "maintain search", "targets": [{ "type": "path", "value": "packages/search/src/search-capability.ts" }] }
+  ],
+  "dependencies": [],
+  "expectedAffectedWorkItems": ["work-source", "work-coordination", "work-change", "work-evaluation"],
+  "expectedRelevantAgents": ["session-source", "session-coordination", "session-change", "session-evaluation"]
+}

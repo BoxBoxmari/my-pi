@@ -1,0 +1,17 @@
+schemaVersion: "1"
+project: my-pi
+repositoryRoot: .
+bootstrap:
+  sha: 273ed28947a94a2495b10721f725447ea769994d
+  authority: stable-n-1
+candidate:
+  mode: shadow-coordination
+  mutationAuthority: stable-n-1
+  evaluationAuthority: stable-n-1
+protectedPaths:
+  - .github/workflows/**
+  - release/**
+  - scripts/verify-release.mjs
+  - SECURITY.md
+  - package publication configuration
+  - policy/security boundary files
