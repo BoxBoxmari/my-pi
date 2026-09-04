@@ -41,6 +41,7 @@ test("Production Next baseline admission rejects evidence bound to the wrong can
 
 test("candidate state excludes generated protocol evidence without excluding source", () => {
   assert.equal(isGeneratedArtifact("docs/protocol-evidence.json"), true);
+  assert.equal(isGeneratedArtifact("results.sarif"), true);
   assert.equal(isGeneratedArtifact("evidence/PN9.json"), true);
   assert.equal(isGeneratedArtifact("packages/contracts/src/ids.ts"), false);
 });
