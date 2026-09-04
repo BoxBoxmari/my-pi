@@ -132,7 +132,7 @@ jobs:
         run: |
           node benchmarks/impact-routing-arms.mjs --evidence-out evidence/PN6.json
           node benchmarks/evaluation-feedback-arms.mjs --evidence-out evidence/PN8.json
-          node scripts/dogfood-self-host.mjs --evidence-out evidence/PN9.json
+          node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json
           node benchmarks/local-reliability.mjs --evidence-out evidence/PN12.json
           node scripts/verify-production-next-evidence.mjs
           node scripts/verify-production-next.mjs
