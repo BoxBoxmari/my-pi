@@ -110,6 +110,19 @@ async function projection(supervisor, projectId, kind, id) {
   return supervisor.call("get_projection", { projectId, kind, id });
 }
 
+async function listAllEvents(supervisor, projectId) {
+  const events = [];
+  let afterSequence = "0";
+  for (let pageNumber = 0; pageNumber < 32; pageNumber++) {
+    const page = await supervisor.call("list_events", { projectId, afterSequence, limit: 500, maxBytes: 512 * 1024 });
+    events.push(...(page.events ?? []));
+    if (page.hasMore !== true) return events;
+    if (typeof page.throughSequence !== "string" || page.throughSequence === afterSequence) throw new Error("self-host event pagination made no progress");
+    afterSequence = page.throughSequence;
+  }
+  throw new Error("self-host event pagination exceeded the bounded page limit");
+}
+
 const stagingRoot = await mkdtemp(path.join(os.tmpdir(), "my-pi-self-host-"));
 const runtimeDir = await mkdtemp(path.join(os.tmpdir(), "my-pi-self-host-runtime-"));
 const candidateRoot = path.join(stagingRoot, "candidate");
@@ -216,10 +229,10 @@ try {
   const replayKeysOne = routeKeys(replayOne);
   const replayKeysTwo = routeKeys(replayTwo);
   const observerSync = await supervisor.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.observer.agentSessionId, sinceSequence: "0", maxEvents: 100, maxBytes: 128 * 1024 });
-  const events = await supervisor.call("list_events", { projectId: metadata.projectId, afterSequence: "0", limit: 500, maxBytes: 512 * 1024 });
+  const events = await listAllEvents(supervisor, metadata.projectId);
   const targetText = await readFile(path.join(implementationRoot, "packages", "contracts", "src", "ids.ts"), "utf8");
   const afterTree = await treeDigest(implementationRoot);
-  const eventTypes = [...new Set((events.events ?? []).map((event) => event.eventType))].sort();
+  const eventTypes = [...new Set(events.map((event) => event.eventType))].sort();
   const evidence = {
     schemaVersion: "1",
     id: "PN9",
@@ -245,7 +258,7 @@ try {
     changeReceipts: [firstChange.receipt, retryChange.receipt],
     feedback: { firstPacketId: firstStatus.feedback?.id, failedCriteria: firstStatus.feedback?.failedCriteria ?? [], retryState: firstStatus.retry?.state },
     routing: { reviewerInitialBlockObserved: true, impactDetected: eventTypes.includes("ImpactDetected"), replayDeterministic: JSON.stringify(replayKeysOne) === JSON.stringify(replayKeysTwo), replayItems: replayKeysOne.length, observerItems: routeKeys(observerSync).length },
-    eventLog: { count: events.events?.length ?? 0, throughSequence: events.throughSequence, types: eventTypes },
+    eventLog: { count: events.length, throughSequence: events.at(-1)?.sequence ?? "0", types: eventTypes },
     verification: { targetSourceMarker: targetText.includes("Production Next self-host marker: accepted"), acceptedAfterRetry: targetText.includes("Production Next self-host marker: accepted"), noAutonomousSpawn: true, boundedRetryAttempts: 2 },
     metrics: { firstTree, secondTree, finalTree: afterTree, retryIterations: 1, evaluationFalseAccepts: 0 },
 };
