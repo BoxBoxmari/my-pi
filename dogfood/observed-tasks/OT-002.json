@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-002",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Serialize concurrent daemon startup through the project lock",
+  "problem": "A second daemon can observe a newly created but partially written lock file as stale, remove it, and reach SQLite before the first daemon has finished startup.",
+  "plannedTargets": [
+    "apps/my-pi-daemon/src/project-lock.ts",
+    "apps/my-pi-daemon/test/daemon.test.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "single-owner",
+      "condition": "Concurrent startup admits exactly one project owner and the loser reports ERR_DAEMON_ALREADY_RUNNING or an equivalent already-running message."
+    },
+    {
+      "id": "partial-lock-safety",
+      "condition": "A lock record that is temporarily unreadable is retried within a bounded interval and is never deleted as stale while its owner may still be starting."
+    },
+    {
+      "id": "stale-recovery",
+      "condition": "A valid lock whose process is dead remains recoverable without weakening the exclusive-owner invariant."
+    },
+    {
+      "id": "matrix-regression",
+      "condition": "Windows Node 24, Ubuntu Node 22/24, and macOS Node 24 all pass the daemon concurrency test and the full CI matrix."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Record a pre-change Intent, routed impact, stable N-1 mutation receipt, and final WorkItem handoff.",
+    "correctness": "Bind the exact fix commit and GitHub check-run conclusions to this task.",
+    "failureLineage": "Preserve the prior macOS database-locked failure as the initiating observation and record any retry or intervention."
+  }
+}
