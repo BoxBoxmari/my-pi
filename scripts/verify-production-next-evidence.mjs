@@ -37,11 +37,11 @@ async function verify() {
   has(evidence.id === "PN9", "evidence id must be PN9", errors);
   has(evidence.schemaVersion === "1", "schemaVersion must be 1", errors);
   has(evidence.profile === "PN9-self-host", "profile must be PN9-self-host", errors);
-  has(evidence.status === "CANDIDATE", "PN9 evidence must remain CANDIDATE", errors);
-  has(evidence.promotionEligible === false, "PN9 evidence cannot self-declare promotion eligibility", errors);
   if (evidence.bootstrapMode === "stable-n-minus-one-runtime") {
     errors.push(...validateStableBootstrapEvidence(evidence, { head, stateDigest: CURRENT_STATE_DIGEST }));
   } else {
+    has(evidence.status === "CANDIDATE", "PN9 evidence must remain CANDIDATE", errors);
+    has(evidence.promotionEligible === false, "PN9 evidence cannot self-declare promotion eligibility", errors);
     has(evidence.bootstrapMode === "candidate-current-build" && evidence.stableNMinusOneVerified === false, "PN9 candidate must explicitly disclose that stable N-1 was not verified", errors);
   }
   has(FULL_SHA.test(evidence.commit ?? "") && evidence.commit.toLowerCase() === head, `evidence commit must equal current HEAD ${head}`, errors);
