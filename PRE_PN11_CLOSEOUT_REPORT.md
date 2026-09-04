@@ -2,7 +2,7 @@
 
 Status: `REMEDIATION_INCOMPLETE`
 
-Capture date: 2026-09-04
+Capture date: 2026-09-05
 
 This report closes the local Production Next hardening batch. It does not start
 PN11, and it does not convert controlled fixture results into product-value or
@@ -28,7 +28,7 @@ ls-remote` check, rather than by copying a volatile SHA into this report.
 
 | # | Original finding | Disposition | Current evidence |
 |---:|---|---|---|
-| 1 | Windows CodeStateWatcher crash | `CONFIRMED` | Windows now skips Node's unsafe recursive `fs.watch` path, uses a non-recursive root hint, and relies on bounded fingerprint reconciliation; watcher seam tests cover backend selection, fallback, overflow, failure, and restart. |
+| 1 | Windows CodeStateWatcher crash | `CONFIRMED` | Windows now skips native Node `fs.watch` backends entirely and relies on bounded fingerprint reconciliation; watcher seam tests cover Windows backend exclusion, fallback, overflow, failure, and restart. |
 | 2 | Raw daemon mutation authority | `CONFIRMED` | `append_event`, `idempotency_record`, and ad-hoc `code_state_index` require explicit daemon test mode; ordinary raw-event injection is regression-tested as denied. |
 | 3 | Trusted evaluator provenance | `CONFIRMED` | Caller declarations are `external_unverified`; `eval_evaluate` uses server-registered providers; forged provider identity cannot satisfy a trusted criterion. |
 | 4 | Caller-controlled repository state reference | `CONFIRMED` | Production evaluation requires a receipt whose integrity, project, worktree, and output fingerprints are rechecked by the daemon. |
@@ -42,7 +42,7 @@ ls-remote` check, rather than by copying a volatile SHA into this report.
 | 12 | `PARTIAL` collapsed into rejection | `CONFIRMED` | Receipts carry resource-level outcomes and `ChangePartiallyApplied` is preserved as a distinct event/projection path. |
 | 13 | Strict verifier required baseline equal to HEAD | `CONFIRMED` | Readiness now checks baseline ancestry; tests cover equality, descendant, unrelated, dirty, and wrong-evidence cases. |
 | 14 | Stale implementation/provenance documentation | `CONFIRMED` | Production Next status, observed-evidence guidance, security, contracts, architecture, release wording, and this report were refreshed. |
-| 15 | Final multi-platform qualification | `DEFERRED_WITH_REASON` | The prior `d28b799` GitHub Actions run had CodeQL/macOS success but failed the Windows test job; its public annotations exposed only exit code and its logs returned HTTP 403. This successor patch removes the unsafe recursive Windows path; remote qualification is determined only by the blocking workflow run attached to the successor commit. A read-only audit of available GitHub PRs found only Dependabot changes, not independent engineering outcomes for PN6/PN8/PN9. |
+| 15 | Final multi-platform qualification | `DEFERRED_WITH_REASON` | The prior `303f8c3` run passed CodeQL, Ubuntu Node 22, and macOS Node 24, but Windows Node 24 hit the libuv `src\\win\\fs-event.c:72` assertion in both watcher-bearing test files; Ubuntu Node 24 gitleaks failed because shallow checkout omitted predecessor `f6c058d...` from its requested range. The current successor fix removes all Windows native watcher calls and gives CI full history; remote qualification is determined only by the blocking workflow run attached to that successor. A read-only audit of available GitHub PRs found only Dependabot changes, not independent engineering outcomes for PN6/PN8/PN9. |
 
 ## 3. Implementation summary
 
@@ -157,6 +157,15 @@ authoritative source for post-fix remote qualification, so the prior failure is
 not attributed to code or infrastructure beyond the separately reproduced
 recursive-watcher risk.
 
+The next successor run [33897503533](https://github.com/BoxBoxmari/my-pi/actions/runs/33897503533)
+confirmed the Windows failure with `Assertion failed: !_wcsnicmp(filename, dir,
+dirlen), file src\\win\\fs-event.c, line 72` in
+`apps/my-pi-daemon/test/code-state-lifecycle.test.ts` and
+`packages/code-state/test/code-state.test.ts`. Its Ubuntu Node 24 gitleaks step
+failed before scanning because the shallow checkout did not contain the
+`f6c058d...^..303f8c3...` range requested by the action. The current working-tree
+fix addresses both concrete causes; its successor run is still required.
+
 ## 9. Remaining limitations
 
 PN6 and PN8 evidence remains controlled replay, not independent engineering
@@ -167,9 +176,9 @@ enterprise-network-partition, and PostgreSQL-failover faults untested.
 
 Native acceleration remains deferred. The current code-state lifecycle is
 bounded and local, not a complete cross-host distributed state service. The
-prior remote CI result is bound to `d28b799`; it is not evidence for this
-successor watcher fix. Candidate qualification must use the exact SHA and
-blocking workflow conclusions reported after this change is pushed.
+ prior remote CI results are bound to `d28b799` and `303f8c3`; neither is
+ evidence for the next watcher fix. Candidate qualification must use the exact
+ SHA and blocking workflow conclusions reported after that change is pushed.
 
 The public GitHub PR and issue history currently exposes only dependency update
 work. It does not provide traceable engineering run IDs, reviewer decisions,

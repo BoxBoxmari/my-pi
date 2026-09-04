@@ -60,14 +60,19 @@ export class CodeStateWatcher {
     // Node's Windows recursive fs.watch path can terminate the process in
     // native libuv before JavaScript can observe an error. Never enter that
     // backend on the qualified Windows runtime; reconciliation is authoritative.
-    if (platform !== "win32") {
-      try {
-        attach(factory(this.root, { recursive: true }, onEvent));
-        this.state = "ready";
-        return;
-      } catch (recursiveError) {
-        this.notifyError(recursiveError);
-      }
+    // The same runner has also shown the native fs-event callback asserting for
+    // non-recursive watches, so Windows uses reconciliation-only rather than
+    // attempting any fs.watch backend.
+    if (platform === "win32") {
+      this.startReconciliation();
+      return;
+    }
+    try {
+      attach(factory(this.root, { recursive: true }, onEvent));
+      this.state = "ready";
+      return;
+    } catch (recursiveError) {
+      this.notifyError(recursiveError);
     }
     try {
       // A non-recursive watcher is only an invalidation hint. Reconciliation

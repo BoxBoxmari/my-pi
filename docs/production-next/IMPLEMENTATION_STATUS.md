@@ -3,7 +3,7 @@
 Status: `REMEDIATION_INCOMPLETE`; closeout hardening is committed in this change
 set, while release and promotion admission remain withheld.
 
-Capture date: 2026-09-04
+Capture date: 2026-09-05
 
 Candidate HEAD: captured from the final commit and verifier output; see the
 commit/push record for the exact SHA.
@@ -18,7 +18,7 @@ candidate HEAD, rather than a required exact match.
 
 | Gate | Current state | Evidence and boundary |
 |---|---|---|
-| Gate A | Implemented locally | Windows skips the unsafe recursive `fs.watch` path and uses a non-recursive root hint plus bounded reconciliation; overflow, nested fallback, and stop/restart are regression-tested. |
+| Gate A | Implemented locally | Windows skips native `fs.watch` backends entirely and uses bounded fingerprint reconciliation; overflow, nested changes, and stop/restart are regression-tested. |
 | Gate B | Implemented locally | Raw event/idempotency/code-state mutation is test-mode only; caller-declared evaluator identity is stored as `external_unverified`; production evaluation targets are receipt-verified. |
 | Gate C | Implemented locally | The daemon registers canonical worktree roots, starts bounded live indexing, routes reads through path policy, and keeps provider degradation non-fatal. |
 | Gate D | Implemented locally | Impact is materialized at intent/code-state update time; `coord_sync` reads bounded events, does not reload the graph, and does not append heartbeat events. Evaluation queries use run-scoped indexes. |

@@ -114,12 +114,20 @@ test("PN5 provider failure is explicit and does not discard successful providers
 test("PN5 watcher coalesces changed paths and ignores build/vendor segments", async () => {
   const { dir, store, context } = await setup();
   const observed: string[][] = [];
-  const watcher = new CodeStateWatcher(dir, { debounceMs: 10, onPaths: (paths) => { observed.push(paths); } });
+  let listener: ((eventType: string, filename: string | Buffer | null) => void) | undefined;
+  const watchFactory: WatchFactory = (_target, options, nextListener) => {
+    assert.equal(options?.recursive, true);
+    listener = nextListener;
+    const emitter = new EventEmitter() as EventEmitter & { close: () => void };
+    emitter.close = () => undefined;
+    return emitter as unknown as FSWatcher;
+  };
+  const watcher = new CodeStateWatcher(dir, { platform: "linux", debounceMs: 10, watchFactory, onPaths: (paths) => { observed.push(paths); } });
   try {
     watcher.start();
-    await writeFile(path.join(dir, "src.ts"), "export const value = 1;\n", "utf8");
-    await writeFile(path.join(dir, "src.ts"), "export const value = 2;\n", "utf8");
-    await writeFile(path.join(dir, "dist", "ignored.js"), "ignored", "utf8").catch(async () => undefined);
+    listener?.("rename", "src.ts");
+    listener?.("change", "src.ts");
+    listener?.("rename", "dist/ignored.js");
     await new Promise((resolve) => setTimeout(resolve, 50));
     assert.equal(observed.length > 0, true);
     assert.ok(observed.flat().includes("src.ts"));
@@ -133,42 +141,26 @@ test("PN5 watcher coalesces changed paths and ignores build/vendor segments", as
 
 test("PN5 watcher skips recursive fs.watch on Windows and uses bounded reconciliation", async () => {
   const { dir, store } = await setup();
-  const recursiveFlags: Array<boolean | undefined> = [];
-  const observed: string[][] = [];
   let overflowCount = 0;
-  let closedCount = 0;
-  let listener: ((eventType: string, filename: string | Buffer | null) => void) | undefined;
-  const watchFactory: WatchFactory = (_target, options, nextListener) => {
-    recursiveFlags.push(options?.recursive);
-    listener = nextListener;
-    const emitter = new EventEmitter() as EventEmitter & { close: () => void };
-    emitter.close = () => { closedCount++; };
-    return emitter as unknown as FSWatcher;
-  };
+  const watchFactory: WatchFactory = () => { throw new Error("Windows must not invoke a native fs.watch backend"); };
   const watcher = new CodeStateWatcher(dir, {
     platform: "win32",
     debounceMs: 5,
     reconcileMs: 10,
     watchFactory,
-    onPaths: (paths) => { observed.push(paths); },
+    onPaths: () => undefined,
     onOverflow: () => { overflowCount++; },
   });
   try {
     watcher.start();
     assert.equal(watcher.status, "degraded");
-    assert.deepEqual(recursiveFlags, [undefined]);
-    listener?.("rename", "nested/created.ts");
     await new Promise((resolve) => setTimeout(resolve, 35));
-    assert.ok(observed.flat().includes("nested/created.ts"));
     assert.ok(overflowCount > 0);
 
     watcher.stop();
     assert.equal(watcher.status, "stopped");
-    assert.equal(closedCount, 1);
     watcher.start();
-    assert.deepEqual(recursiveFlags, [undefined, undefined]);
     watcher.stop();
-    assert.equal(closedCount, 2);
   } finally {
     watcher.stop();
     await store.close();
