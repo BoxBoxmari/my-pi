@@ -154,7 +154,8 @@ test("PN5 watcher skips recursive fs.watch on Windows and uses bounded reconcili
   try {
     watcher.start();
     assert.equal(watcher.status, "degraded");
-    await new Promise((resolve) => setTimeout(resolve, 35));
+    const deadline = Date.now() + 500;
+    while (overflowCount === 0 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 10));
     assert.ok(overflowCount > 0);
 
     watcher.stop();

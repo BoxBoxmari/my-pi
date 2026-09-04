@@ -13,9 +13,9 @@ function isGeneratedEvidence(relativePath) {
   return /^evidence\/PN\d+\.json$/i.test(relativePath.replaceAll("\\", "/"));
 }
 
-function isGeneratedArtifact(relativePath) {
+export function isGeneratedArtifact(relativePath) {
   const normalized = relativePath.replaceAll("\\", "/");
-  return isGeneratedEvidence(normalized) || /^evidence\/(?:G\d+|R\d+)\.json$/i.test(normalized) || /^benchmarks\/results\/.*\.json$/i.test(normalized) || normalized === "provenance/SBOM.cdx.json";
+  return isGeneratedEvidence(normalized) || /^evidence\/(?:G\d+|R\d+)\.json$/i.test(normalized) || /^benchmarks\/results\/.*\.json$/i.test(normalized) || normalized === "provenance/SBOM.cdx.json" || normalized === "docs/protocol-evidence.json";
 }
 
 /** Hash the candidate source state without making generated PN evidence self-referential. */

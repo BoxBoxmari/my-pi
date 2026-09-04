@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { baselineAssessment } from "../../scripts/baseline-ancestry.mjs";
+import { isGeneratedArtifact } from "../../scripts/candidate-state.mjs";
 
 const BASELINE = "1".repeat(40);
 const HEAD = "2".repeat(40);
@@ -36,4 +37,10 @@ test("Production Next baseline admission rejects evidence bound to the wrong can
   const result = baselineAssessment({ baseline: BASELINE, head: HEAD, ancestorExitCode: 0, candidateDirty: false, evidenceCommit: BASELINE });
   assert.equal(result.isAncestor, true);
   assert.equal(result.evidenceBound, false);
+});
+
+test("candidate state excludes generated protocol evidence without excluding source", () => {
+  assert.equal(isGeneratedArtifact("docs/protocol-evidence.json"), true);
+  assert.equal(isGeneratedArtifact("evidence/PN9.json"), true);
+  assert.equal(isGeneratedArtifact("packages/contracts/src/ids.ts"), false);
 });
