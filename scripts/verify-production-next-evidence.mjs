@@ -7,6 +7,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { candidateStateDigest } from "./candidate-state.mjs";
+import { validateStableBootstrapEvidence } from "./stable-bootstrap-contract.mjs";
 
 const ROOT = process.cwd();
 const EVIDENCE_PATH = path.join(ROOT, "evidence", "PN9.json");
@@ -38,7 +39,11 @@ async function verify() {
   has(evidence.profile === "PN9-self-host", "profile must be PN9-self-host", errors);
   has(evidence.status === "CANDIDATE", "PN9 evidence must remain CANDIDATE", errors);
   has(evidence.promotionEligible === false, "PN9 evidence cannot self-declare promotion eligibility", errors);
-  has(evidence.bootstrapMode === "candidate-current-build" && evidence.stableNMinusOneVerified === false, "PN9 candidate must explicitly disclose that stable N-1 was not verified", errors);
+  if (evidence.bootstrapMode === "stable-n-minus-one-runtime") {
+    errors.push(...validateStableBootstrapEvidence(evidence, { head, stateDigest: CURRENT_STATE_DIGEST }));
+  } else {
+    has(evidence.bootstrapMode === "candidate-current-build" && evidence.stableNMinusOneVerified === false, "PN9 candidate must explicitly disclose that stable N-1 was not verified", errors);
+  }
   has(FULL_SHA.test(evidence.commit ?? "") && evidence.commit.toLowerCase() === head, `evidence commit must equal current HEAD ${head}`, errors);
   has(evidence.candidateStateDigest === CURRENT_STATE_DIGEST, "PN9 evidence candidateStateDigest does not match the current working tree", errors);
   has(typeof evidence.bootstrapSha === "string" && FULL_SHA.test(evidence.bootstrapSha), "bootstrapSha must be a full commit SHA", errors);

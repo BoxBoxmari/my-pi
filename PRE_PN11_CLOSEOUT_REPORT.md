@@ -189,7 +189,7 @@ used as PN6/PN8/PN9 promotion evidence.
 
 | Gate | Status | Decision |
 |---|---|---|
-| Gate A: platform and CI correctness | Local pass; remote final qualification pending | Watcher failure is contained locally. |
+| Gate A: platform and CI correctness | Local pass; current remote matrix passed on `fe671ae` | Windows native watcher assertion is removed by reconciliation-only mode; every later candidate still requires its own blocking matrix. |
 | Gate B: trust and authority | Local pass | Raw mutation and evaluator provenance boundaries are enforced. |
 | Gate C: live code state | Local pass | Daemon-managed, worktree-aware, policy-authorized lifecycle is exercised. |
 | Gate D: coordination scalability | Local pass | Materialized impact, projection-only heartbeat, and indexed evaluation paths are exercised. |
@@ -204,22 +204,22 @@ used as PN6/PN8/PN9 promotion evidence.
 | Local candidate qualification | Passed on Windows/Node 26 |
 | PN6 observed evidence | Withheld; controlled replay only |
 | PN8 observed evidence | Withheld; controlled replay only |
-| PN9 stable N-1 | Withheld; candidate-current-build bootstrap only |
+| PN9 stable N-1 | Determined by the stable-bootstrap verifier; harness now available |
 | PN11 entry | Withheld; PN6/PN8/PN9 prerequisites are not satisfied |
 | PN13 promotion | Withheld by the read-only promotion verifier |
 
-The latest candidate envelopes remain `CANDIDATE` and `promotionEligible: false`.
-The evidence verifier can confirm schema, candidate commit, and candidate-state
-binding; it cannot grant product or enterprise admission.
+Candidate-mode envelopes remain diagnostic and cannot grant product or enterprise
+admission. The evidence verifier can confirm schema, candidate commit, and
+candidate-state binding; the stable-bootstrap profile additionally requires
+runtime-generated predecessor and authority proof.
 
 ## 12. Recommended next action
 
-Do not start PN11. First commit and review the local hardening changes, run the
-candidate on a clean checkout, obtain an independently observed stable N-1
-bootstrap, and collect traceable PR/CI or real work-item outcomes for PN6 and
-PN8. Then rerun the read-only evidence and promotion verifiers. Keep any
-remaining external or platform failures explicitly classified until their logs
-or independent reproductions are available.
+Do not start PN11. Run the stable-bootstrap profile on a clean candidate
+checkout, collect traceable PR/CI or real work-item outcomes for PN6 and PN8,
+then rerun the read-only evidence and promotion verifiers. Keep any remaining
+external or platform failures explicitly classified until their logs or
+independent reproductions are available.
 
 ## Final decision
 

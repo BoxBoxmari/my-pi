@@ -18,7 +18,7 @@ candidate HEAD, rather than a required exact match.
 
 | Gate | Current state | Evidence and boundary |
 |---|---|---|
-| Gate A | Implemented locally | Windows skips native `fs.watch` backends entirely and uses bounded fingerprint reconciliation; overflow, nested changes, and stop/restart are regression-tested. |
+| Gate A | Implemented locally and remotely qualified for the current predecessor | Windows skips native `fs.watch` backends entirely and uses bounded fingerprint reconciliation; the blocking matrix is re-established for every successor SHA. |
 | Gate B | Implemented locally | Raw event/idempotency/code-state mutation is test-mode only; caller-declared evaluator identity is stored as `external_unverified`; production evaluation targets are receipt-verified. |
 | Gate C | Implemented locally | The daemon registers canonical worktree roots, starts bounded live indexing, routes reads through path policy, and keeps provider degradation non-fatal. |
 | Gate D | Implemented locally | Impact is materialized at intent/code-state update time; `coord_sync` reads bounded events, does not reload the graph, and does not append heartbeat events. Evaluation queries use run-scoped indexes. |
@@ -76,9 +76,10 @@ Reconciliation is fingerprint-aware: unchanged files do not generate repeated
 PN6 remains withheld until the impact-routing improvement is observed on
 independent engineering work with traceable downstream correctness and rework
 outcomes. PN8 remains withheld until structured-feedback repair yield and
-regression protection are observed on independent engineering work. PN9 remains
-withheld until a distinct, verified stable N-1 runtime controls the candidate
-rebuild/retest flow.
+regression protection are observed on independent engineering work. PN9 status
+is determined by the stable-bootstrap verifier; the repository now contains the
+proof harness, but the harness itself is not evidence until it has run against
+the exact candidate SHA.
 
 PN12 may remain local, but its untested fault classes remain explicit: disk-full,
 permission loss, artifact-store disk-full, LSP crash loops, Git cancellation,
@@ -94,7 +95,7 @@ PN8, or PN9 admission.
 
 ## Recommended next action
 
-Run the committed candidate through the real engineering evidence workflow:
-use a verified stable N-1 runtime, collect independent PR/CI or work-item run
-identifiers for PN6 and PN8, bind the evidence to the exact candidate state,
-and rerun the read-only promotion verifier. Only then reconsider PN11 entry.
+Run `node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json`
+against the exact candidate SHA, then collect independent PR/CI or work-item
+run identifiers for PN6 and PN8 and rerun the read-only promotion verifier.
+Only then reconsider PN11 entry.

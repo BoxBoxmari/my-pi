@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { candidateCommit, candidateDirty, candidateStateDigest } from "./candidate-state.mjs";
+import { validateStableBootstrapEvidence } from "./stable-bootstrap-contract.mjs";
 
 const ROOT = process.cwd();
 const IDS = ["PN6", "PN8", "PN9", "PN12"];
@@ -65,8 +66,12 @@ function validatePN8(evidence, errors) {
 function validatePN9(evidence, errors) {
   if (!evidence) return;
   validateEnvelope("PN9", evidence, errors);
-  add(errors, evidence.stableNMinusOneVerified === true, "PN9: stableNMinusOneVerified must be true");
-  add(errors, FULL_SHA.test(evidence.bootstrapSha ?? "") && evidence.bootstrapSha.toLowerCase() !== HEAD, "PN9: bootstrapSha must be a distinct stable N-1 commit");
+  if (evidence.bootstrapMode === "stable-n-minus-one-runtime") {
+    errors.push(...validateStableBootstrapEvidence(evidence, { head: HEAD, stateDigest: STATE_DIGEST }));
+  } else {
+    add(errors, evidence.stableNMinusOneVerified === true, "PN9: stableNMinusOneVerified must be true");
+    add(errors, FULL_SHA.test(evidence.bootstrapSha ?? "") && evidence.bootstrapSha.toLowerCase() !== HEAD, "PN9: bootstrapSha must be a distinct stable N-1 commit");
+  }
   const report = evidence.report ?? {};
   add(errors, report.routing?.impactDetected === true, "PN9: observed self-host impact routing is required");
   add(errors, report.verification?.acceptedAfterRetry === true, "PN9: observed accepted retry is required");
