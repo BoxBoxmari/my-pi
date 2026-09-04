@@ -64,7 +64,8 @@ function parseArgs(argv) {
 }
 
 async function runCommand(command, args, cwd) {
-  const result = await execFileAsync(command, args, { cwd, encoding: "utf8", maxBuffer: 20 * 1024 * 1024 });
+  const shell = process.platform === "win32" && /\.(?:cmd|bat)$/i.test(command);
+  const result = await execFileAsync(command, args, { cwd, encoding: "utf8", maxBuffer: 20 * 1024 * 1024, shell });
   return { command, args, stdout: result.stdout, stderr: result.stderr };
 }
 
@@ -73,7 +74,7 @@ async function git(args, cwd = ROOT) {
 }
 
 async function resolvePnpm() {
-  if (process.platform !== "win32") return "pnpm";
+  if (process.platform !== "win32") return { command: "pnpm", args: [] };
   const candidates = [];
   if (process.env.PNPM_HOME) candidates.push(path.join(process.env.PNPM_HOME, "pnpm.cmd"));
   candidates.push(path.join(path.dirname(process.execPath), "pnpm.cmd"));
@@ -86,23 +87,29 @@ async function resolvePnpm() {
   for (const candidate of candidates) {
     try {
       await access(candidate);
-      return candidate;
+      const entry = path.join(path.dirname(candidate), "node_modules", "pnpm", "bin", "pnpm.mjs");
+      try {
+        await access(entry);
+        return { command: process.execPath, args: [entry] };
+      } catch {
+        return { command: candidate, args: [] };
+      }
     } catch {
       // Try the next known location.
     }
   }
-  return "pnpm.cmd";
+  return { command: "pnpm.cmd", args: [] };
 }
 
 async function buildWorktree(worktreeRoot, label) {
   const pnpm = await resolvePnpm();
-  await runCommand(pnpm, ["install", "--frozen-lockfile"], worktreeRoot);
-  await runCommand(pnpm, ["build"], worktreeRoot);
+  await runCommand(pnpm.command, [...pnpm.args, "install", "--frozen-lockfile"], worktreeRoot);
+  await runCommand(pnpm.command, [...pnpm.args, "build"], worktreeRoot);
   return {
     label,
     passed: true,
-    installCommand: [pnpm, "install", "--frozen-lockfile"],
-    buildCommand: [pnpm, "build"],
+    installCommand: [pnpm.command, ...pnpm.args, "install", "--frozen-lockfile"],
+    buildCommand: [pnpm.command, ...pnpm.args, "build"],
   };
 }
 
