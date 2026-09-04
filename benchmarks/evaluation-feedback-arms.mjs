@@ -12,7 +12,7 @@ import { performance } from "node:perf_hooks";
 import { createProjectId } from "../packages/contracts/dist/index.js";
 import { SqliteCoordinationStore } from "../packages/coordination-store/dist/index.js";
 import { EvaluationRuntime } from "../packages/evaluation-runtime/dist/index.js";
-import { candidateCommit, candidateDirty, candidateStateDigest } from "../scripts/candidate-state.mjs";
+import { candidateCommit, candidateDirty, candidateDirtyPaths, candidateStateDigest } from "../scripts/candidate-state.mjs";
 
 const ROOT = path.resolve(".");
 const CORPUS_PATH = path.join(ROOT, "fixtures", "evaluation-feedback", "corpus.json");
@@ -154,5 +154,5 @@ if (evidenceOut === undefined) {
   const dirty = candidateDirty();
   const evidenceDocument = { schemaVersion: "1", id: "PN8", profile: report.profile, status: "CANDIDATE", evidenceKind: report.evidenceKind, outcomeSource: report.outcomeSource, commit, candidateSha: dirty ? "uncommitted" : commit, candidateDirty: dirty, candidateStateDigest: await candidateStateDigest(), promotionEligible: false, report };
   await writeFile(outputPath, `${JSON.stringify(evidenceDocument, null, 2)}\n`, "utf8");
-  console.log(JSON.stringify({ profile: report.profile, evidencePath: relative.replaceAll(path.sep, "/"), candidateSha: evidenceDocument.candidateSha, candidateDirty: evidenceDocument.candidateDirty, productGate: report.productGate }, null, 2));
+  console.log(JSON.stringify({ profile: report.profile, evidencePath: relative.replaceAll(path.sep, "/"), candidateSha: evidenceDocument.candidateSha, candidateDirty: evidenceDocument.candidateDirty, ...(dirty ? { dirtyPaths: candidateDirtyPaths() } : {}), productGate: report.productGate }, null, 2));
 }

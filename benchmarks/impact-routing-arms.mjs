@@ -9,7 +9,7 @@ import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { ImpactEngine } from "../packages/impact-engine/dist/index.js";
-import { candidateCommit, candidateDirty, candidateStateDigest } from "../scripts/candidate-state.mjs";
+import { candidateCommit, candidateDirty, candidateDirtyPaths, candidateStateDigest } from "../scripts/candidate-state.mjs";
 
 const ROOT = path.resolve(".");
 const CORPUS_ROOT = path.join(ROOT, "benchmarks", "corpora", "coordination");
@@ -211,5 +211,5 @@ if (evidenceOut === undefined) {
   const dirty = candidateDirty();
   const evidence = { schemaVersion: "1", id: "PN6", profile: report.profile, status: "CANDIDATE", evidenceKind: report.evidenceKind, commit, candidateSha: dirty ? "uncommitted" : commit, candidateDirty: dirty, candidateStateDigest: await candidateStateDigest(), promotionEligible: false, report };
   await writeFile(outputPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
-  console.log(JSON.stringify({ profile: report.profile, evidencePath: relative.replaceAll(path.sep, "/"), candidateSha: evidence.candidateSha, candidateDirty: evidence.candidateDirty, productGate: report.productGate }, null, 2));
+  console.log(JSON.stringify({ profile: report.profile, evidencePath: relative.replaceAll(path.sep, "/"), candidateSha: evidence.candidateSha, candidateDirty: evidence.candidateDirty, ...(dirty ? { dirtyPaths: candidateDirtyPaths() } : {}), productGate: report.productGate }, null, 2));
 }

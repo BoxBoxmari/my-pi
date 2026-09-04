@@ -15,7 +15,7 @@ import { createProjectId } from "../packages/contracts/dist/index.js";
 import { SqliteCoordinationStore } from "../packages/coordination-store/dist/index.js";
 import { EvaluationRuntime } from "../packages/evaluation-runtime/dist/index.js";
 import { makeRetryCycle } from "../packages/evaluation-runtime/dist/index.js";
-import { candidateCommit, candidateDirty, candidateStateDigest } from "../scripts/candidate-state.mjs";
+import { candidateCommit, candidateDirty, candidateDirtyPaths, candidateStateDigest } from "../scripts/candidate-state.mjs";
 
 const ROOT = path.resolve(".");
 const DAEMON = path.join(ROOT, "apps", "my-pi-daemon", "dist", "main.js");
@@ -165,7 +165,7 @@ try {
     const dirty = candidateDirty();
     const evidence = { schemaVersion: "1", id: "PN12", profile: report.profile, status: "CANDIDATE", evidenceKind: report.evidenceKind, commit, candidateSha: dirty ? "uncommitted" : commit, candidateDirty: dirty, candidateStateDigest: sourceState, promotionEligible: false, report };
     await writeFile(outputPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
-    console.log(JSON.stringify({ profile: report.profile, evidencePath: relative.replaceAll(path.sep, "/"), candidateSha: evidence.candidateSha, candidateDirty: evidence.candidateDirty }, null, 2));
+    console.log(JSON.stringify({ profile: report.profile, evidencePath: relative.replaceAll(path.sep, "/"), candidateSha: evidence.candidateSha, candidateDirty: evidence.candidateDirty, ...(dirty ? { dirtyPaths: candidateDirtyPaths() } : {}) }, null, 2));
   }
 } finally {
   if (daemon) await stopDaemon(daemon).catch(() => undefined);

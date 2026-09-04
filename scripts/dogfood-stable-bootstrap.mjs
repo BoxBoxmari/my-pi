@@ -18,7 +18,7 @@ import { promisify } from "node:util";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { CoordinationClient, discoverProjectIdentity, readDaemonMetadata } from "../packages/coordination-client/dist/index.js";
-import { candidateCommit, candidateDirty, candidateStateDigest } from "./candidate-state.mjs";
+import { candidateCommit, candidateDirty, candidateDirtyPaths, candidateStateDigest } from "./candidate-state.mjs";
 
 const execFileAsync = promisify(execFile);
 const ROOT = path.resolve(".");
@@ -248,7 +248,7 @@ const candidateSha = candidateCommit().toLowerCase();
 const candidateDirtyState = candidateDirty();
 const candidateSourceStateDigest = await candidateStateDigest();
 assertCondition(candidateSha !== bootstrapSha, "stable bootstrap SHA must be distinct from candidate HEAD");
-assertCondition(!candidateDirtyState, "stable bootstrap requires a clean candidate source state");
+assertCondition(!candidateDirtyState, `stable bootstrap requires a clean candidate source state; dirtyPaths=${candidateDirtyPaths().join(",")}`);
 await runCommand("git", ["cat-file", "-e", `${bootstrapSha}^{commit}`], ROOT);
 await runCommand("git", ["merge-base", "--is-ancestor", bootstrapSha, candidateSha], ROOT);
 const remoteQualification = await verifyRemoteQualification(bootstrapSha);

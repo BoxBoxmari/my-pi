@@ -46,10 +46,14 @@ export function candidateCommit() {
   return git(["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 }
 
-export function candidateDirty() {
+export function candidateDirtyPaths() {
   const entries = git(["status", "--porcelain", "--untracked-files=all"], { encoding: "utf8" })
     .split(/\r?\n/)
     .filter(Boolean)
     .map((entry) => entry.slice(3).replaceAll("\\", "/"));
-  return entries.some((relativePath) => !isGeneratedArtifact(relativePath));
+  return entries.filter((relativePath) => !isGeneratedArtifact(relativePath));
+}
+
+export function candidateDirty() {
+  return candidateDirtyPaths().length > 0;
 }
