@@ -28,7 +28,7 @@ ls-remote` check, rather than by copying a volatile SHA into this report.
 
 | # | Original finding | Disposition | Current evidence |
 |---:|---|---|---|
-| 1 | Windows CodeStateWatcher crash | `CONFIRMED` | Recursive-watch startup and asynchronous backend errors now degrade to bounded reconciliation; watcher seam tests cover fallback, overflow, failure, and restart. |
+| 1 | Windows CodeStateWatcher crash | `CONFIRMED` | Windows now skips Node's unsafe recursive `fs.watch` path, uses a non-recursive root hint, and relies on bounded fingerprint reconciliation; watcher seam tests cover backend selection, fallback, overflow, failure, and restart. |
 | 2 | Raw daemon mutation authority | `CONFIRMED` | `append_event`, `idempotency_record`, and ad-hoc `code_state_index` require explicit daemon test mode; ordinary raw-event injection is regression-tested as denied. |
 | 3 | Trusted evaluator provenance | `CONFIRMED` | Caller declarations are `external_unverified`; `eval_evaluate` uses server-registered providers; forged provider identity cannot satisfy a trusted criterion. |
 | 4 | Caller-controlled repository state reference | `CONFIRMED` | Production evaluation requires a receipt whose integrity, project, worktree, and output fingerprints are rechecked by the daemon. |
@@ -42,7 +42,7 @@ ls-remote` check, rather than by copying a volatile SHA into this report.
 | 12 | `PARTIAL` collapsed into rejection | `CONFIRMED` | Receipts carry resource-level outcomes and `ChangePartiallyApplied` is preserved as a distinct event/projection path. |
 | 13 | Strict verifier required baseline equal to HEAD | `CONFIRMED` | Readiness now checks baseline ancestry; tests cover equality, descendant, unrelated, dirty, and wrong-evidence cases. |
 | 14 | Stale implementation/provenance documentation | `CONFIRMED` | Production Next status, observed-evidence guidance, security, contracts, architecture, release wording, and this report were refreshed. |
-| 15 | Final multi-platform qualification | `DEFERRED_WITH_REASON` | Local qualification is green. The pushed commit's GitHub Actions run has macOS and CodeQL success, but Windows tests and Ubuntu audit failed; failed-step logs were inaccessible without authorization. The current hardening candidate is not pushed, so final remote qualification is still pending. A read-only audit of all available GitHub PRs found only Dependabot changes, not independent engineering outcomes for PN6/PN8/PN9. |
+| 15 | Final multi-platform qualification | `DEFERRED_WITH_REASON` | The prior `d28b799` GitHub Actions run had CodeQL/macOS success but failed the Windows test job; its public annotations exposed only exit code and its logs returned HTTP 403. This successor patch removes the unsafe recursive Windows path; remote qualification is determined only by the blocking workflow run attached to the successor commit. A read-only audit of available GitHub PRs found only Dependabot changes, not independent engineering outcomes for PN6/PN8/PN9. |
 
 ## 3. Implementation summary
 
@@ -149,12 +149,13 @@ The final local `pnpm verify` run passed:
   measured crash recovery in the approximately `1.45–1.67 s` range.
 
 The local `pnpm audit --prod` check reported no known vulnerabilities. The
-pushed-commit GitHub Actions run [33857668261](https://github.com/BoxBoxmari/my-pi/actions/runs/33857668261)
-completed with CodeQL success and macOS Node 24 success. Windows Node 24 unit
-tests failed, and Ubuntu Node 24/22 `pnpm audit` steps failed. The public job
-annotations exposed only process exit codes; job logs returned HTTP 403, so the
-failure causes are recorded as unverified rather than attributed to code or
-infrastructure.
+prior pushed-commit GitHub Actions run [33857668261](https://github.com/BoxBoxmari/my-pi/actions/runs/33857668261)
+completed with CodeQL and macOS Node 24 success, but Windows Node 24 unit tests
+failed; its public annotations exposed only process exit codes and job logs
+returned HTTP 403. The successor candidate's current workflow run is the only
+authoritative source for post-fix remote qualification, so the prior failure is
+not attributed to code or infrastructure beyond the separately reproduced
+recursive-watcher risk.
 
 ## 9. Remaining limitations
 
@@ -166,8 +167,9 @@ enterprise-network-partition, and PostgreSQL-failover faults untested.
 
 Native acceleration remains deferred. The current code-state lifecycle is
 bounded and local, not a complete cross-host distributed state service. The
-current remote CI result is for the already-pushed commit, not the dirty
-hardening changes in this worktree.
+prior remote CI result is bound to `d28b799`; it is not evidence for this
+successor watcher fix. Candidate qualification must use the exact SHA and
+blocking workflow conclusions reported after this change is pushed.
 
 The public GitHub PR and issue history currently exposes only dependency update
 work. It does not provide traceable engineering run IDs, reviewer decisions,

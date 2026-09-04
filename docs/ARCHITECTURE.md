@@ -66,6 +66,8 @@ The daemon is one local authority per logical project and uses a Unix socket or 
 The daemon registers canonical worktree roots before indexing them. Code-state
 reads pass through the workspace path and sensitive-path policy. File events are
 invalidation hints; bounded reconciliation keeps fingerprints authoritative when
-recursive watching is unavailable or overflows. Impact is materialized at intent
+recursive watching is unavailable or overflows. On Windows, the watcher skips
+Node's unsafe recursive `fs.watch` path, keeps only a non-recursive root hint,
+and relies on the same bounded reconciliation for nested changes. Impact is materialized at intent
 or code-state update time, while `coord_sync` reads bounded events and does not
 recompute the full graph on every poll.

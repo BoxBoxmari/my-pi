@@ -8,6 +8,8 @@ export interface CodeStateWatcherOptions {
   maxPendingPaths?: number;
   reconcileMs?: number;
   ignoredSegments?: string[];
+  /** Override the runtime platform in deterministic tests; production defaults to process.platform. */
+  platform?: NodeJS.Platform;
   onPaths: (paths: string[]) => void | Promise<void>;
   onOverflow?: () => void | Promise<void>;
   onError?: (error: unknown) => void | Promise<void>;
@@ -54,12 +56,18 @@ export class CodeStateWatcher {
       this.watcher = watcher;
     };
     this.state = "degraded";
-    try {
-      attach(factory(this.root, { recursive: true }, onEvent));
-      this.state = "ready";
-      return;
-    } catch (recursiveError) {
-      this.notifyError(recursiveError);
+    const platform = this.options.platform ?? process.platform;
+    // Node's Windows recursive fs.watch path can terminate the process in
+    // native libuv before JavaScript can observe an error. Never enter that
+    // backend on the qualified Windows runtime; reconciliation is authoritative.
+    if (platform !== "win32") {
+      try {
+        attach(factory(this.root, { recursive: true }, onEvent));
+        this.state = "ready";
+        return;
+      } catch (recursiveError) {
+        this.notifyError(recursiveError);
+      }
     }
     try {
       // A non-recursive watcher is only an invalidation hint. Reconciliation

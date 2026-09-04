@@ -131,12 +131,59 @@ test("PN5 watcher coalesces changed paths and ignores build/vendor segments", as
   }
 });
 
+test("PN5 watcher skips recursive fs.watch on Windows and uses bounded reconciliation", async () => {
+  const { dir, store } = await setup();
+  const recursiveFlags: Array<boolean | undefined> = [];
+  const observed: string[][] = [];
+  let overflowCount = 0;
+  let closedCount = 0;
+  let listener: ((eventType: string, filename: string | Buffer | null) => void) | undefined;
+  const watchFactory: WatchFactory = (_target, options, nextListener) => {
+    recursiveFlags.push(options?.recursive);
+    listener = nextListener;
+    const emitter = new EventEmitter() as EventEmitter & { close: () => void };
+    emitter.close = () => { closedCount++; };
+    return emitter as unknown as FSWatcher;
+  };
+  const watcher = new CodeStateWatcher(dir, {
+    platform: "win32",
+    debounceMs: 5,
+    reconcileMs: 10,
+    watchFactory,
+    onPaths: (paths) => { observed.push(paths); },
+    onOverflow: () => { overflowCount++; },
+  });
+  try {
+    watcher.start();
+    assert.equal(watcher.status, "degraded");
+    assert.deepEqual(recursiveFlags, [undefined]);
+    listener?.("rename", "nested/created.ts");
+    await new Promise((resolve) => setTimeout(resolve, 35));
+    assert.ok(observed.flat().includes("nested/created.ts"));
+    assert.ok(overflowCount > 0);
+
+    watcher.stop();
+    assert.equal(watcher.status, "stopped");
+    assert.equal(closedCount, 1);
+    watcher.start();
+    assert.deepEqual(recursiveFlags, [undefined, undefined]);
+    watcher.stop();
+    assert.equal(closedCount, 2);
+  } finally {
+    watcher.stop();
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("PN5 watcher uses degraded reconciliation when recursive watching is unavailable", async () => {
   const { dir, store } = await setup();
   const observed: string[][] = [];
   let overflowCount = 0;
+  const recursiveFlags: Array<boolean | undefined> = [];
   let fallbackListener: ((eventType: string, filename: string | Buffer | null) => void) | undefined;
   const watchFactory: WatchFactory = (_target, options, listener) => {
+    recursiveFlags.push(options?.recursive);
     if (options?.recursive) throw Object.assign(new Error("recursive watch is unavailable"), { code: "ERR_FEATURE_UNAVAILABLE_ON_PLATFORM" });
     fallbackListener = listener;
     const emitter = new EventEmitter() as EventEmitter & { close: () => void };
@@ -144,6 +191,7 @@ test("PN5 watcher uses degraded reconciliation when recursive watching is unavai
     return emitter as unknown as FSWatcher;
   };
   const watcher = new CodeStateWatcher(dir, {
+    platform: "linux",
     debounceMs: 5,
     reconcileMs: 10,
     maxPendingPaths: 1,
@@ -154,6 +202,7 @@ test("PN5 watcher uses degraded reconciliation when recursive watching is unavai
   try {
     watcher.start();
     assert.equal(watcher.status, "degraded");
+    assert.deepEqual(recursiveFlags, [true, undefined]);
     fallbackListener?.("rename", "nested/created.ts");
     fallbackListener?.("change", "second.ts");
     await new Promise((resolve) => setTimeout(resolve, 30));
@@ -172,6 +221,7 @@ test("PN5 watcher contains startup failure and can be stopped and restarted", as
   const errors: unknown[] = [];
   let overflowCount = 0;
   const watcher = new CodeStateWatcher(dir, {
+    platform: "linux",
     debounceMs: 5,
     reconcileMs: 5,
     watchFactory: () => { throw new Error("watch backend failed"); },
