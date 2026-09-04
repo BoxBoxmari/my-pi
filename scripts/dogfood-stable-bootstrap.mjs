@@ -228,7 +228,7 @@ async function join(client, projectId, root, role, candidateSha) {
   const identity = await discoverProjectIdentity(root);
   const repositoryId = `repo-stable-bootstrap-${role}`;
   const worktreeId = `worktree-stable-bootstrap-${role}`;
-  return client.call("coord_join", {
+  const result = await client.call("coord_join", {
     project: { displayName: "my-pi stable N-1 bootstrap" },
     repository: { id: repositoryId, projectId, vcs: "git", canonicalIdentity: identity.canonicalIdentity },
     worktree: { id: worktreeId, repositoryId, root, head: candidateSha, branch: `stable-bootstrap/${role}`, observedAt: new Date().toISOString() },
@@ -236,6 +236,7 @@ async function join(client, projectId, root, role, candidateSha) {
     clientInstance: `stable-bootstrap-${process.pid}`,
     role,
   });
+  return { ...result, repositoryId, worktreeId, root };
 }
 
 async function projection(client, projectId, kind, id) {
