@@ -18,35 +18,39 @@ const ROOT = path.resolve(".");
 const CORPUS_PATH = path.join(ROOT, "fixtures", "evaluation-feedback", "corpus.json");
 const OBSERVED_AT = "2026-09-04T00:00:00.000Z";
 
-function evidence(targetStateRef, sampleId, criterionId, observed) {
-  const digest = createHash("sha256").update(JSON.stringify({ sampleId, criterionId, observed }), "utf8").digest("hex");
-  return [{ provider: "fixture-deterministic", digest: `sha256:${digest}`, targetStateRef, observedAt: OBSERVED_AT }];
-}
-
 async function putWorkItem(store, projectId, id) {
   await store.transact((tx) => tx.putProjection("work_item", id, { id, projectId, title: id, state: "ready", version: 0, createdAt: OBSERVED_AT, updatedAt: OBSERVED_AT }, projectId, OBSERVED_AT));
 }
 
-async function record(evaluation, run, sample, criterionId, outcome, observed, includeEvidence = true, reasonCode) {
-  return evaluation.recordResult(run.id, {
-    providerResultId: `fixture:${run.id}:${criterionId}`,
-    providerId: "fixture-deterministic",
-    criterionId,
-    result: {
-      criterionId,
+class FixtureEvaluatorProvider {
+  id = "fixture-deterministic";
+
+  supports() {
+    return true;
+  }
+
+  async evaluate(input, signal) {
+    signal.throwIfAborted();
+    const observation = input.observed && typeof input.observed === "object" ? input.observed : {};
+    const value = observation.value;
+    const outcome = observation.outcome ?? (JSON.stringify(value) === JSON.stringify(input.criterion.expected) ? "pass" : "fail");
+    const evidence = outcome === "inconclusive" ? [] : [{ provider: this.id, digest: `sha256:${createHash("sha256").update(JSON.stringify({ run: input.run.id, criterion: input.criterion.id, value }), "utf8").digest("hex")}`, targetStateRef: input.run.repositoryStateRef, observedAt: OBSERVED_AT }];
+    return {
+      providerResultId: `${this.id}:${input.run.id}:${input.criterion.id}`,
+      criterionId: input.criterion.id,
       outcome,
-      evidence: includeEvidence ? evidence(run.repositoryStateRef, sample.id, criterionId, observed) : [],
-      observed,
-      ...(reasonCode === undefined ? {} : { reasonCode }),
-    },
-  });
+      evidence,
+      observed: value,
+      ...(observation.reasonCode === undefined ? {} : { reasonCode: observation.reasonCode }),
+    };
+  }
 }
 
 const corpus = JSON.parse(await readFile(CORPUS_PATH, "utf8"));
 const started = performance.now();
 const store = new SqliteCoordinationStore(":memory:");
 const projectId = createProjectId();
-const evaluation = new EvaluationRuntime(store, projectId);
+const evaluation = new EvaluationRuntime(store, projectId, [new FixtureEvaluatorProvider()]);
 const cases = [];
 let falseAccepts = 0;
 let feedbackPackets = 0;
@@ -71,9 +75,10 @@ try {
     });
     const firstState = `fixture:${sample.id}:attempt-1`;
     const firstRun = await evaluation.requestRun({ specId: spec.id, workItemId, repositoryStateRef: firstState, attempt: 1 });
-    await record(evaluation, firstRun, sample, "failure", sample.outcome, sample.outcome === "fail" ? "broken" : sample.outcome, sample.outcome !== "inconclusive", sample.reasonCode);
-    await record(evaluation, firstRun, sample, "regression-guard", "pass", "preserved");
-    const first = await evaluation.completeRun(firstRun.id);
+    const first = await evaluation.evaluateRun(firstRun.id, {
+      failure: { outcome: sample.outcome, value: sample.outcome === "fail" ? "broken" : sample.outcome, reasonCode: sample.reasonCode },
+      "regression-guard": { outcome: "pass", value: "preserved" },
+    });
     if (first.decision?.decision === "accepted" && sample.expectedDecision !== "accepted") falseAccepts += 1;
     if (first.feedback) feedbackPackets += 1;
 
@@ -86,9 +91,10 @@ try {
       structuredRetries += 1;
       const secondState = `fixture:${sample.id}:attempt-2`;
       const secondRun = await evaluation.requestRun({ specId: spec.id, workItemId, repositoryStateRef: secondState, attempt: 2 });
-      await record(evaluation, secondRun, sample, "failure", "pass", "pass");
-      await record(evaluation, secondRun, sample, "regression-guard", "pass", "preserved");
-      const second = await evaluation.completeRun(secondRun.id);
+      const second = await evaluation.evaluateRun(secondRun.id, {
+        failure: { outcome: "pass", value: "pass" },
+        "regression-guard": { outcome: "pass", value: "preserved" },
+      });
       if (second.decision?.decision === "accepted" && second.feedback === undefined) {
         structuredRepairAccepted = true;
         structuredRepairs += 1;

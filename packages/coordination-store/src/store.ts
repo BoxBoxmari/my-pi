@@ -87,6 +87,10 @@ export interface CoordinationTransaction {
   appendAudit(record: AuditRecord): void;
   getIdempotency(input: IdempotencyInput): StoredIdempotency | undefined;
   putIdempotency(record: StoredIdempotency): void;
+  listEvaluationResults<T>(projectId: ProjectId, runId: string): T[];
+  getEvaluationDecision<T>(projectId: ProjectId, runId: string): T | undefined;
+  getFeedbackPacket<T>(projectId: ProjectId, runId: string): T | undefined;
+  getRetryCycle<T>(projectId: ProjectId, runId: string): T | undefined;
 }
 
 export interface CoordinationStore {
@@ -102,5 +106,9 @@ export interface CoordinationStore {
   listAudit(projectId: ProjectId, limit?: number): Promise<AuditRecord[]>;
   checkIdempotency(input: IdempotencyInput): Promise<StoredIdempotency | undefined>;
   recordIdempotency(record: StoredIdempotency): Promise<void>;
+  listEvaluationResults<T>(projectId: ProjectId, runId: string): Promise<T[]>;
+  getEvaluationDecision<T>(projectId: ProjectId, runId: string): Promise<T | undefined>;
+  getFeedbackPacket<T>(projectId: ProjectId, runId: string): Promise<T | undefined>;
+  getRetryCycle<T>(projectId: ProjectId, runId: string): Promise<T | undefined>;
   close(): Promise<void>;
 }

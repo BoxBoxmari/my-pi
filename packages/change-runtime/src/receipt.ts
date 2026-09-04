@@ -1,12 +1,18 @@
 import { createHash } from "node:crypto";
-import type { ChangeReceipt, ChangeProposal, ResourceVersion } from "@my-pi/contracts";
+import type { ChangeReceipt, ChangeProposal, ResourcePublicationResult, ResourceVersion } from "@my-pi/contracts";
 import { createChangeReceiptId } from "@my-pi/contracts";
 
-export function receiptDigest(receipt: Omit<ChangeReceipt, "receiptDigest">): string {
-  return createHash("sha256").update(JSON.stringify(receipt, (_key, value) => typeof value === "bigint" ? value.toString() : value), "utf8").digest("hex");
+function stableJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  return `{${Object.keys(value as Record<string, unknown>).sort().map((key) => `${JSON.stringify(key)}:${stableJson((value as Record<string, unknown>)[key])}`).join(",")}}`;
 }
 
-export function makeReceipt(proposal: ChangeProposal, status: ChangeReceipt["status"], inputVersions: ResourceVersion[], outputVersions: ResourceVersion[], startedAt: string, completedAt: string): ChangeReceipt {
+export function receiptDigest(receipt: Omit<ChangeReceipt, "receiptDigest">): string {
+  return createHash("sha256").update(stableJson(receipt), "utf8").digest("hex");
+}
+
+export function makeReceipt(proposal: ChangeProposal, status: ChangeReceipt["status"], inputVersions: ResourceVersion[], outputVersions: ResourceVersion[], startedAt: string, completedAt: string, resourceResults?: ResourcePublicationResult[]): ChangeReceipt {
   const base: Omit<ChangeReceipt, "receiptDigest"> = {
     id: createChangeReceiptId(),
     proposalId: proposal.id,
@@ -18,7 +24,8 @@ export function makeReceipt(proposal: ChangeProposal, status: ChangeReceipt["sta
     inputVersions,
     outputVersions,
     resources: outputVersions,
-    verification: { verified: status === "APPLIED", digest: outputVersions[0]?.fingerprint?.digest },
+    ...(resourceResults === undefined ? {} : { resourceResults }),
+    verification: { verified: status === "APPLIED", digest: createHash("sha256").update(stableJson(outputVersions), "utf8").digest("hex") },
     startedAt,
     publishedAt: completedAt,
     completedAt,

@@ -11,7 +11,7 @@ const DAEMON = path.join(ROOT, "apps", "my-pi-daemon", "dist", "main.js");
 const WORKER = path.join(ROOT, "dogfood", "worker.mjs");
 
 function startDaemon(runtimeDir) {
-  return spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+  return spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir, "--test-mode"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
 }
 
 async function waitForReady(runtimeDir, daemon) {
@@ -59,11 +59,9 @@ try {
   const backendComplete = await worker(runtimeDir, "complete", { "project-id": metadata.projectId, "session-id": backendAgent.agentSessionId, "work-item-id": backend.id, role: "backend" });
   const frontendClaim = await worker(runtimeDir, "frontend-block", { "project-id": metadata.projectId, "session-id": frontendAgent.agentSessionId, "work-item-id": frontend.id, "expected-version": 2, role: "frontend" });
   const observerSync = await worker(runtimeDir, "sync", { "project-id": metadata.projectId, "session-id": observerAgent.agentSessionId, role: "observer" });
-  const spec = await supervisor.call("eval_register_spec", { name: "dogfood acceptance", criteria: [{ id: "coordination", kind: "artifact", required: true, severity: "critical", evaluatorRef: "stable-dogfood", expected: true }] });
-  const run = await supervisor.call("eval_request", { specId: spec.id, workItemId: backend.id, repositoryStateRef: `git:${metadata.projectKey}` });
-  await supervisor.call("eval_record", { runId: run.id, providerResultId: "dogfood-result-1", providerId: "stable-dogfood", criterionId: "coordination", result: { criterionId: "coordination", outcome: "pass", evidence: [{ provider: "stable-dogfood", digest: "sha256:dogfood-evidence", targetStateRef: `git:${metadata.projectKey}`, observedAt: new Date().toISOString() }] } });
-  await supervisor.call("eval_complete", { runId: run.id });
-  const evaluation = await supervisor.call("eval_status", { runId: run.id });
+  const spec = await supervisor.call("eval_register_spec", { name: "dogfood acceptance", criteria: [{ id: "coordination", kind: "artifact", required: true, severity: "critical", evaluatorRef: "deterministic-local", expected: true }] });
+  const run = await supervisor.call("eval_request", { specId: spec.id, workItemId: backend.id, repositoryStateRef: `test:${metadata.projectKey}` });
+  const evaluation = await supervisor.call("eval_evaluate", { runId: run.id, observed: { coordination: true } });
   const evidence = { schemaVersion: "1", bootstrapSha: "273ed28947a94a2495b10721f725447ea769994d", candidateCommit: "uncommitted", projectId: metadata.projectId, agents: joined.map((item) => item.agentSessionId), workItems: [backend.id, frontend.id], checks: { fourIndependentProcesses: true, dependencyBlockObserved: blocked.blocked === true, selectiveSyncObserved: frontendSync.normalPriority?.length > 0, unrelatedObserverExcluded: observerSync.normalPriority?.length === 0, completionUnblocked: backendComplete.unblockedWorkItemIds?.includes(frontend.id), evaluationAccepted: evaluation.decision?.decision === "accepted", noAutonomousSpawn: true }, evaluationRunId: run.id, acceptanceDecision: evaluation.decision?.decision ?? "unknown" };
   console.log(JSON.stringify(evidence, null, 2));
 } finally {

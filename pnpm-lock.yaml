@@ -35,6 +35,9 @@ importers:
 
   apps/my-pi-daemon:
     dependencies:
+      '@my-pi/change-runtime':
+        specifier: workspace:*
+        version: link:../../packages/change-runtime
       '@my-pi/code-state':
         specifier: workspace:*
         version: link:../../packages/code-state
@@ -53,6 +56,9 @@ importers:
       '@my-pi/evaluation-runtime':
         specifier: workspace:*
         version: link:../../packages/evaluation-runtime
+      '@my-pi/workspace-runtime':
+        specifier: workspace:*
+        version: link:../../packages/workspace-runtime
 
   apps/my-pi-mcp:
     dependencies:
@@ -132,6 +138,9 @@ importers:
       '@my-pi/coordination-store':
         specifier: workspace:*
         version: link:../coordination-store
+      '@my-pi/workspace-runtime':
+        specifier: workspace:*
+        version: link:../workspace-runtime
 
   packages/context-router:
     dependencies:

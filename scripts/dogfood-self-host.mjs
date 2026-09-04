@@ -23,10 +23,6 @@ function assertCondition(value, message) {
   if (!value) throw new Error(message);
 }
 
-function sha256(value) {
-  return createHash("sha256").update(value).digest("hex");
-}
-
 function copyFilter(source) {
   const relative = path.relative(ROOT, source);
   if (!relative) return true;
@@ -62,7 +58,7 @@ async function treeDigest(root, relative = "") {
 }
 
 function startDaemon(workspaceRoot, runtimeDir) {
-  return spawn(process.execPath, [DAEMON, "--workspace", workspaceRoot, "--runtime-dir", runtimeDir, "--allow-non-git"], {
+  return spawn(process.execPath, [DAEMON, "--workspace", workspaceRoot, "--runtime-dir", runtimeDir, "--allow-non-git", "--test-mode"], {
     cwd: ROOT,
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
@@ -110,28 +106,6 @@ function routeKeys(sync) {
     .sort();
 }
 
-function evidenceFor(targetStateRef, criterionId, observed) {
-  const digest = sha256(JSON.stringify({ criterionId, observed }));
-  return [{ provider: "self-host-deterministic", digest: `sha256:${digest}`, targetStateRef, observedAt: new Date().toISOString() }];
-}
-
-async function recordResult(supervisor, run, criterionId, expected, observed, reasonCode) {
-  const outcome = observed === expected ? "pass" : "fail";
-  return supervisor.call("eval_record", {
-    runId: run.id,
-    providerResultId: `self-host:${run.id}:${criterionId}`,
-    providerId: "self-host-deterministic",
-    criterionId,
-    result: {
-      criterionId,
-      outcome,
-      evidence: evidenceFor(run.repositoryStateRef, criterionId, observed),
-      observed,
-      ...(reasonCode === undefined ? {} : { reasonCode }),
-    },
-  });
-}
-
 async function projection(supervisor, projectId, kind, id) {
   return supervisor.call("get_projection", { projectId, kind, id });
 }
@@ -177,8 +151,8 @@ try {
   const spec = await supervisor.call("eval_register_spec", {
     name: "self-host bounded change acceptance",
     criteria: [
-      { id: "target-marker", kind: "artifact", required: true, severity: "critical", evaluatorRef: "self-host-deterministic", expected: "accepted" },
-      { id: "publication", kind: "artifact", required: true, severity: "critical", evaluatorRef: "self-host-deterministic", expected: "APPLIED" },
+      { id: "target-marker", kind: "artifact", required: true, severity: "critical", evaluatorRef: "deterministic-local", expected: "accepted" },
+      { id: "publication", kind: "artifact", required: true, severity: "critical", evaluatorRef: "deterministic-local", expected: "APPLIED" },
     ],
   });
   const implementationItem = await supervisor.call("coord_create_work_item", {
@@ -208,11 +182,8 @@ try {
   assertCondition(firstAwaiting.workItem.state === "awaiting_evaluation", "gated WorkItem did not enter awaiting_evaluation");
 
   const firstTree = await treeDigest(implementationRoot);
-  const firstRun = await supervisor.call("eval_request", { specId: spec.id, workItemId: implementationItem.id, changeReceiptId: firstChange.receipt.id, repositoryStateRef: `tree:${firstTree}`, attempt: 1 });
-  await recordResult(supervisor, firstRun, "target-marker", "accepted", "attempt-1", "TARGET_NOT_READY");
-  await recordResult(supervisor, firstRun, "publication", "APPLIED", firstChange.receipt.status);
-  await supervisor.call("eval_complete", { runId: firstRun.id });
-  const firstStatus = await supervisor.call("eval_status", { runId: firstRun.id });
+  const firstRun = await supervisor.call("eval_request", { specId: spec.id, workItemId: implementationItem.id, changeReceiptId: firstChange.receipt.id, repositoryStateRef: firstChange.receipt.id, attempt: 1 });
+  const firstStatus = await supervisor.call("eval_evaluate", { runId: firstRun.id, observed: { "target-marker": "attempt-1", publication: firstChange.receipt.status } });
   assertCondition(firstStatus.decision?.decision === "rejected", "first self-host attempt was expected to be rejected");
   assertCondition(firstStatus.feedback?.failedCriteria?.includes("target-marker"), "structured feedback did not cite the failed criterion");
   assertCondition(firstStatus.retry?.state === "recommended", "first self-host attempt did not recommend a bounded retry");
@@ -223,11 +194,8 @@ try {
   const retryAwaiting = await runWorker({ action: "complete", "runtime-dir": runtimeDir, "workspace-root": implementationRoot, "project-id": metadata.projectId, "session-id": joined.implementation.agentSessionId, "work-item-id": implementationItem.id, role: "implementation" });
   assertCondition(retryAwaiting.workItem.state === "awaiting_evaluation", "retry did not return to awaiting_evaluation");
   const secondTree = await treeDigest(implementationRoot);
-  const secondRun = await supervisor.call("eval_request", { specId: spec.id, workItemId: implementationItem.id, changeReceiptId: retryChange.receipt.id, repositoryStateRef: `tree:${secondTree}`, attempt: 2 });
-  await recordResult(supervisor, secondRun, "target-marker", "accepted", "accepted");
-  await recordResult(supervisor, secondRun, "publication", "APPLIED", retryChange.receipt.status);
-  await supervisor.call("eval_complete", { runId: secondRun.id });
-  const secondStatus = await supervisor.call("eval_status", { runId: secondRun.id });
+  const secondRun = await supervisor.call("eval_request", { specId: spec.id, workItemId: implementationItem.id, changeReceiptId: retryChange.receipt.id, repositoryStateRef: retryChange.receipt.id, attempt: 2 });
+  const secondStatus = await supervisor.call("eval_evaluate", { runId: secondRun.id, observed: { "target-marker": "accepted", publication: retryChange.receipt.status } });
   assertCondition(secondStatus.decision?.decision === "accepted", "retry self-host attempt was not accepted");
 
   const acceptedItem = await projection(supervisor, metadata.projectId, "work_item", implementationItem.id);

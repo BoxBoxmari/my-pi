@@ -7,6 +7,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { baselineAssessment } from "./baseline-ancestry.mjs";
 
 const ROOT = process.cwd();
 const STRICT = process.argv.includes("--strict");
@@ -35,6 +36,7 @@ const head = headResult.stdout.trim();
 const status = command(["git", "status", "--porcelain"]);
 const baselineText = await readText("docs/production-next/BASELINE.md");
 const baseline = baselineText?.match(/Baseline SHA:\s*`([0-9a-f]{40})`/i)?.[1];
+const baselineAncestry = baseline && FULL_SHA.test(head) ? command(["git", "merge-base", "--is-ancestor", baseline, head]) : { exitCode: 1, stdout: "" };
 const schemaText = await readText("packages/contracts/src/schema-version.ts");
 const coordinationMigrationText = await readText("packages/coordination-store/src/migrations.ts");
 const evaluationText = await readText("packages/evaluation-runtime/src/index.ts");
@@ -73,6 +75,7 @@ const missing = pathChecks.filter((check) => !check.present).map((check) => chec
 const release = command([process.execPath, "scripts/verify-release.mjs", "--strict"]);
 const pn9Evidence = command([process.execPath, "scripts/verify-production-next-evidence.mjs"]);
 const promotion = command([process.execPath, "scripts/verify-production-next-promotion.mjs"]);
+const baselineReport = baselineAssessment({ baseline, head, ancestorExitCode: baselineAncestry.exitCode, candidateDirty: status.stdout.trim().length > 0 });
 const report = {
   schemaVersion: 1,
   status: "WITHHELD",
@@ -82,7 +85,7 @@ const report = {
     packageVersion: packageJson.version ?? null,
     appVersion: appJson.version ?? null,
   },
-  baseline: { sha: baseline ?? null, matchesHead: baseline !== undefined && baseline.toLowerCase() === head.toLowerCase() },
+  baseline: baselineReport,
   versions: {
     coordinationSchema: schemaText?.match(/CURRENT_SCHEMA_VERSION:\s*SchemaVersion\s*=\s*"([^"]+)"/)?.[1] ?? null,
     coordinationStoreMigration: coordinationMigrationText?.match(/CURRENT_SCHEMA_VERSION\s*=\s*(\d+)/)?.[1] ?? null,
@@ -103,4 +106,4 @@ const report = {
   releaseVerifier: { exitCode: release.exitCode, pass: release.exitCode === 0, outputTail: release.stdout.slice(-2000) },
 };
 console.log(JSON.stringify(report, null, 2));
-if (STRICT && (missing.length > 0 || !report.baseline.matchesHead || !report.releaseVerifier.pass || !report.productionNextEvidence.pass || !report.promotionGate.pass)) process.exitCode = 1;
+if (STRICT && (missing.length > 0 || !report.baseline.isAncestor || !report.releaseVerifier.pass || !report.productionNextEvidence.pass || !report.promotionGate.pass)) process.exitCode = 1;

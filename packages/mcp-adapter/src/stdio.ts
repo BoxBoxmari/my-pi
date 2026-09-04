@@ -133,6 +133,7 @@ const SCHEMAS: Record<string, StandardSchemaWithJSON> = {
   coord_complete: z.object({ projectId: z.string().min(1).max(256), agentSessionId: z.string().min(1).max(256), workItemId: z.string().min(1).max(256), evaluationRunId: z.string().max(256).optional() }),
   eval_request: z.object({ specId: z.string().min(1).max(256), workItemId: z.string().min(1).max(256), intentId: z.string().max(256).optional(), changeReceiptId: z.string().max(256).optional(), repositoryStateRef: z.string().min(1).max(1024), attempt: z.number().int().min(1).max(100).optional() }),
   eval_record: z.object({ runId: z.string().min(1).max(256), providerResultId: z.string().min(1).max(256), providerId: z.string().min(1).max(128), criterionId: z.string().min(1).max(128), result: z.object({ criterionId: z.string().min(1).max(128), outcome: z.enum(["pass", "fail", "error", "skipped", "inconclusive"]), evidence: z.array(z.unknown()).max(50), observed: z.unknown().optional(), reasonCode: z.string().max(256).optional() }) }),
+  eval_evaluate: z.object({ runId: z.string().min(1).max(256), observed: z.record(z.string(), z.unknown()).optional() }),
   eval_status: z.object({ runId: z.string().min(1).max(256) }),
 };
 
@@ -159,6 +160,7 @@ const IMPLEMENTED_TOOLS = new Set([
   "coord_complete",
   "eval_request",
   "eval_record",
+  "eval_evaluate",
   "eval_status",
 ]);
 
@@ -187,7 +189,8 @@ const DESCRIPTIONS: Record<string, string> = {
   coord_publish: "Publish a typed coordination artifact by digest.",
   coord_complete: "Complete a coordination work item, or place an evaluation-gated item into awaiting_evaluation without releasing it.",
   eval_request: "Request evaluation against an approved spec and exact target state.",
-  eval_record: "Record bounded evaluator evidence for one criterion.",
+  eval_record: "Declare external evaluator evidence; declarations remain unverified until a trusted provider evaluates the run.",
+  eval_evaluate: "Run the server-registered evaluator providers against the requested evaluation run.",
   eval_status: "Read the acceptance decision, feedback, and bounded retry state.",
 };
 

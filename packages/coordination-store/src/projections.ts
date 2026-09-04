@@ -34,6 +34,11 @@ function stringField(value: JsonRecord | undefined, key: string): string | undef
   return typeof field === "string" && field.length > 0 ? field : undefined;
 }
 
+function numberField(value: JsonRecord | undefined, key: string): number | undefined {
+  const field = value?.[key];
+  return typeof field === "number" && Number.isSafeInteger(field) ? field : undefined;
+}
+
 export function putProjection<T>(db: DatabaseSync, kind: string, id: string, value: T, projectId?: string, updatedAt = new Date().toISOString()): void {
   const payloadJson = serializeJson(value);
   db.prepare(
@@ -54,6 +59,124 @@ export function putProjection<T>(db: DatabaseSync, kind: string, id: string, val
        ON CONFLICT(id) DO UPDATE SET project_id=excluded.project_id, payload_json=excluded.payload_json, updated_at=excluded.updated_at`,
     ).run(id, projectId, payloadJson, updatedAt);
   }
+
+  const record = asRecord(value);
+  const evaluationSpecId = stringField(record, "id");
+  const evaluationSpecVersion = numberField(record, "version");
+  const evaluationSpecDigest = stringField(record, "specDigest");
+  const evaluationSpecCreatedAt = stringField(record, "createdAt");
+  if (kind === "evaluation_spec" && projectId && evaluationSpecId && evaluationSpecVersion !== undefined && evaluationSpecDigest && evaluationSpecCreatedAt) {
+    db.prepare(
+      `INSERT INTO evaluation_specs (id, project_id, version, spec_digest, payload_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET project_id=excluded.project_id, version=excluded.version, spec_digest=excluded.spec_digest, payload_json=excluded.payload_json, created_at=excluded.created_at`,
+    ).run(evaluationSpecId!, projectId, evaluationSpecVersion!, evaluationSpecDigest!, payloadJson, evaluationSpecCreatedAt!);
+  } else {
+    const evaluationRunId = stringField(record, "id");
+    const evaluationRunSpecId = stringField(record, "specId");
+    const evaluationRunSpecVersion = numberField(record, "specVersion");
+    const evaluationRunTarget = stringField(record, "repositoryStateRef");
+    const evaluationRunWorkItem = stringField(record, "workItemId");
+    const evaluationRunAttempt = numberField(record, "attempt");
+    const evaluationRunState = stringField(record, "state");
+    if (kind === "evaluation_run" && projectId && evaluationRunId && evaluationRunSpecId && evaluationRunSpecVersion !== undefined && evaluationRunTarget && evaluationRunWorkItem && evaluationRunAttempt !== undefined && evaluationRunState) {
+    db.prepare(
+      `INSERT INTO evaluation_runs (id, project_id, spec_id, spec_version, target_state_ref, work_item_id, attempt, state, payload_json, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET project_id=excluded.project_id, spec_id=excluded.spec_id, spec_version=excluded.spec_version, target_state_ref=excluded.target_state_ref, work_item_id=excluded.work_item_id, attempt=excluded.attempt, state=excluded.state, payload_json=excluded.payload_json, updated_at=excluded.updated_at`,
+      ).run(evaluationRunId!, projectId, evaluationRunSpecId!, evaluationRunSpecVersion!, evaluationRunTarget!, evaluationRunWorkItem!, evaluationRunAttempt!, evaluationRunState!, payloadJson, updatedAt);
+    } else {
+      const evaluationResultRunId = stringField(record, "runId");
+      const evaluationResultCriterionId = stringField(record, "criterionId");
+      const evaluationResultProviderResultId = stringField(record, "providerResultId");
+      const evaluationResultDigest = stringField(record, "resultDigest");
+      const evaluationResultRecordedAt = stringField(record, "recordedAt");
+      if (kind === "evaluation_result" && projectId && evaluationResultRunId && evaluationResultCriterionId && evaluationResultProviderResultId && evaluationResultDigest && evaluationResultRecordedAt) {
+    db.prepare(
+      `INSERT INTO evaluation_results (run_id, criterion_id, provider_result_id, result_digest, payload_json, recorded_at)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(run_id, criterion_id, provider_result_id) DO UPDATE SET result_digest=excluded.result_digest, payload_json=excluded.payload_json, recorded_at=excluded.recorded_at`,
+        ).run(evaluationResultRunId!, evaluationResultCriterionId!, evaluationResultProviderResultId!, evaluationResultDigest!, payloadJson, evaluationResultRecordedAt!);
+      } else {
+        const evaluationDecisionRunId = stringField(record, "runId");
+        const evaluationDecision = stringField(record, "decision");
+        const evaluationDecisionDigest = stringField(record, "decisionDigest");
+        if (kind === "evaluation_decision" && projectId && evaluationDecisionRunId && evaluationDecision && evaluationDecisionDigest) {
+    db.prepare(
+      `INSERT INTO acceptance_decisions (run_id, decision, decision_digest, payload_json, decided_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(run_id) DO UPDATE SET decision=excluded.decision, decision_digest=excluded.decision_digest, payload_json=excluded.payload_json, decided_at=excluded.decided_at`,
+          ).run(evaluationDecisionRunId!, evaluationDecision!, evaluationDecisionDigest!, payloadJson, updatedAt);
+        } else {
+          const feedbackId = stringField(record, "id");
+          const feedbackRunId = stringField(record, "runId");
+          if (kind === "feedback_packet" && projectId && feedbackId && feedbackRunId) {
+    db.prepare(
+      `INSERT INTO feedback_packets (id, run_id, payload_json, created_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET run_id=excluded.run_id, payload_json=excluded.payload_json, created_at=excluded.created_at`,
+            ).run(feedbackId!, feedbackRunId!, payloadJson, updatedAt);
+          } else {
+            const retryId = stringField(record, "id");
+            const retryRunId = stringField(record, "runId");
+            const retryAttempt = numberField(record, "attempt");
+            const retryMaxAttempts = numberField(record, "maxAttempts");
+            const retryState = stringField(record, "state");
+            if (kind === "retry_cycle" && projectId && retryId && retryRunId && retryAttempt !== undefined && retryMaxAttempts !== undefined && retryState) {
+    db.prepare(
+      `INSERT INTO retry_cycles (id, run_id, attempt, max_attempts, state, payload_json, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET run_id=excluded.run_id, attempt=excluded.attempt, max_attempts=excluded.max_attempts, state=excluded.state, payload_json=excluded.payload_json, updated_at=excluded.updated_at`,
+              ).run(retryId!, retryRunId!, retryAttempt!, retryMaxAttempts!, retryState!, payloadJson, updatedAt);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+export function listEvaluationResults<T>(db: DatabaseSync, projectId: string, runId: string): T[] {
+  const rows = db.prepare(
+    `SELECT r.payload_json
+     FROM evaluation_results r
+     JOIN evaluation_runs run ON run.id = r.run_id
+     WHERE run.project_id = ? AND r.run_id = ?
+     ORDER BY r.criterion_id, r.provider_result_id`,
+  ).all(projectId, runId) as Array<{ payload_json?: unknown }>;
+  return rows.flatMap((row) => typeof row.payload_json === "string" ? [parseJson<T>(row.payload_json)] : []);
+}
+
+export function getEvaluationDecision<T>(db: DatabaseSync, projectId: string, runId: string): T | undefined {
+  const row = db.prepare(
+    `SELECT d.payload_json
+     FROM acceptance_decisions d
+     JOIN evaluation_runs run ON run.id = d.run_id
+     WHERE run.project_id = ? AND d.run_id = ?`,
+  ).get(projectId, runId) as { payload_json?: unknown } | undefined;
+  return typeof row?.payload_json === "string" ? parseJson<T>(row.payload_json) : undefined;
+}
+
+export function getFeedbackPacket<T>(db: DatabaseSync, projectId: string, runId: string): T | undefined {
+  const row = db.prepare(
+    `SELECT f.payload_json
+     FROM feedback_packets f
+     JOIN evaluation_runs run ON run.id = f.run_id
+     WHERE run.project_id = ? AND f.run_id = ?
+     ORDER BY f.created_at DESC, f.id DESC LIMIT 1`,
+  ).get(projectId, runId) as { payload_json?: unknown } | undefined;
+  return typeof row?.payload_json === "string" ? parseJson<T>(row.payload_json) : undefined;
+}
+
+export function getRetryCycle<T>(db: DatabaseSync, projectId: string, runId: string): T | undefined {
+  const row = db.prepare(
+    `SELECT r.payload_json
+     FROM retry_cycles r
+     JOIN evaluation_runs run ON run.id = r.run_id
+     WHERE run.project_id = ? AND r.run_id = ?
+     ORDER BY r.attempt DESC, r.updated_at DESC, r.id DESC LIMIT 1`,
+  ).get(projectId, runId) as { payload_json?: unknown } | undefined;
+  return typeof row?.payload_json === "string" ? parseJson<T>(row.payload_json) : undefined;
 }
 
 export function getProjection<T>(db: DatabaseSync, kind: string, id: string): T | undefined {
@@ -206,6 +329,10 @@ export function applyEventProjection(db: DatabaseSync, event: CoordinationEvent)
     ScopeDeclared: { kind: "scope", idField: "id" },
     ScopeReleased: { kind: "scope", idField: "id" },
     ContextPublished: { kind: "context_artifact", idField: "id" },
+    ImpactDetected: { kind: "impact_result", idField: "intentId" },
+    ChangeApplied: { kind: "change_receipt", idField: "id" },
+    ChangePartiallyApplied: { kind: "change_receipt", idField: "id" },
+    ChangeRejected: { kind: "change_receipt", idField: "id" },
   };
   const projection = projectionByEvent[event.eventType];
   const id = projection ? stringField(payload, projection.idField) : undefined;

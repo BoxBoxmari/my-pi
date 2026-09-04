@@ -15,8 +15,10 @@ const ROOT = path.resolve(".");
 const DAEMON = path.join(ROOT, "apps", "my-pi-daemon", "dist", "main.js");
 const WORKER = path.join(ROOT, "apps", "my-pi-daemon", "test", "client-worker.mjs");
 
-function startDaemon(runtimeDir: string): ChildProcess {
-  const child = spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir], {
+function startDaemon(runtimeDir: string, testMode = true): ChildProcess {
+  const args = [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir];
+  if (testMode) args.push("--test-mode");
+  const child = spawn(process.execPath, args, {
     cwd: ROOT,
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
@@ -183,9 +185,9 @@ test("PN4 IPC: join, intent, typed publication, and bounded sync use the daemon 
 
     const indexed = await client.call<{ changedPath: string; entities: Array<{ kind: string }>; providerHealth: Record<string, { status: string }>}>("code_state_index", {
       projectId: metadata.projectId,
-      repositoryId: "repo-mcp-test",
-      worktreeId: "worktree-mcp-test",
-      repositoryIdentity: "git:local:mcp-test",
+      repositoryId: "repo-daemon-test",
+      worktreeId: "worktree-daemon-test",
+      repositoryIdentity: "git:local:daemon-test",
       path: "README.md",
     });
     assert.equal(indexed.changedPath, "README.md");
@@ -193,11 +195,71 @@ test("PN4 IPC: join, intent, typed publication, and bounded sync use the daemon 
     assert.equal(indexed.providerHealth.fs.status, "ready");
     const snapshot = await client.call<{ entities: Array<{ path?: string }>; edges: unknown[] }>("code_state_snapshot", {
       projectId: metadata.projectId,
-      worktreeId: "worktree-mcp-test",
+      worktreeId: "worktree-daemon-test",
     });
     assert.ok(snapshot.entities.some((entity) => entity.path === "README.md"));
   } finally {
     if (daemon) await stopDaemon(daemon).catch(() => undefined);
     await rm(runtimeDir, { recursive: true, force: true });
+  }
+});
+
+test("PN10 ordinary IPC clients cannot append raw authoritative events", async () => {
+  const runtimeDir = await mkdtemp(path.join(os.tmpdir(), "my-pi-daemon-authority-"));
+  let daemon: ChildProcess | undefined;
+  try {
+    daemon = startDaemon(runtimeDir, false);
+    const metadata = await waitForReady(runtimeDir, daemon);
+    const client = new CoordinationClient({ endpoint: metadata.endpoint, maxAttempts: 1 });
+    await assert.rejects(
+      client.call("append_event", { projectId: metadata.projectId, eventType: "ForgedEvent", actor: { kind: "system", name: "ordinary-client" }, payload: {} }),
+      /explicit daemon test mode/,
+    );
+    await assert.rejects(
+      client.call("idempotency_record", { clientId: "ordinary-client", key: "key", operationKind: "mutation", requestDigest: "sha256:forged" }),
+      /explicit daemon test mode/,
+    );
+  } finally {
+    if (daemon) await stopDaemon(daemon).catch(() => undefined);
+    await rm(runtimeDir, { recursive: true, force: true });
+  }
+});
+
+test("PN10 daemon binds worktrees and evaluation targets to server-observed state", async () => {
+  const runtimeDir = await mkdtemp(path.join(os.tmpdir(), "my-pi-daemon-state-authority-"));
+  const outside = await mkdtemp(path.join(os.tmpdir(), "my-pi-daemon-outside-"));
+  let daemon: ChildProcess | undefined;
+  try {
+    daemon = startDaemon(runtimeDir, false);
+    const metadata = await waitForReady(runtimeDir, daemon);
+    const client = new CoordinationClient({ endpoint: metadata.endpoint, maxAttempts: 1 });
+    await client.call("coord_join", {
+      repository: { id: "repo-authority-test", projectId: metadata.projectId, vcs: "git", canonicalIdentity: "caller-supplied-value" },
+      worktree: { id: "worktree-authority-test", repositoryId: "repo-authority-test", root: ROOT, branch: "main", observedAt: "2026-09-04T00:00:00.000Z" },
+      host: "authority-test-host",
+    });
+    const storedWorktree = await client.call<{ root: string }>("get_projection", { projectId: metadata.projectId, kind: "worktree", id: "worktree-authority-test" });
+    assert.equal(path.resolve(storedWorktree.root), path.resolve(ROOT));
+    const spec = await client.call<{ id: string }>("eval_register_spec", {
+      name: "server target authority",
+      criteria: [{ id: "check", kind: "artifact", required: true, severity: "critical", evaluatorRef: "deterministic-local", expected: true }],
+    });
+    const item = await client.call<{ id: string }>("coord_create_work_item", { projectId: metadata.projectId, title: "server target authority", evaluationSpecId: spec.id });
+    await assert.rejects(
+      client.call("eval_request", { specId: spec.id, workItemId: item.id, repositoryStateRef: "caller-forged-state" }),
+      /server-verified change receipt/,
+    );
+    await assert.rejects(
+      client.call("coord_join", {
+        repository: { id: "repo-authority-outside", projectId: metadata.projectId, vcs: "git", canonicalIdentity: "caller-supplied-value" },
+        worktree: { id: "worktree-authority-outside", repositoryId: "repo-authority-outside", root: outside, branch: "outside", observedAt: "2026-09-04T00:00:00.000Z" },
+        host: "authority-test-outside",
+      }),
+      /not a Git repository|repository identity|workspace is not a Git repository/,
+    );
+  } finally {
+    if (daemon) await stopDaemon(daemon).catch(() => undefined);
+    await rm(runtimeDir, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
   }
 });

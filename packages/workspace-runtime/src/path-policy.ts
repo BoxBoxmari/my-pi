@@ -17,10 +17,10 @@ export class PathPolicy {
     return roots;
   }
 
-  async resolveForRead(workspace: Workspace, input: string): Promise<ResolvedPath> {
+  async resolveForRead(workspace: Workspace, input: string, options: { allowMissing?: boolean } = {}): Promise<ResolvedPath> {
     const roots = await this.rootsOf(workspace);
     const resolved = await canonicalizeWithinRoots(roots, input, workspace.root);
-    if (!resolved.exists) throw err.pathNotFound(`path not found: ${input}`);
+    if (!resolved.exists && !options.allowMissing) throw err.pathNotFound(`path not found: ${input}`);
     this.authorize(workspace, "read", resolved);
     return resolved;
   }

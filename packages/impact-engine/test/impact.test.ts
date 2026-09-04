@@ -45,3 +45,12 @@ test("PN6 traversal bounds set truncated instead of broadcasting unbounded graph
   assert.equal(result.affectedEntities.length, 1);
   assert.equal(result.truncated, true);
 });
+
+test("PN6 does not reverse-propagate a contains edge from a symbol to its file", () => {
+  const file = entity("entity-container", "file", "container.ts", "src/container.ts");
+  const symbol = entity("entity-symbol", "symbol", "changed", "src/container.ts");
+  const intent: Intent = { id: "intent-direction" as never, projectId: base.projectId, agentSessionId: "session-a" as never, kind: "modify", summary: "change one symbol", targets: [{ type: "symbol", entityId: symbol.id }] as never, state: "active", createdAt: base.observedAt };
+  const edge: CodeEdge = { from: file.id, to: symbol.id, kind: "contains", confidence: "exact", provider: "ast", observedAt: base.observedAt };
+  const result = new ImpactEngine().compute({ subject: intent.id, intent, entities: [file, symbol], edges: [edge], workItems: [] });
+  assert.deepEqual(result.affectedEntities.map((item) => item.entityId), [symbol.id]);
+});

@@ -62,7 +62,7 @@ export class ContextRouter {
         continue;
       }
       const itemPayload = payload(event);
-      const directAgent = itemPayload.agentSessionId === input.agentSessionId || itemPayload.sessionId === input.agentSessionId || itemPayload.assignee === input.agentSessionId;
+      const directAgent = itemPayload.agentSessionId === input.agentSessionId || itemPayload.authorAgentSessionId === input.agentSessionId || itemPayload.sessionId === input.agentSessionId || itemPayload.assignee === input.agentSessionId;
       const workItemId = typeof itemPayload.workItemId === "string" ? itemPayload.workItemId : event.eventType.startsWith("WorkItem") && typeof itemPayload.id === "string" ? itemPayload.id : undefined;
       const impactedWorkItems = impactWorkItemIds(event);
       let routed: RoutedEvent | undefined;

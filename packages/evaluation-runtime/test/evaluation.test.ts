@@ -26,22 +26,16 @@ function evidence(targetStateRef: string, provider = "ci") {
 }
 
 test("PN8 accepts only all-required exact-state evidence and survives reopen", async () => {
-  const { dir, store, projectId, evaluation } = await setup();
+  const { dir, store, projectId } = await setup();
+  const evaluation = new EvaluationRuntime(store, projectId, [new DeterministicProvider()]);
   try {
     const spec = await evaluation.registerSpec({
       name: "required checks",
-      criteria: [{ id: "tests", kind: "test", required: true, severity: "error", evaluatorRef: "ci", expected: "pass" }],
+      criteria: [{ id: "tests", kind: "test", required: true, severity: "error", evaluatorRef: "deterministic-local", expected: "pass" }],
     });
     await ensureWorkItem(store, projectId, "work-1");
     const run = await evaluation.requestRun({ specId: spec.id, workItemId: "work-1" as never, repositoryStateRef: "receipt-1" });
-    const result = await evaluation.recordResult(run.id, {
-      providerResultId: "ci-result-1",
-      providerId: "ci",
-      criterionId: "tests",
-      result: { criterionId: "tests", outcome: "pass", evidence: evidence("receipt-1") },
-    });
-    assert.equal(result.runId, run.id);
-    const accepted = await evaluation.completeRun(run.id);
+    const accepted = await evaluation.evaluateRun(run.id, { tests: "pass" });
     assert.equal(accepted.decision?.decision, "accepted");
     assert.equal(accepted.feedback, undefined);
     assert.equal(accepted.retry, undefined);
@@ -125,6 +119,27 @@ test("PN8 provider result identity is idempotent but cannot be replayed with a d
   }
 });
 
+test("PN8 caller-declared evaluator identity cannot satisfy a trusted criterion", async () => {
+  const { dir, store, projectId, evaluation } = await setup();
+  try {
+    const spec = await evaluation.registerSpec({ name: "forged provider", criteria: [{ id: "check", kind: "artifact", required: true, severity: "critical", evaluatorRef: "deterministic-local", expected: true }] });
+    await ensureWorkItem(store, projectId, "work-forged-provider");
+    const run = await evaluation.requestRun({ specId: spec.id, workItemId: "work-forged-provider" as never, repositoryStateRef: "state-forged-provider" });
+    const stored = await evaluation.recordResult(run.id, {
+      providerResultId: "caller-claimed-pass",
+      providerId: "deterministic-local",
+      criterionId: "check",
+      result: { criterionId: "check", outcome: "pass", evidence: evidence("state-forged-provider", "deterministic-local") },
+    });
+    assert.equal(stored.provenance, "external_unverified");
+    const status = await evaluation.completeRun(run.id);
+    assert.equal(status.decision?.decision, "inconclusive");
+  } finally {
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("PN8 retry budget is bounded and deterministic provider never executes shell", async () => {
   const run = { id: "evalrun-test" as never, specId: "evalspec-test" as never, specVersion: 1, workItemId: "work-test" as never, repositoryStateRef: "receipt-test", attempt: 3, state: "completed" as const };
   assert.equal(makeRetryCycle(run, "recommended", ["FAIL"], ["keep tests passing"], 3).state, "exhausted");
@@ -168,8 +183,8 @@ test("PN8 duplicate criterion results aggregate conservatively instead of lettin
     await evaluation.recordResult(run.id, { providerResultId: "pass-result", providerId: "fixture", criterionId: "check", result: { criterionId: "check", outcome: "pass", evidence: passEvidence } });
     await evaluation.recordResult(run.id, { providerResultId: "fail-result", providerId: "fixture", criterionId: "check", result: { criterionId: "check", outcome: "fail", evidence: passEvidence, reasonCode: "CONFLICTING_RESULT" } });
     const status = await evaluation.completeRun(run.id);
-    assert.equal(status.decision?.decision, "rejected");
-    assert.ok(status.feedback?.failedCriteria.includes("check"));
+    assert.equal(status.decision?.decision, "inconclusive");
+    assert.ok(status.feedback?.reasonCodes.includes("CRITERION_INCONCLUSIVE:check"));
   } finally {
     await store.close();
     await rm(dir, { recursive: true, force: true });

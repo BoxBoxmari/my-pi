@@ -1,5 +1,4 @@
 import path from "node:path";
-import { stat } from "node:fs/promises";
 import { detectAstLanguage, TreeSitterAstBackend } from "@my-pi/ast";
 import type { CodeEdge, CodeEntity } from "@my-pi/contracts";
 import type { CodeGraphDelta, IndexContext } from "./model.js";
@@ -45,30 +44,26 @@ function importSpecifier(raw: string): string | undefined {
   return bare?.[1];
 }
 
-async function fileIfExists(candidate: string): Promise<string | undefined> {
-  try {
-    return (await stat(candidate)).isFile() ? candidate : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 /** Resolve only workspace-local imports; never traverse node_modules or outside the authority root. */
-async function resolveWorkspaceImport(root: string, importer: string, specifier: string): Promise<string | undefined> {
+async function resolveWorkspaceImport(context: IndexContext, importer: string, specifier: string): Promise<string | undefined> {
   if (specifier.startsWith("node:")) return undefined;
   let base: string;
   if (specifier.startsWith(".")) {
-    base = path.resolve(root, path.dirname(importer), specifier);
+    base = path.resolve(context.root, path.dirname(importer), specifier);
   } else {
     const packageMatch = specifier.match(/^@my-pi\/([^/]+)(?:\/(.*))?$/);
     if (!packageMatch) return undefined;
-    base = path.join(root, "packages", packageMatch[1]!, "src", packageMatch[2] ?? "index");
+    base = path.join(context.root, "packages", packageMatch[1]!, "src", packageMatch[2] ?? "index");
   }
   const withoutRuntimeExtension = base.replace(/\.(?:js|jsx|mjs|cjs|ts|tsx)$/i, "");
   const candidates = [base, withoutRuntimeExtension, `${withoutRuntimeExtension}.ts`, `${withoutRuntimeExtension}.tsx`, `${withoutRuntimeExtension}.js`, `${withoutRuntimeExtension}.jsx`, `${withoutRuntimeExtension}.mjs`, `${withoutRuntimeExtension}.cjs`, path.join(withoutRuntimeExtension, "index.ts"), path.join(withoutRuntimeExtension, "index.js")];
   for (const candidate of candidates) {
-    const resolved = await fileIfExists(candidate);
-    if (resolved) return relativePosix(root, resolved);
+    try {
+      const resolved = await context.resolveReadPath(candidate);
+      if (resolved.exists) return resolved.relPosix;
+    } catch {
+      // Missing or protected imports are not followed and never bypass policy.
+    }
   }
   return undefined;
 }
@@ -82,10 +77,12 @@ export class AstCodeStateProvider implements CodeStateProvider {
   }
 
   async indexFile(context: IndexContext, filePath: string): Promise<CodeGraphDelta> {
-    const absolute = path.resolve(context.root, filePath);
-    const relativePath = relativePosix(context.root, absolute);
+    const resolved = await context.resolveReadPath(filePath);
+    const absolute = resolved.absolute;
+    const relativePath = resolved.relPosix;
     const language = detectAstLanguage(absolute);
     const observedAt = new Date().toISOString();
+    if (!resolved.exists) return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [], observedAt, providerHealth: { ast: { status: "ready" } } };
     if (!language) return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [], observedAt, providerHealth: { ast: { status: "unavailable", message: "language is not supported by the existing AST provider" } } };
     const fileId = stableEntityId(fileStableKey(context.repositoryIdentity, relativePath));
     const entities = new Map<string, CodeEntity>();
@@ -129,7 +126,7 @@ export class AstCodeStateProvider implements CodeStateProvider {
           };
           edges.set(`${edge.from}|${edge.to}|${edge.kind}`, edge);
           if (query.kind === "import") {
-            const resolvedImport = await resolveWorkspaceImport(context.root, relativePath, name);
+            const resolvedImport = await resolveWorkspaceImport(context, relativePath, name);
             if (resolvedImport && resolvedImport !== relativePath) {
               const resolvedId = stableEntityId(fileStableKey(context.repositoryIdentity, resolvedImport));
               edges.set(`${fileId}|${resolvedId}|resolved-import`, { ...edge, to: resolvedId, confidence: "strong" });

@@ -1,58 +1,100 @@
 # Production Next Implementation Status
 
-Status: candidate implementation; release and promotion admission withheld.
+Status: `REMEDIATION_INCOMPLETE`; closeout hardening is committed in this change
+set, while release and promotion admission remain withheld.
 
 Capture date: 2026-09-04
 
-Baseline: `273ed28947a94a2495b10721f725447ea769994d`
+Candidate HEAD: captured from the final commit and verifier output; see the
+commit/push record for the exact SHA.
 
-The repository changes in this worktree are uncommitted. The status below records implementation evidence, not an admission claim.
+Candidate state: tracked source is clean after the authorized commit; generated
+candidate evidence remains intentionally untracked and is regenerated for each
+final SHA. The approved baseline remains
+`273ed28947a94a2495b10721f725447ea769994d`; the baseline is an ancestor of the
+candidate HEAD, rather than a required exact match.
+
+## Local hardening disposition
+
+| Gate | Current state | Evidence and boundary |
+|---|---|---|
+| Gate A | Implemented locally | Watcher startup and asynchronous backend errors degrade to bounded reconciliation; overflow, nested fallback, and stop/restart are regression-tested. |
+| Gate B | Implemented locally | Raw event/idempotency/code-state mutation is test-mode only; caller-declared evaluator identity is stored as `external_unverified`; production evaluation targets are receipt-verified. |
+| Gate C | Implemented locally | The daemon registers canonical worktree roots, starts bounded live indexing, routes reads through path policy, and keeps provider degradation non-fatal. |
+| Gate D | Implemented locally | Impact is materialized at intent/code-state update time; `coord_sync` reads bounded events, does not reload the graph, and does not append heartbeat events. Evaluation queries use run-scoped indexes. |
+| Gate E | Implemented locally | Composite proposals include every normalized resource and payload digest; receipts preserve resource outcomes and `PARTIAL` has its own event type. |
+| Gate F | Partial | Baseline ancestry logic and local qualification are covered; final candidate-bound release evidence and cross-platform GitHub Actions state still require verification. |
 
 ## Implemented local layers
 
-| Gate | Current state | Evidence |
-|---|---|---|
-| PN0/PN1 | Candidate implementation | Baseline record, legacy catalog golden test, protocol-neutral contracts, ADRs, boundary tests |
-| PN2 | Candidate implementation | SQLite WAL, migrations 0001–0004, event/projection/idempotency/audit tests, store benchmarks |
-| PN3 | Candidate implementation | Windows named-pipe and Unix-socket abstraction, lock/discovery/reconnect tests |
-| PN4 | Candidate implementation | Coordination runtime, six opt-in MCP tools, claim/intent/sync/publish/complete tests |
-| PN5 | Candidate implementation | Incremental code-state index, AST reuse, watcher, persistence and provider-degradation tests |
-| PN6 | Implementation candidate only | Five labelled controlled-replay workload classes and A–E arm comparison; product kill gate is not admitted |
-| PN7 | Candidate implementation | Shared ChangeRuntime, immutable snapshot metadata, CAS revalidation, receipts and PARTIAL tests |
-| PN8 | Implementation candidate only | Exact-state acceptance, eight seeded defect classes, and a controlled ordinary-log versus structured-feedback replay; external repair-value gate is not admitted |
-| PN9 | Implementation candidate only | Self-host replay on isolated copies of this repository: ChangeRuntime updates `packages/contracts/src/ids.ts`, code-state indexes the import chain, ImpactDetected reaches the reviewer, the first attempt is rejected, an authorized retry is accepted, and dependency work unblocks; stable N-1 promotion remains withheld |
-| PN10 | Local security seam | Principal/policy/approval/classification/audit primitives; enterprise auth is not qualified |
-| PN12 | Local qualification candidate | Hard-crash/restart persistence, idempotency, stale-evidence, evaluator-failure, retry-budget, and IPC-bound checks; enterprise fault classes remain untested |
+PN0/PN1 compatibility remains the 13-tool MCP surface. PN2–PN5 now include
+the SQLite coordination store, local daemon IPC, coordination runtime,
+daemon-managed code-state, canonical worktree registration, protected-path
+indexing, bounded watcher reconciliation, and provider-health reporting.
 
-## Measured local evidence
+PN6 materializes bounded impact results with directional graph traversal and
+selective routing. PN7 uses content preconditions, per-file atomic publication,
+composite plan digests, read-back verification, and explicit `PARTIAL` results.
+PN8 separates external declarations from server-registered evaluator output and
+binds production runs to verified change receipts. PN9 has an isolated
+self-host replay with a rejected first attempt, a bounded accepted retry,
+impact routing, and no autonomous spawning. PN10 remains a local policy and
+audit seam; it is not enterprise authentication.
 
-- `pnpm verify`: 189 passing tests, 1 platform-specific skip, 36/36 release tests, clean-install smoke pass.
-- Coordination latency: 1,000 events, p50 0.31 ms, p95 0.70 ms on Windows/Node 26.
-- Coordination contention: four independent processes, 400 observed events.
-- PN6 controlled replay: five workload classes; full routing recall 1.0 versus task-board-only 0.5, modeled repair iterations 1.0 versus 2.4, and seven fewer modeled stale-contract mistakes.
-- Code-state index: 20 files, 40 entities, 20 edges, approximately 0.9–1.0 seconds.
-- Code-state incremental update: p50 approximately 38 ms, p95 approximately 57 ms.
-- Evaluation throughput: 100 runs, approximately 217 runs/second.
-- Feedback corpus: 8 cases, zero false accepts, two inconclusive outcomes, five bounded retry recommendations.
-- PN8 controlled replay: structured feedback repair yield 1.0 versus ordinary-log 0.4 across five retryable cases; all five structured retries preserved the regression guard.
-- Dogfood smoke: dependency block, selective sync, unblock and exact-state acceptance all observed; candidate identity remains `uncommitted`.
-- Self-host replay: `node scripts/dogfood-self-host.mjs --evidence-out evidence/PN9.json` passed; PN9 evidence validation records two APPLIED receipts, one rejected attempt, one accepted retry, 46 events, and zero unrelated observer items.
-- PN12 local reliability: `node benchmarks/local-reliability.mjs --evidence-out evidence/PN12.json` passed on Windows/Node 26; crash recovery measured at approximately 1.3–1.4 seconds across local runs and all six local scenarios were true.
+## Qualification evidence
 
-These measurements are local qualification evidence only. They do not establish cross-platform, enterprise, or product-market claims.
+The following are local qualification records, not promotion evidence:
 
-## Withheld gates and reasons
+- `pnpm verify` covers build, architecture, public-boundary, unit/integration,
+  release, gate-evidence, and installed-artifact smoke checks.
+- Latest local run: 202 tests, 201 passed, 1 platform-specific skip, and 41/41
+  release tests passed.
+- `node scripts/dogfood-self-host.mjs --evidence-out evidence/PN9.json`
+  exercises the candidate daemon, isolated worktrees, change receipts, and
+  server-side evaluator execution.
+- `node benchmarks/impact-routing-arms.mjs --evidence-out evidence/PN6.json`
+  compares the controlled impact-routing arms.
+- `node benchmarks/evaluation-feedback-arms.mjs --evidence-out evidence/PN8.json`
+  compares controlled ordinary and structured feedback arms.
+- `node benchmarks/local-reliability.mjs --evidence-out evidence/PN12.json`
+  checks local crash recovery, idempotency, stale evidence, evaluator failure,
+  retry exhaustion, and IPC frame bounds.
 
-PN6 has a candidate-bound controlled replay, but remains withheld until representative shared-contract workloads provide observed downstream correctness and rework outcomes rather than fixture-derived repair labels.
+Repeated local reliability runs measured crash recovery at approximately
+`1.45–1.67 s` on Windows/Node 26 and passed all six declared local scenarios.
 
-PN8 has a candidate-bound controlled replay and zero seeded false accepts, but remains withheld until the repair-yield comparison is observed on real or independently replayable engineering work rather than the fixture repair model.
+The four PN evidence files are deliberately generated outside the tracked
+release commit. `pnpm verify:production-next-evidence` checks their schema,
+candidate state digest, and exact candidate commit. Controlled fixtures cannot
+be upgraded into product-value or stable-bootstrap claims.
 
-PN9 has candidate-bound self-host evidence; the evidence explicitly records `stableNMinusOneVerified: false`, so promotion remains withheld until a distinct stable N-1 runtime controls candidate N and the candidate can rebuild/retest itself from a clean checkout.
+Reconciliation is fingerprint-aware: unchanged files do not generate repeated
+`CodeGraphUpdated` events during fallback polling.
 
-PN11 is not started because its entry condition depends on PN6, PN8 and PN9.
+## Withheld gates
 
-PN13 is not admitted. `node scripts/verify-release.mjs --strict` currently withholds admission because the committed legacy evidence and benchmarks are bound to `fc89a0d2cf1f260f7617a09454f93d5fb75efa31`, while the current candidate identity resolves to `273ed28947a94a2495b10721f725447ea769994d`.
+PN6 remains withheld until the impact-routing improvement is observed on
+independent engineering work with traceable downstream correctness and rework
+outcomes. PN8 remains withheld until structured-feedback repair yield and
+regression protection are observed on independent engineering work. PN9 remains
+withheld until a distinct, verified stable N-1 runtime controls the candidate
+rebuild/retest flow.
 
-## Next authorized handoff
+PN12 may remain local, but its untested fault classes remain explicit: disk-full,
+permission loss, artifact-store disk-full, LSP crash loops, Git cancellation,
+enterprise network partition, and PostgreSQL failover.
 
-Review and commit the candidate worktree, regenerate candidate-bound evidence/SBOM, rerun strict release verification, then replace the controlled PN6/PN8/PN9 signals with independently observed acceptance evidence before considering any enterprise control-plane implementation.
+PN11 is not started. PN13 is not admitted. A passing local test suite does not
+override these external evidence requirements or the read-only promotion gate.
+
+The current public GitHub history contains dependency-update PRs only; no
+independent engineering run, reviewer decision, downstream correctness result,
+repair-yield observation, or stable N-1 bootstrap is available there for PN6,
+PN8, or PN9 admission.
+
+## Recommended next action
+
+Run the committed candidate through the real engineering evidence workflow:
+use a verified stable N-1 runtime, collect independent PR/CI or work-item run
+identifiers for PN6 and PN8, bind the evidence to the exact candidate state,
+and rerun the read-only promotion verifier. Only then reconsider PN11 entry.

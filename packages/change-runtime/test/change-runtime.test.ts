@@ -93,6 +93,36 @@ test("ChangeRuntime reports PARTIAL without automatic rollback after a later pub
     assert.equal(receipt.status, "PARTIAL");
     assert.equal(await readFile(path.join(dir, "a.txt"), "utf8"), "a");
     await assert.rejects(readFile(path.join(dir, "b.txt"), "utf8"), { code: "ENOENT" });
+    assert.equal(receipt.inputVersions?.length, 2);
+    assert.deepEqual(receipt.resourceResults?.map((item) => [item.path, item.status]), [["a.txt", "APPLIED"], ["b.txt", "REJECTED"]]);
+    assert.equal(receipt.verification?.verified, false);
+    assert.equal(receipt.planDigest?.length, 64);
+    assert.equal(verifyReceipt(receipt), true);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("ChangeRuntime composite proposal digest includes every ordered resource", async () => {
+  const { dir, changes } = await setup();
+  try {
+    const first = await changes.applyMany({ changes: [
+      { path: "a.txt", bytes: new TextEncoder().encode("a"), precondition: { path: "a.txt", condition: "absent" } },
+      { path: "b.txt", bytes: new TextEncoder().encode("b"), precondition: { path: "b.txt", condition: "absent" } },
+    ] });
+    assert.equal(first.status, "APPLIED");
+    assert.equal(first.inputVersions?.length, 2);
+    assert.equal(first.outputVersions?.length, 2);
+    assert.equal(first.resourceResults?.every((item) => item.status === "APPLIED"), true);
+    await rm(path.join(dir, "a.txt"));
+    await rm(path.join(dir, "b.txt"));
+    const second = await changes.applyMany({ changes: [
+      { path: "a.txt", bytes: new TextEncoder().encode("a"), precondition: { path: "a.txt", condition: "absent" } },
+      { path: "b.txt", bytes: new TextEncoder().encode("changed"), precondition: { path: "b.txt", condition: "absent" } },
+    ] });
+    assert.notEqual(second.planDigest, first.planDigest);
+    assert.equal(verifyReceipt(first), true);
+    assert.equal(verifyReceipt(second), true);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

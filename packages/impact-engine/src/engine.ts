@@ -80,7 +80,14 @@ function graphTraversal(targets: CodeEntity[], entities: CodeEntity[], edges: Co
   while (queue.length > 0) {
     const current = queue.shift()!;
     if (current.depth >= bounds.maxDepth) continue;
-    const adjacent = [...(inbound.get(current.id) ?? []), ...(outbound.get(current.id) ?? [])];
+    // Impact follows dependency direction. A changed dependency affects its
+    // importers/callers/tests (incoming edges); a changed container may expose
+    // its contained symbols (outgoing contains edges). Do not propagate every
+    // relationship symmetrically or unrelated parents become impacted.
+    const adjacent = [
+      ...(inbound.get(current.id) ?? []).filter((edge) => edge.kind !== "contains"),
+      ...(outbound.get(current.id) ?? []).filter((edge) => edge.kind === "contains"),
+    ];
     for (const edge of adjacent) {
       const nextId = edge.from === current.id ? edge.to : edge.from;
       const next = byId.get(nextId);

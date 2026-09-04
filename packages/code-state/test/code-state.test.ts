@@ -1,16 +1,21 @@
 import assert from "node:assert/strict";
+import { EventEmitter } from "node:events";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import type { FSWatcher } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { createProjectId, createRepositoryId, createWorktreeId } from "@my-pi/contracts";
 import { SqliteCoordinationStore } from "@my-pi/coordination-store";
-import { CodeStateIndexer, CodeStateWatcher, FileSystemCodeStateProvider, type CodeStateProvider, type IndexContext } from "@my-pi/code-state";
+import { CodeStateIndexer, CodeStateWatcher, FileSystemCodeStateProvider, type CodeStateProvider, type IndexContext, type WatchFactory } from "@my-pi/code-state";
+import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 
 async function setup() {
   const dir = await mkdtemp(path.join(tmpdir(), "my-pi-code-state-"));
   const store = new SqliteCoordinationStore(path.join(dir, "coordination.sqlite"));
   await store.init();
+  const runtime = new WorkspaceRuntime();
+  await runtime.open({ root: dir });
   const context: IndexContext = {
     projectId: createProjectId(),
     repositoryId: createRepositoryId(),
@@ -18,6 +23,7 @@ async function setup() {
     repositoryIdentity: "git:local:my-pi",
     root: dir,
     signal: new AbortController().signal,
+    resolveReadPath: (filePath) => runtime.pathPolicy.resolveForRead(runtime.workspaceOrThrow, filePath, { allowMissing: true }),
   };
   return { dir, store, context };
 }
@@ -118,6 +124,71 @@ test("PN5 watcher coalesces changed paths and ignores build/vendor segments", as
     assert.equal(observed.length > 0, true);
     assert.ok(observed.flat().includes("src.ts"));
     assert.equal(observed.flat().includes("dist/ignored.js"), false);
+  } finally {
+    watcher.stop();
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("PN5 watcher uses degraded reconciliation when recursive watching is unavailable", async () => {
+  const { dir, store } = await setup();
+  const observed: string[][] = [];
+  let overflowCount = 0;
+  let fallbackListener: ((eventType: string, filename: string | Buffer | null) => void) | undefined;
+  const watchFactory: WatchFactory = (_target, options, listener) => {
+    if (options?.recursive) throw Object.assign(new Error("recursive watch is unavailable"), { code: "ERR_FEATURE_UNAVAILABLE_ON_PLATFORM" });
+    fallbackListener = listener;
+    const emitter = new EventEmitter() as EventEmitter & { close: () => void };
+    emitter.close = () => undefined;
+    return emitter as unknown as FSWatcher;
+  };
+  const watcher = new CodeStateWatcher(dir, {
+    debounceMs: 5,
+    reconcileMs: 10,
+    maxPendingPaths: 1,
+    watchFactory,
+    onPaths: (paths) => { observed.push(paths); },
+    onOverflow: () => { overflowCount++; },
+  });
+  try {
+    watcher.start();
+    assert.equal(watcher.status, "degraded");
+    fallbackListener?.("rename", "nested/created.ts");
+    fallbackListener?.("change", "second.ts");
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    assert.ok(observed.flat().includes("nested/created.ts"));
+    assert.ok(overflowCount > 0);
+  } finally {
+    watcher.stop();
+    assert.equal(watcher.status, "stopped");
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("PN5 watcher contains startup failure and can be stopped and restarted", async () => {
+  const { dir, store } = await setup();
+  const errors: unknown[] = [];
+  let overflowCount = 0;
+  const watcher = new CodeStateWatcher(dir, {
+    debounceMs: 5,
+    reconcileMs: 5,
+    watchFactory: () => { throw new Error("watch backend failed"); },
+    onPaths: () => undefined,
+    onOverflow: () => { overflowCount++; },
+    onError: (error) => { errors.push(error); },
+  });
+  try {
+    assert.doesNotThrow(() => watcher.start());
+    assert.equal(watcher.status, "degraded");
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    assert.ok(errors.length >= 2);
+    assert.ok(overflowCount > 0);
+    watcher.stop();
+    assert.equal(watcher.status, "stopped");
+    assert.doesNotThrow(() => watcher.start());
+    assert.equal(watcher.status, "degraded");
   } finally {
     watcher.stop();
     await store.close();

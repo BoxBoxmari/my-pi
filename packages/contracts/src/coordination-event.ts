@@ -27,6 +27,7 @@ export const COORDINATION_EVENT_TYPES = [
   "ImpactDetected",
   "ChangeProposed",
   "ChangeApplied",
+  "ChangePartiallyApplied",
   "ChangeRejected",
   "VerificationRecorded",
   "EvaluationRequested",

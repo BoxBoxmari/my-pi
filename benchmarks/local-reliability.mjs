@@ -25,7 +25,7 @@ function assertCondition(value, message) {
 }
 
 function startDaemon(runtimeDir, databasePath) {
-  const child = spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir, "--database", databasePath], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+  const child = spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir, "--database", databasePath, "--test-mode"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
   let stderr = "";
   child.stderr.on("data", (chunk) => { stderr += chunk.toString("utf8"); });
   child.diagnosticStderr = () => stderr;

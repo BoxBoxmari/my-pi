@@ -9,6 +9,7 @@
   "references": [
     { "path": "../contracts" },
     { "path": "../coordination-store" },
-    { "path": "../ast" }
+    { "path": "../ast" },
+    { "path": "../workspace-runtime" }
   ]
 }

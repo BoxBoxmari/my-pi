@@ -4,13 +4,14 @@ import { fileURLToPath } from "node:url";
 import { err } from "@my-pi/contracts";
 import { normalizeCoordinationStoreError } from "./errors.js";
 
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
 
 const MIGRATION_FILES = [
   { version: 1, url: new URL("../migrations/0001_initial.sql", import.meta.url) },
   { version: 2, url: new URL("../migrations/0002_code_state.sql", import.meta.url) },
   { version: 3, url: new URL("../migrations/0003_evaluation.sql", import.meta.url) },
   { version: 4, url: new URL("../migrations/0004_audit.sql", import.meta.url) },
+  { version: 5, url: new URL("../migrations/0005_evaluation_query_indexes.sql", import.meta.url) },
 ];
 
 export async function applyMigrations(db: DatabaseSync): Promise<void> {

@@ -3,11 +3,9 @@ import {
   createContextArtifactId,
   createIntentId,
   createProjectId,
-  createScopeId,
   createWorkItemId,
   err,
   type AgentSession,
-  type CoordinationEvent,
   type ContextArtifact,
   type ChangeReceipt,
   type AcceptanceDecision,
@@ -26,13 +24,13 @@ import {
 import type { CoordinationStore } from "@my-pi/coordination-store";
 import { ContextRouter } from "@my-pi/context-router";
 import { ImpactEngine } from "@my-pi/impact-engine";
-import { dependenciesOf, dependencyBlockers } from "./work-graph.js";
+import { dependencyBlockers } from "./work-graph.js";
 import { DEFAULT_LEASE_MS, leaseFor, sessionExpired } from "./session-leases.js";
 import { validateJoinInput, type JoinInput, type JoinResult } from "./join.js";
 import { validateClaimInput, type ClaimInput } from "./claim.js";
 import { validateIntentInput, type DeclareIntentInput, type IntentDraft } from "./intent.js";
 import { artifactFromInput, validatePublishInput, type PublishInput } from "./publish.js";
-import { eventWorkItemId, routeEvent, type CoordinationSyncRequest, type CoordinationSyncResult } from "./sync.js";
+import { type CoordinationSyncRequest, type CoordinationSyncResult } from "./sync.js";
 import type { CompleteInput } from "./complete.js";
 
 export interface CoordinationRuntimeOptions {
@@ -189,71 +187,38 @@ export class CoordinationRuntime {
   async sync(input: CoordinationSyncRequest): Promise<CoordinationSyncResult> {
     if (!Number.isSafeInteger(input.maxEvents ?? 100) || (input.maxEvents ?? 100) < 1 || (input.maxEvents ?? 100) > 1000) throw err.invalidArgument("maxEvents must be between 1 and 1000");
     if (input.maxBytes !== undefined && (!Number.isSafeInteger(input.maxBytes) || input.maxBytes < 1 || input.maxBytes > 4 * 1024 * 1024)) throw err.invalidArgument("maxBytes is out of bounds");
-    const heartbeat = await this.store.transact((tx) => {
+    await this.store.transact((tx) => {
       const session = tx.getProjection<AgentSession>("agent_session", input.agentSessionId);
       if (!session) throw err.agentSessionNotFound();
       if (sessionExpired(session, this.now())) throw err.agentSessionExpired();
       const now = this.now().toISOString();
       const updated = { ...session, heartbeatAt: now };
-      const event = tx.appendEvent({ projectId: this.projectId, eventType: "AgentHeartbeat", occurredAt: now, actor: { kind: "agent_session", id: input.agentSessionId }, payload: { ...updated, sessionId: session.id } });
-      return { session: updated, sequence: event.sequence };
+      // Heartbeat freshness is projection state, not a durable lifecycle event.
+      // Polling must not grow the event log linearly with coord_sync traffic.
+      tx.putProjection("agent_session", session.id, { ...updated, sessionId: session.id }, this.projectId, now);
     });
     const workItems = await this.store.listProjections<WorkItem>("work_item", this.projectId);
-    const activeIntents = (await this.store.listProjections<Intent>("intent", this.projectId)).map((record) => record.value).filter((intent) => intent.state === "active");
     const dependencyRecords = await this.store.listProjections<WorkDependency>("work_dependency", this.projectId);
     const dependencies = dependencyRecords.map((record) => record.value);
     const assigned = workItems.map((record) => record.value).filter((item) => item.assignee === input.agentSessionId);
     const workItemIds = new Set(assigned.map((item) => item.id));
     const dependencyWorkItemIds = new Set(dependencies.filter((dependency) => workItemIds.has(dependency.from) && dependency.type === "depends_on").map((dependency) => dependency.to));
-    const page = await this.store.listEvents({ projectId: this.projectId, afterSequence: input.sinceSequence ?? heartbeat.sequence - 1n, limit: input.maxEvents, maxBytes: input.maxBytes });
-    let highPriority: CoordinationSyncResult["highPriority"] = [];
-    let normalPriority: CoordinationSyncResult["normalPriority"] = [];
-    let throughSequence = page.throughSequence;
-    if (input.codeState) {
-      const impacts = activeIntents.map((intent) => new ImpactEngine().compute({
-        subject: intent.id,
-        intent,
-        entities: input.codeState!.entities,
-        edges: input.codeState!.edges,
-        workItems: workItems.map((record) => record.value),
-        dependencies,
-        activeIntents,
-      }));
-      const routed = new ContextRouter().route({
-        agentSessionId: input.agentSessionId,
-        currentWorkItemIds: [...workItemIds],
-        dependencyWorkItemIds: [...dependencyWorkItemIds],
-        sinceSequence: input.sinceSequence ?? heartbeat.sequence - 1n,
-        events: page.events,
-        impactResults: impacts,
-        maxEvents: input.maxEvents,
-        maxBytes: input.maxBytes,
-      });
-      highPriority = routed.highPriority;
-      normalPriority = routed.normalPriority;
-      throughSequence = routed.throughSequence;
-    } else {
-      const seenEventIds = new Set<string>();
-      const supersededArtifacts = new Set<string>(page.events.flatMap((event) => {
-        if (event.eventType !== "ContextPublished") return [];
-        const artifact = event.payload !== null && typeof event.payload === "object" && !Array.isArray(event.payload) ? event.payload as Record<string, unknown> : {};
-        return typeof artifact.supersedes === "string" ? [artifact.supersedes] : [];
-      }));
-      for (const event of page.events) {
-        if (seenEventIds.has(event.eventId)) continue;
-        seenEventIds.add(event.eventId);
-        if (event.eventType === "ContextPublished") {
-          const artifact = event.payload !== null && typeof event.payload === "object" && !Array.isArray(event.payload) ? event.payload as Record<string, unknown> : {};
-          if (typeof artifact.id === "string" && supersededArtifacts.has(artifact.id)) continue;
-        }
-        const routed = routeEvent(event, input.agentSessionId, workItemIds, dependencyWorkItemIds);
-        if (!routed) continue;
-        (routed.priority === "high" ? highPriority : normalPriority).push(routed);
-      }
-    }
+    const page = await this.store.listEvents({ projectId: this.projectId, afterSequence: input.sinceSequence ?? 0n, limit: input.maxEvents, maxBytes: input.maxBytes });
+    // Impact is materialized when an intent or code-state update is observed.
+    // Sync only reads bounded events and routes persisted ImpactDetected records;
+    // it never reloads the full graph for every poll.
+    const routed = new ContextRouter().route({
+      agentSessionId: input.agentSessionId,
+      currentWorkItemIds: [...workItemIds],
+      dependencyWorkItemIds: [...dependencyWorkItemIds],
+      sinceSequence: input.sinceSequence ?? 0n,
+      events: page.events,
+      maxEvents: input.maxEvents,
+      maxBytes: input.maxBytes,
+    });
     const items = new Map(workItems.map((record) => [record.value.id, record.value] as const));
     const blockedBy = assigned.flatMap((item) => dependencyBlockers(item, dependencies, items).map((blocker) => ({ id: blocker.id, title: blocker.title })));
-    return { projectId: this.projectId, throughSequence, highPriority, normalPriority, blockedBy, warnings: page.hasMore ? ["sync result is bounded; more events remain"] : [] };
+    return { projectId: this.projectId, throughSequence: routed.throughSequence, highPriority: routed.highPriority, normalPriority: routed.normalPriority, blockedBy, warnings: page.hasMore ? ["sync result is bounded; more events remain"] : [] };
   }
 
   async complete(input: CompleteInput): Promise<CompleteResult> {
@@ -355,19 +320,34 @@ export class CoordinationRuntime {
       const dependencies = (await this.store.listProjections<WorkDependency>("work_dependency", this.projectId)).map((record) => record.value);
       const activeIntents = (await this.store.listProjections<Intent>("intent", this.projectId)).map((record) => record.value).filter((current) => current.state === "active");
       const impact = new ImpactEngine().compute({ subject: intent.id, intent, entities: codeState.entities, edges: codeState.edges, workItems, dependencies, activeIntents });
-      await this.store.appendEvent({ projectId: this.projectId, eventType: "ImpactDetected", actor: { kind: "system", name: "impact-engine" }, payload: impact });
+      await this.store.transact((tx) => {
+        const observedAt = new Date().toISOString();
+        tx.putProjection("impact_result", intent.id, { ...impact, intentId: intent.id }, this.projectId, observedAt);
+        tx.appendEvent({ projectId: this.projectId, eventType: "ImpactDetected", actor: { kind: "system", name: "impact-engine" }, payload: { ...impact, intentId: intent.id } });
+      });
     } catch {
       // A missing/degraded code-state provider must not block an intent declaration.
     }
   }
 
+  /** Refresh only intents whose sessions use the changed worktree. */
+  async refreshImpactsForWorktree(worktreeId: string): Promise<void> {
+    const sessions = await this.store.listProjections<AgentSession>("agent_session", this.projectId);
+    const activeSessionIds = new Set(sessions.filter((record) => record.value.worktreeId === worktreeId && !sessionExpired(record.value, this.now())).map((record) => record.value.id));
+    const intents = await this.store.listProjections<Intent>("intent", this.projectId);
+    for (const record of intents) {
+      if (record.value.state === "active" && activeSessionIds.has(record.value.agentSessionId)) await this.emitImpact(record.value);
+    }
+  }
+
   async recordChangeReceipt(receipt: ChangeReceipt): Promise<ChangeReceipt> {
     if (receipt.projectId !== undefined && receipt.projectId !== this.projectId) throw err.projectNotFound("change receipt belongs to a different project");
+    if (!receipt.receiptDigest) throw err.evaluationResultConflict("change receipt must include an integrity digest");
     return this.store.transact((tx) => {
       tx.putProjection("change_receipt", receipt.id, receipt, this.projectId, receipt.completedAt ?? receipt.publishedAt);
       tx.appendEvent({
         projectId: this.projectId,
-        eventType: receipt.status === "APPLIED" ? "ChangeApplied" : "ChangeRejected",
+        eventType: receipt.status === "APPLIED" ? "ChangeApplied" : receipt.status === "PARTIAL" ? "ChangePartiallyApplied" : "ChangeRejected",
         actor: { kind: "system", name: "coordination-runtime" },
         payload: receipt,
       });

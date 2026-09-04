@@ -9,9 +9,11 @@
   "references": [
     { "path": "../../packages/contracts" },
     { "path": "../../packages/code-state" },
+    { "path": "../../packages/change-runtime" },
     { "path": "../../packages/coordination-client" },
     { "path": "../../packages/coordination-runtime" },
     { "path": "../../packages/coordination-store" },
-    { "path": "../../packages/evaluation-runtime" }
+    { "path": "../../packages/evaluation-runtime" },
+    { "path": "../../packages/workspace-runtime" }
   ]
 }

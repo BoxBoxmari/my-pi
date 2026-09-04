@@ -27,8 +27,9 @@ The explicit `trusted` profile enables workspace writes and LSP processes;
 `network/exec/debug/secret` remain unavailable through the MCP capability guard.
 
 ## Mutation safety
-- Single-file only (A7); per-workspace mutex (A8).
+- Legacy MCP tools publish one file at a time (A7); the Production Next change runtime can publish a bounded composite plan with one plan digest and receipt.
 - Temp-file + fsync + atomic rename + read-back hash verify.
+- Content preconditions, strict no-clobber creation, per-file atomic publication, and cooperating-writer serialization are guaranteed. The runtime does not claim to prevent an arbitrary external OS writer from racing between validation and rename.
 - `fs_read` uses a raw-byte window and streams the full-file hash/metadata without
   retaining the complete file in memory.
 - Never truncate-and-overwrite; Windows busy → bounded retry → `ERR_FILE_BUSY` / `ERR_ATOMIC_REPLACE_FAILED`.
@@ -67,3 +68,10 @@ The local daemon is the coordination authority for one logical project. Local IP
 Client-supplied host names, roles, and agent labels remain untrusted attribution metadata. Trusted `PrincipalRef` values can only come from an authenticated adapter or enterprise control plane. Policy decisions are separate from enforcement, and approval bindings include operation, plan digest, resource preconditions, policy version, principal, and expiry.
 
 Evaluation output is untrusted input. Required evidence must match the exact target state, evaluator errors remain distinct from code failures, evidence and feedback are bounded, and arbitrary model-supplied shell is not an evaluator definition. Source content is excluded from audit records by default.
+
+Raw daemon event append, idempotency mutation, and ad-hoc code-state indexing are
+test-mode operations only. Normal clients use domain transitions. `eval_record`
+stores caller declarations as `external_unverified`; only server-registered
+providers reached through `eval_evaluate` can produce acceptance evidence. A
+production evaluation run must reference a change receipt whose digest and output
+fingerprints the daemon rechecks against the registered worktree.

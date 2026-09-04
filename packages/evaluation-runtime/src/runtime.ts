@@ -5,7 +5,7 @@ import { makeFeedback } from "./feedback.js";
 import { makeRetryCycle } from "./retry.js";
 import { makeEvaluationRun, type EvaluationRunInput } from "./run.js";
 import { makeEvaluationSpec, type EvaluationSpecInput } from "./spec.js";
-import { resultDigest, validateProviderResult, type ProviderResultInput, type StoredEvaluationResult } from "./result.js";
+import { storedResultDigest, validateProviderResult, type ProviderResultInput, type StoredEvaluationResult } from "./result.js";
 import type { EvaluatorProvider } from "./provider.js";
 
 export interface EvaluationStatus {
@@ -20,8 +20,15 @@ export interface EvaluationCancellation {
   throwIfAborted(): void;
 }
 
+export type EvaluationRunRequest = Omit<EvaluationRunInput, "spec"> & { specId: EvaluationSpec["id"] };
+
+export interface EvaluationRuntimeOptions {
+  /** Resolve a caller's requested target to a server-verifiable state reference. */
+  resolveStateRef?: (input: EvaluationRunRequest) => Promise<string>;
+}
+
 export class EvaluationRuntime {
-  constructor(private readonly store: CoordinationStore, readonly projectId: ProjectId, private readonly providers: EvaluatorProvider[] = []) {}
+  constructor(private readonly store: CoordinationStore, readonly projectId: ProjectId, private readonly providers: EvaluatorProvider[] = [], private readonly options: EvaluationRuntimeOptions = {}) {}
 
   async registerSpec(input: EvaluationSpecInput): Promise<EvaluationSpec> {
     const spec = makeEvaluationSpec(this.projectId, input);
@@ -33,14 +40,15 @@ export class EvaluationRuntime {
     });
   }
 
-  async requestRun(input: Omit<EvaluationRunInput, "spec"> & { specId: EvaluationSpec["id"] }): Promise<EvaluationRun> {
+  async requestRun(input: EvaluationRunRequest): Promise<EvaluationRun> {
+    const repositoryStateRef = this.options.resolveStateRef ? await this.options.resolveStateRef(input) : input.repositoryStateRef;
     return this.store.transact((tx) => {
       const spec = tx.getProjection<EvaluationSpec>("evaluation_spec", input.specId);
       if (!spec || spec.projectId !== this.projectId) throw err.evaluationSpecInvalid("evaluation spec was not found for this project");
       const workItem = tx.getProjection<WorkItem>("work_item", input.workItemId);
       if (!workItem || workItem.projectId !== this.projectId) throw err.workItemNotFound();
       if (workItem.evaluationSpecId !== undefined && workItem.evaluationSpecId !== input.specId) throw err.evaluationSpecInvalid("evaluation run does not match the WorkItem evaluation spec");
-      const run = makeEvaluationRun({ spec, workItemId: input.workItemId, intentId: input.intentId, changeReceiptId: input.changeReceiptId, repositoryStateRef: input.repositoryStateRef, attempt: input.attempt });
+      const run = makeEvaluationRun({ spec, workItemId: input.workItemId, intentId: input.intentId, changeReceiptId: input.changeReceiptId, repositoryStateRef, attempt: input.attempt });
       tx.putProjection("evaluation_run", run.id, run, this.projectId, run.startedAt);
       tx.appendEvent({ projectId: this.projectId, eventType: "EvaluationRequested", actor: { kind: "system", name: "evaluation-runtime" }, payload: run });
       return run;
@@ -48,18 +56,37 @@ export class EvaluationRuntime {
   }
 
   async recordResult(runId: EvaluationRun["id"], input: ProviderResultInput): Promise<StoredEvaluationResult> {
-    return this.store.transact((tx) => {
+    return this.recordExternalResult(runId, { ...input, declaredProviderId: input.providerId });
+  }
+
+  /** Record caller-supplied evidence without granting it evaluator authority. */
+  async recordExternalResult(runId: EvaluationRun["id"], input: ProviderResultInput & { declaredProviderId?: string }): Promise<StoredEvaluationResult> {
+    const declaredProviderId = input.declaredProviderId ?? input.providerId;
+    return this.store.transact((tx) => this.recordResultInTransaction(tx, runId, { ...input, providerId: "external-evidence" }, "external_unverified", declaredProviderId));
+  }
+
+  private async recordProviderResult(runId: EvaluationRun["id"], provider: EvaluatorProvider, input: ProviderResultInput): Promise<StoredEvaluationResult> {
+    if (!this.providers.some((candidate) => candidate === provider && candidate.id === provider.id)) throw err.evaluationResultConflict("evaluation provider is not registered by the server");
+    return this.store.transact((tx) => this.recordResultInTransaction(tx, runId, { ...input, providerId: provider.id }, "verified_provider"));
+  }
+
+  private async recordRuntimeResult(runId: EvaluationRun["id"], input: ProviderResultInput): Promise<StoredEvaluationResult> {
+    return this.store.transact((tx) => this.recordResultInTransaction(tx, runId, input, "verified_provider"));
+  }
+
+  private recordResultInTransaction(tx: CoordinationTransaction, runId: EvaluationRun["id"], input: ProviderResultInput, provenance: "verified_provider" | "external_unverified", declaredProviderId?: string): StoredEvaluationResult {
       const run = tx.getProjection<EvaluationRun>("evaluation_run", runId);
       if (!run) throw err.evaluationSpecInvalid("evaluation run was not found");
       const spec = tx.getProjection<EvaluationSpec>("evaluation_spec", run.specId);
       if (!spec || spec.projectId !== this.projectId || spec.version !== run.specVersion) throw err.evaluationSpecInvalid("evaluation spec version is unavailable");
       const criterion = spec.criteria.find((candidate) => candidate.id === input.criterionId);
       if (!criterion) throw err.evaluationResultConflict("criterion is not part of the bound evaluation spec");
-      if (input.providerId !== criterion.evaluatorRef && !(input.providerId === "evaluation-runtime" && input.result.reasonCode === "EVALUATOR_UNAVAILABLE")) throw err.evaluationResultConflict("provider identity does not match the bound evaluator");
-      if (input.result.evidence.some((evidence) => evidence.provider !== input.providerId)) throw err.evaluationResultConflict("evidence provider does not match the result provider");
+      if (provenance === "verified_provider" && input.providerId !== "evaluation-runtime" && input.providerId !== criterion.evaluatorRef) throw err.evaluationResultConflict("provider identity does not match the bound evaluator");
+      if (provenance === "external_unverified" && input.result.evidence.some((evidence) => evidence.provider !== declaredProviderId)) throw err.evaluationResultConflict("external evidence provider does not match its declaration");
+      if (provenance === "verified_provider" && input.result.evidence.some((evidence) => evidence.provider !== input.providerId)) throw err.evaluationResultConflict("evidence provider does not match the result provider");
       validateProviderResult(input, run.repositoryStateRef);
       if (run.state === "completed") throw err.evaluationResultConflict("completed evaluation runs are immutable");
-      const stored: StoredEvaluationResult = { ...input, runId, resultDigest: resultDigest(input), recordedAt: new Date().toISOString() };
+      const stored: StoredEvaluationResult = { ...input, runId, resultDigest: storedResultDigest(input, provenance, declaredProviderId), recordedAt: new Date().toISOString(), provenance, ...(declaredProviderId === undefined ? {} : { declaredProviderId }) };
       const key = `${runId}:${input.criterionId}:${input.providerResultId}`;
       const previous = tx.getProjection<StoredEvaluationResult>("evaluation_result", key);
       if (previous) {
@@ -69,7 +96,6 @@ export class EvaluationRuntime {
       tx.putProjection("evaluation_result", key, stored, this.projectId, stored.recordedAt);
       tx.appendEvent({ projectId: this.projectId, eventType: "EvaluationResultRecorded", actor: { kind: "system", name: input.providerId }, payload: { ...stored, workItemId: run.workItemId } });
       return stored;
-    });
   }
 
   async evaluateRun(runId: EvaluationRun["id"], observed: Record<string, unknown> = {}, signal: EvaluationCancellation = new AbortController().signal): Promise<EvaluationStatus> {
@@ -80,7 +106,7 @@ export class EvaluationRuntime {
       if (status.results.some((result) => result.criterionId === criterion.id)) continue;
       const provider = this.providers.find((candidate) => candidate.id === criterion.evaluatorRef && candidate.supports(criterion));
       if (!provider) {
-        await this.recordResult(runId, {
+        await this.recordRuntimeResult(runId, {
           providerResultId: `evaluation-runtime:unavailable:${criterion.id}:${status.run.attempt}`,
           providerId: "evaluation-runtime",
           criterionId: criterion.id,
@@ -90,9 +116,10 @@ export class EvaluationRuntime {
       }
       try {
         const providerResult = await provider.evaluate({ run: status.run, criterion, observed: observed[criterion.id] }, signal as Parameters<EvaluatorProvider["evaluate"]>[1]);
-        await this.recordResult(runId, { providerResultId: providerResult.providerResultId, providerId: provider.id, criterionId: providerResult.criterionId, result: { criterionId: providerResult.criterionId, outcome: providerResult.outcome, evidence: providerResult.evidence, observed: providerResult.observed, reasonCode: providerResult.reasonCode } });
+        if (providerResult.criterionId !== criterion.id) throw err.evaluationResultConflict("registered evaluator returned a different criterion");
+        await this.recordProviderResult(runId, provider, { providerResultId: providerResult.providerResultId, providerId: provider.id, criterionId: providerResult.criterionId, result: { criterionId: providerResult.criterionId, outcome: providerResult.outcome, evidence: providerResult.evidence, observed: providerResult.observed, reasonCode: providerResult.reasonCode } });
       } catch {
-        await this.recordResult(runId, {
+        await this.recordProviderResult(runId, provider, {
           providerResultId: `${provider.id}:error:${criterion.id}:${status.run.attempt}`,
           providerId: provider.id,
           criterionId: criterion.id,
@@ -110,7 +137,7 @@ export class EvaluationRuntime {
       const spec = tx.getProjection<EvaluationSpec>("evaluation_spec", run.specId);
       if (!spec || spec.projectId !== this.projectId) throw err.evaluationSpecInvalid("evaluation spec was not found for this project");
       if (run.state === "completed") return this.statusFromTransaction(tx, run);
-      const results = tx.listProjections<StoredEvaluationResult>("evaluation_result", this.projectId).map((record) => record.value).filter((result) => resultsForRun(result, runId));
+      const results = tx.listEvaluationResults<StoredEvaluationResult>(this.projectId, runId);
       const acceptance = evaluateAcceptance(spec, run.repositoryStateRef, results);
       const decision: AcceptanceDecision = { runId, decision: acceptance.decision, decisionDigest: acceptance.decisionDigest, reasons: acceptance.reasons };
       tx.putProjection("evaluation_decision", runId, decision, this.projectId, new Date().toISOString());
@@ -131,14 +158,12 @@ export class EvaluationRuntime {
   async status(runId: EvaluationRun["id"]): Promise<EvaluationStatus> {
     const run = await this.store.getProjection<EvaluationRun>("evaluation_run", runId);
     if (!run) throw err.evaluationSpecInvalid("evaluation run was not found");
-    const results = (await this.store.listProjections<StoredEvaluationResult>("evaluation_result", this.projectId)).map((record) => record.value).filter((result) => resultsForRun(result, runId));
+    const results = await this.store.listEvaluationResults<StoredEvaluationResult>(this.projectId, runId);
     const spec = await this.store.getProjection<EvaluationSpec>("evaluation_spec", run.specId);
     if (!spec || spec.projectId !== this.projectId) throw err.evaluationSpecInvalid("evaluation run is not owned by this project");
-    const decision = await this.store.getProjection<AcceptanceDecision>("evaluation_decision", runId);
-    const feedbackRecords = await this.store.listProjections<FeedbackPacket>("feedback_packet", this.projectId);
-    const feedback = feedbackRecords.map((record) => record.value).find((packet) => packet.runId === runId);
-    const retryRecords = await this.store.listProjections<RetryCycle>("retry_cycle", this.projectId);
-    const retry = retryRecords.map((record) => record.value).find((cycle) => cycle.runId === runId);
+    const decision = await this.store.getEvaluationDecision<AcceptanceDecision>(this.projectId, runId);
+    const feedback = await this.store.getFeedbackPacket<FeedbackPacket>(this.projectId, runId);
+    const retry = await this.store.getRetryCycle<RetryCycle>(this.projectId, runId);
     return { run, results, ...(decision ? { decision } : {}), ...(feedback ? { feedback } : {}), ...(retry ? { retry } : {}) };
   }
 
@@ -155,14 +180,10 @@ export class EvaluationRuntime {
   }
 
   private statusFromTransaction(tx: CoordinationTransaction, run: EvaluationRun): EvaluationStatus {
-    const results = tx.listProjections<StoredEvaluationResult>("evaluation_result", this.projectId).map((record) => record.value).filter((result) => resultsForRun(result, run.id));
-    const decision = tx.getProjection<AcceptanceDecision>("evaluation_decision", run.id);
-    const feedback = tx.listProjections<FeedbackPacket>("feedback_packet", this.projectId).map((record) => record.value).find((packet) => packet.runId === run.id);
-    const retry = tx.listProjections<RetryCycle>("retry_cycle", this.projectId).map((record) => record.value).find((cycle) => cycle.runId === run.id);
+    const results = tx.listEvaluationResults<StoredEvaluationResult>(this.projectId, run.id);
+    const decision = tx.getEvaluationDecision<AcceptanceDecision>(this.projectId, run.id);
+    const feedback = tx.getFeedbackPacket<FeedbackPacket>(this.projectId, run.id);
+    const retry = tx.getRetryCycle<RetryCycle>(this.projectId, run.id);
     return { run, results, ...(decision ? { decision } : {}), ...(feedback ? { feedback } : {}), ...(retry ? { retry } : {}) };
   }
-}
-
-function resultsForRun(result: StoredEvaluationResult, runId: string): boolean {
-  return result.runId === runId;
 }

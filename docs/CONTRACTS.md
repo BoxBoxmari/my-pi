@@ -36,9 +36,20 @@ Metadata history is immutable in the candidate `SnapshotStore`; latest-path look
 
 The local daemon exposes explicit handles and bounded cursors. Its initial coordination operations are `coord_join`, `coord_claim`, `coord_intent`, `coord_sync`, `coord_publish`, and `coord_complete`. A WorkItem with `evaluationSpecId` moves through `implementation_complete` and `awaiting_evaluation`; rejection produces `needs_retry`, review/inconclusive results produce `review_required`, and only an accepted evaluation run can authorize the final `done` transition. Existing 13-tool legacy mode remains unchanged and does not require this path.
 
+`coord_join` canonicalizes and verifies the submitted worktree against the daemon's
+repository identity before persisting it. The daemon-managed code-state lifecycle
+uses that registered root, not the daemon startup root. Raw event append,
+idempotency recording, and ad-hoc code-state indexing are restricted to an
+explicit test-mode daemon.
+
 ## Production Next evaluation contracts (experimental)
 
-`EvaluationSpec` is versioned and digested. Every `EvaluationRun` binds to a WorkItem, spec version/digest, attempt, and exact target-state reference. Missing, stale, skipped, or evaluator-error evidence cannot become an implicit pass. `FeedbackPacket` and `RetryCycle` are persisted state; my-pi never launches a replacement agent itself.
+`EvaluationSpec` is versioned and digested. Every `EvaluationRun` binds to a WorkItem, spec version/digest, attempt, and exact target-state reference. In a production daemon, that reference is derived from a server-verified change receipt and its output fingerprints; arbitrary caller strings are rejected. `eval_record` is external, unverified declaration data. Missing, stale, skipped, or evaluator-error evidence cannot become an implicit pass. Only a registered provider execution can create verified-provider evidence. `FeedbackPacket` and `RetryCycle` are persisted state; my-pi never launches a replacement agent itself.
+
+`ChangeReceipt` describes the complete publication attempt. A composite plan has
+one canonical proposal, one deterministic `planDigest`, per-resource input and
+output versions, and optional resource-level failure records. `PARTIAL` remains a
+distinct publication status and event type; it is not rewritten as `REJECTED`.
 
 ## Capability
 ```ts

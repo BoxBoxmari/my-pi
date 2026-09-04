@@ -11,7 +11,7 @@ const ROOT = path.resolve(".");
 const DAEMON = path.join(ROOT, "apps", "my-pi-daemon", "dist", "main.js");
 
 function startDaemon(runtimeDir: string): ChildProcess {
-  return spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+  return spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir, "--test-mode"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
 }
 
 async function waitForReady(runtimeDir: string, daemon: ChildProcess) {
@@ -54,14 +54,7 @@ test("PN8 IPC: evaluator records exact-state evidence and returns acceptance sta
     const awaiting = await client.call<{ workItem: { state: string } }>("coord_complete", { projectId: metadata.projectId, agentSessionId: joined.agentSessionId, workItemId: workItem.id });
     assert.equal(awaiting.workItem.state, "awaiting_evaluation");
     const run = await client.call<{ id: string }>("eval_request", { specId: spec.id, workItemId: workItem.id, repositoryStateRef: "receipt-eval-1" });
-    await client.call("eval_record", {
-      runId: run.id,
-      providerResultId: "result-eval-1",
-      providerId: "deterministic-local",
-      criterionId: "contract",
-      result: { criterionId: "contract", outcome: "pass", evidence: [{ provider: "deterministic-local", digest: "sha256:eval1234", targetStateRef: "receipt-eval-1", observedAt: "2026-09-04T00:00:01.000Z" }] },
-    });
-    await client.call("eval_complete", { runId: run.id });
+    await client.call("eval_evaluate", { runId: run.id, observed: { contract: true } });
     const status = await client.call<{ run: { state: string }; decision?: { decision: string }; feedback?: unknown; retry?: unknown }>("eval_status", { runId: run.id });
     assert.equal(status.run.state, "completed");
     assert.equal(status.decision?.decision, "accepted");

@@ -22,7 +22,7 @@ export interface EvaluatorProvider {
   evaluate(input: EvaluationInput, signal: AbortSignal): Promise<EvaluationProviderResult>;
 }
 
-/** Trusted external evidence is recorded by the caller; this provider never executes a command. */
+/** External evidence is caller-declared and remains unverified; this provider never executes a command. */
 export class ExternalEvidenceProvider implements EvaluatorProvider {
   readonly id = "external-evidence";
 
@@ -40,7 +40,7 @@ export class DeterministicProvider implements EvaluatorProvider {
   readonly id = "deterministic-local";
 
   supports(criterion: EvaluationCriterion): boolean {
-    return criterion.kind === "artifact" || criterion.kind === "policy" || criterion.kind === "performance";
+    return criterion.kind === "artifact" || criterion.kind === "policy" || criterion.kind === "performance" || criterion.kind === "test" || criterion.kind === "diagnostic";
   }
 
   async evaluate(input: EvaluationInput, signal: AbortSignal): Promise<EvaluationProviderResult> {

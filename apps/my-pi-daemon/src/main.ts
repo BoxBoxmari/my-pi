@@ -1,7 +1,8 @@
-import { chmod, rename, unlink, writeFile } from "node:fs/promises";
+import { chmod, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  discoverProjectIdentity,
   type IpcRequest,
 } from "@my-pi/coordination-client";
 import {
@@ -14,38 +15,43 @@ import {
   type CoordinationSyncRequest,
 } from "@my-pi/coordination-runtime";
 import { CodeStateIndexer, type IndexContext } from "@my-pi/code-state";
+import { verifyReceipt } from "@my-pi/change-runtime";
 import { DeterministicProvider, EvaluationRuntime } from "@my-pi/evaluation-runtime";
 import {
   CURRENT_SCHEMA_VERSION as STORE_SCHEMA_VERSION,
   SqliteCoordinationStore,
   type AuditRecord,
 } from "@my-pi/coordination-store";
-import { createEventId, isMyPiError, type AcceptancePolicy, type ActorRef, type AgentSession, type ChangeReceipt, type ContextArtifactKind, type EvaluationResult, type IntentKind, type ProjectId, type Repository, type ScopeRef, type WorkDependency, type Worktree } from "@my-pi/contracts";
+import { createEventId, err, fingerprintBytes, isMyPiError, type AcceptancePolicy, type ActorRef, type AgentSession, type ChangeReceipt, type ContextArtifactKind, type EvaluationResult, type IntentKind, type ProjectId, type Repository, type ScopeRef, type WorkDependency, type Worktree } from "@my-pi/contracts";
 import { resolveDaemonConfig, type DaemonConfig } from "./config.js";
 import { DaemonLifecycle } from "./lifecycle.js";
 import type { DaemonHealth } from "./health.js";
 import { IpcServer } from "./ipc-server.js";
 import { acquireProjectLock, ProjectAlreadyRunningError } from "./project-lock.js";
+import { CodeStateManager } from "./code-state-manager.js";
+import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 
 interface CliOptions {
   workspaceRoot?: string;
   runtimeDir?: string;
   databasePath?: string;
   allowNonGit: boolean;
+  testMode: boolean;
   protocolVersion?: string;
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { allowNonGit: false };
+  const options: CliOptions = { allowNonGit: false, testMode: false };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
     if (arg === "--workspace") options.workspaceRoot = argv[++index];
     else if (arg === "--runtime-dir") options.runtimeDir = argv[++index];
     else if (arg === "--database") options.databasePath = argv[++index];
     else if (arg === "--allow-non-git") options.allowNonGit = true;
+    else if (arg === "--test-mode") options.testMode = true;
     else if (arg === "--protocol-version") options.protocolVersion = argv[++index];
     else if (arg === "--help" || arg === "-h") {
-      console.log("my-pi-daemon --workspace <git-root> [--runtime-dir <dir>] [--database <path>] [--allow-non-git]");
+      console.log("my-pi-daemon --workspace <git-root> [--runtime-dir <dir>] [--database <path>] [--allow-non-git] [--test-mode]");
       process.exit(0);
     } else throw new Error(`unknown argument: ${arg}`);
   }
@@ -113,30 +119,107 @@ function jsonEvent(event: { sequence: bigint; [key: string]: unknown }): Record<
   return { ...event, sequence: event.sequence.toString() };
 }
 
+async function verifyJoinInput(params: Record<string, unknown>, expectedProjectId: ProjectId, daemonProject: DaemonConfig["project"], store: SqliteCoordinationStore, testMode: boolean): Promise<{ project?: JoinInput["project"]; repository: Repository; worktree: Worktree }> {
+  const repository = objectParam(params, "repository") as unknown as Repository;
+  const worktree = objectParam(params, "worktree") as unknown as Worktree;
+  const requestedRoot = requiredString(worktree as unknown as Record<string, unknown>, "root");
+  if (repository.projectId !== expectedProjectId) throw err.projectNotFound("repository does not belong to this daemon project");
+  if (worktree.repositoryId !== repository.id) throw err.invalidArgument("worktree does not belong to the supplied repository");
+  const identity = await discoverProjectIdentity(requestedRoot, { allowNonGit: testMode });
+  if (!testMode && identity.canonicalIdentity !== daemonProject.canonicalIdentity) throw err.projectNotFound("worktree repository identity does not match the daemon project");
+  const existing = await store.getProjection<Worktree>("worktree", worktree.id);
+  if (existing && (!samePath(existing.root, identity.root) || existing.repositoryId !== repository.id)) throw err.workItemConflict("worktree id is already bound to a different canonical root");
+  const verifiedRepository: Repository = { ...repository, projectId: expectedProjectId, canonicalIdentity: identity.canonicalIdentity };
+  const verifiedWorktree: Worktree = {
+    ...worktree,
+    root: identity.root,
+    repositoryId: verifiedRepository.id,
+    ...(identity.head === undefined ? {} : { head: identity.head }),
+    ...(identity.branch === undefined ? {} : { branch: identity.branch }),
+    observedAt: new Date().toISOString(),
+  };
+  const project = params.project === undefined ? undefined : objectParam(params, "project");
+  return {
+    ...(project === undefined ? {} : { project: { displayName: typeof project.displayName === "string" ? project.displayName : undefined, policyRef: project.policyRef as never } }),
+    repository: verifiedRepository,
+    worktree: verifiedWorktree,
+  };
+}
+
+function samePath(a: string, b: string): boolean {
+  const left = path.resolve(a);
+  const right = path.resolve(b);
+  return process.platform === "win32" ? left.toLowerCase() === right.toLowerCase() : left === right;
+}
+
+async function verifyReceiptState(receipt: ChangeReceipt, store: SqliteCoordinationStore, expectedProjectId: ProjectId): Promise<void> {
+  if (!verifyReceipt(receipt)) throw err.evaluationResultConflict("change receipt integrity verification failed");
+  if (receipt.projectId !== expectedProjectId || !receipt.worktreeId) throw err.evaluationResultConflict("change receipt is not bound to this project and worktree");
+  const worktree = await store.getProjection<Worktree>("worktree", receipt.worktreeId);
+  if (!worktree) throw err.workItemNotFound("change receipt worktree is not registered");
+  const workspace = new WorkspaceRuntime();
+  await workspace.open({ root: worktree.root });
+  for (const version of receipt.outputVersions ?? []) {
+    if (!version.path || path.isAbsolute(version.path) || version.path.split(/[\\/]/).includes("..")) throw err.pathOutsideWorkspace("change receipt contains an unsafe resource path");
+    const resolved = await workspace.pathPolicy.resolveForRead(workspace.workspaceOrThrow, version.path);
+    const actual = new Uint8Array(await readFile(resolved.absolute));
+    if (version.fingerprint === undefined) throw err.evaluationResultConflict("change receipt output is missing its fingerprint");
+    const observed = fingerprintBytes(actual);
+    if (observed.digest !== version.fingerprint.digest || observed.size !== version.fingerprint.size) throw err.evaluationTargetStale(`change receipt output does not match the registered worktree: ${version.path}`);
+  }
+}
+
+function requireTestMode(method: string, testMode: boolean): void {
+  if (!testMode) throw err.permissionDenied(`${method} is available only in explicit daemon test mode`);
+}
+
 async function writeMetadata(config: DaemonConfig, health: DaemonHealth): Promise<void> {
   const temporary = `${config.metadataPath}.tmp-${process.pid}`;
   await writeFile(temporary, JSON.stringify(health, null, 2), { encoding: "utf8", mode: 0o600 });
-  await rename(temporary, config.metadataPath);
-  await chmod(config.metadataPath, 0o600).catch(() => undefined);
+  try {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        await rename(temporary, config.metadataPath);
+        await chmod(config.metadataPath, 0o600).catch(() => undefined);
+        return;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (!(["EPERM", "EBUSY", "ENOTEMPTY"] as string[]).includes(code ?? "") || attempt === 4) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 10 * (attempt + 1)));
+      }
+    }
+  } finally {
+    await unlink(temporary).catch(() => undefined);
+  }
 }
 
-async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, workspaceRoot: string): Promise<unknown> {
+async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], codeStateManager?: CodeStateManager): Promise<unknown> {
   const params = recordParams(request);
   switch (request.method) {
     case "health":
       return health();
     case "coord_join": {
-      const repository = objectParam(params, "repository") as unknown as Repository;
-      const worktree = objectParam(params, "worktree") as unknown as Worktree;
-      const project = params.project === undefined ? undefined : objectParam(params, "project");
+      if (!daemonProject) throw err.coordinationStoreFailure("daemon project identity is unavailable");
+      const verified = await verifyJoinInput(params, expectedProjectId, daemonProject, store, testMode);
       const result = await runtime.join({
-        ...(project === undefined ? {} : { project: { displayName: typeof project.displayName === "string" ? project.displayName : undefined, policyRef: project.policyRef as never } }),
-        repository,
-        worktree,
+        ...verified,
         host: requiredString(params, "host"),
         clientInstance: optionalString(params, "clientInstance"),
         role: optionalString(params, "role"),
       } satisfies JoinInput);
+      if (codeStateManager) {
+        const worktreeRuntime = new WorkspaceRuntime();
+        await worktreeRuntime.open({ root: verified.worktree.root });
+        await codeStateManager.register({
+          projectId: expectedProjectId,
+          repositoryId: verified.repository.id,
+          worktreeId: verified.worktree.id,
+          repositoryIdentity: verified.repository.canonicalIdentity,
+          root: verified.worktree.root,
+          signal: new AbortController().signal,
+          resolveReadPath: (filePath) => worktreeRuntime.pathPolicy.resolveForRead(worktreeRuntime.workspaceOrThrow, filePath, { allowMissing: true }),
+        });
+      }
       return { ...result, currentSequence: result.currentSequence.toString() };
     }
     case "coord_claim": {
@@ -163,14 +246,11 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
     }
     case "coord_sync": {
       assertProject(params, expectedProjectId);
-      const session = await store.getProjection<AgentSession>("agent_session", requiredString(params, "agentSessionId"));
-      const codeState = session?.worktreeId ? await store.getCodeState(expectedProjectId, session.worktreeId).catch(() => undefined) : undefined;
       const result = await runtime.sync({
         agentSessionId: requiredString(params, "agentSessionId") as never,
         sinceSequence: sequenceParam(params.sinceSequence),
         maxEvents: params.maxEvents as number | undefined,
         maxBytes: params.maxBytes as number | undefined,
-        codeState,
       } satisfies CoordinationSyncRequest);
       return {
         ...result,
@@ -212,17 +292,29 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
         dependencies: params.dependencies === undefined ? undefined : arrayParam<WorkDependency>(params, "dependencies"),
       });
     }
-    case "change_record":
-      return runtime.recordChangeReceipt(objectParam(params, "receipt") as unknown as ChangeReceipt);
+    case "change_record": {
+      const receipt = objectParam(params, "receipt") as unknown as ChangeReceipt;
+      await verifyReceiptState(receipt, store, expectedProjectId);
+      return runtime.recordChangeReceipt(receipt);
+    }
     case "code_state_index": {
+      requireTestMode(request.method, testMode);
       assertProject(params, expectedProjectId);
+      const registeredWorktree = await store.getProjection<Worktree>("worktree", requiredString(params, "worktreeId"));
+      if (!registeredWorktree) throw err.workItemNotFound("code-state worktree is not registered");
+      if (registeredWorktree.repositoryId !== requiredString(params, "repositoryId")) throw err.projectNotFound("code-state repository does not match the registered worktree");
+      const registeredRepository = await store.getProjection<Repository>("repository", registeredWorktree.repositoryId);
+      if (!registeredRepository) throw err.projectNotFound("code-state repository is not registered");
+      const runtimeForTest = new WorkspaceRuntime();
+      await runtimeForTest.open({ root: registeredWorktree.root });
       const context: IndexContext = {
         projectId: expectedProjectId,
-        repositoryId: requiredString(params, "repositoryId") as never,
-        worktreeId: requiredString(params, "worktreeId") as never,
-        repositoryIdentity: requiredString(params, "repositoryIdentity"),
-        root: workspaceRoot,
+        repositoryId: registeredRepository.id,
+        worktreeId: registeredWorktree.id,
+        repositoryIdentity: registeredRepository.canonicalIdentity,
+        root: registeredWorktree.root,
         signal: new AbortController().signal,
+        resolveReadPath: (filePath) => runtimeForTest.pathPolicy.resolveForRead(runtimeForTest.workspaceOrThrow, filePath, { allowMissing: true }),
       };
       const relativePath = requiredString(params, "path");
       const delta = await new CodeStateIndexer(store).indexFile(context, relativePath);
@@ -244,7 +336,13 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
       return evaluation.requestRun({ specId: requiredString(params, "specId") as never, workItemId: requiredString(params, "workItemId") as never, intentId: optionalString(params, "intentId") as never, changeReceiptId: optionalString(params, "changeReceiptId") as never, repositoryStateRef: requiredString(params, "repositoryStateRef"), attempt: params.attempt as number | undefined });
     case "eval_record": {
       const value = objectParam(params, "result") as unknown as EvaluationResult;
-      return evaluation.recordResult(requiredString(params, "runId") as never, { providerResultId: requiredString(params, "providerResultId"), providerId: requiredString(params, "providerId"), criterionId: requiredString(params, "criterionId"), result: value });
+      return evaluation.recordExternalResult(requiredString(params, "runId") as never, { providerResultId: requiredString(params, "providerResultId"), providerId: requiredString(params, "providerId"), criterionId: requiredString(params, "criterionId"), result: value });
+    }
+    case "eval_evaluate": {
+      const observed = params.observed === undefined ? {} : objectParam(params, "observed");
+      const status = await evaluation.evaluateRun(requiredString(params, "runId") as never, observed);
+      await runtime.applyEvaluationDecision(status.run.id);
+      return status;
     }
     case "eval_complete": {
       const status = await evaluation.completeRun(requiredString(params, "runId") as never);
@@ -257,6 +355,7 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
       assertProject(params, expectedProjectId);
       return store.listAudit(expectedProjectId, params.limit === undefined ? undefined : requiredNumber(params, "limit"));
     case "append_event": {
+      requireTestMode(request.method, testMode);
       assertProject(params, expectedProjectId);
       const event = await store.appendEvent({
         projectId: requiredString(params, "projectId") as ProjectId,
@@ -291,6 +390,7 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
         requestDigest: requiredString(params, "requestDigest"),
       });
     case "idempotency_record":
+      requireTestMode(request.method, testMode);
       await store.recordIdempotency({
         clientId: requiredString(params, "clientId"),
         key: requiredString(params, "key"),
@@ -320,9 +420,9 @@ async function recordAudit(store: SqliteCoordinationStore, request: IpcRequest, 
   await store.appendAudit(record).catch(() => undefined);
 }
 
-async function handleRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, workspaceRoot: string): Promise<unknown> {
+async function handleRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], codeStateManager?: CodeStateManager): Promise<unknown> {
   try {
-    const result = await dispatchRequest(request, runtime, evaluation, store, health, expectedProjectId, workspaceRoot);
+    const result = await dispatchRequest(request, runtime, evaluation, store, health, expectedProjectId, testMode, daemonProject, codeStateManager);
     await recordAudit(store, request, expectedProjectId, "OK");
     return result;
   } catch (error) {
@@ -345,7 +445,34 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
   const startedAt = new Date().toISOString();
   const store = new SqliteCoordinationStore(config.databasePath);
   const coordination = new CoordinationRuntime(store, config.projectId);
-  const evaluation = new EvaluationRuntime(store, config.projectId, [new DeterministicProvider()]);
+  const codeStateManager = new CodeStateManager(store, {
+    onReady: async (context) => {
+      await coordination.refreshImpactsForWorktree(context.worktreeId);
+    },
+    onDelta: async (context, delta) => {
+      await store.appendEvent({
+        projectId: context.projectId,
+        eventType: "CodeGraphUpdated",
+        actor: { kind: "system", name: "code-state-manager" },
+        payload: { projectId: context.projectId, repositoryId: context.repositoryId, worktreeId: context.worktreeId, changedPath: delta.changedPath, entities: delta.entities.length, edges: delta.edges.length, providerHealth: delta.providerHealth },
+      });
+      await coordination.refreshImpactsForWorktree(context.worktreeId);
+    },
+  });
+  const evaluation = new EvaluationRuntime(store, config.projectId, [new DeterministicProvider()], {
+    resolveStateRef: async (input) => {
+      if (!input.changeReceiptId) {
+        if (options.testMode) return input.repositoryStateRef;
+        throw err.evaluationTargetStale("evaluation must reference a server-verified change receipt");
+      }
+      const receipt = await store.getProjection<ChangeReceipt>("change_receipt", input.changeReceiptId);
+      if (!receipt) throw err.evaluationTargetStale("evaluation change receipt is missing or invalid");
+      await verifyReceiptState(receipt, store, config.projectId);
+      const derived = `receipt:${receipt.id}:${receipt.receiptDigest}`;
+      if (input.repositoryStateRef !== receipt.id && input.repositoryStateRef !== derived) throw err.evaluationTargetStale("evaluation target does not match the server-verified change receipt");
+      return derived;
+    },
+  });
   let ipc: IpcServer | undefined;
   let stopping = false;
   const health = (): DaemonHealth => ({
@@ -362,10 +489,11 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
     startedAt,
     rssBytes: process.memoryUsage().rss,
     store: lifecycle.state === "stopping" ? "closed" : "ready",
+    codeState: codeStateManager.health(),
   });
   try {
     await store.init();
-    ipc = new IpcServer(config.endpoint, (request) => handleRequest(request, coordination, evaluation, store, health, config.projectId, config.workspaceRoot), config.maxFrameBytes, config.protocolVersion);
+    ipc = new IpcServer(config.endpoint, (request) => handleRequest(request, coordination, evaluation, store, health, config.projectId, options.testMode, config.project, codeStateManager), config.maxFrameBytes, config.protocolVersion);
     await ipc.listen();
     lifecycle.set("ready");
     await writeMetadata(config, health());
@@ -382,6 +510,7 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
   } finally {
     lifecycle.set("stopping");
     await ipc?.close();
+    await codeStateManager.stop();
     await store.close();
     await unlink(config.metadataPath).catch(() => undefined);
     await lock.release();

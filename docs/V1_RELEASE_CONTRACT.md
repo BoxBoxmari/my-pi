@@ -11,7 +11,7 @@ my-pi v1.1 advertises a complete 13-tool MCP catalog over stdio transport; clean
 | Category | Tools | Capabilities & Guarantees |
 |---|---|---|
 | **Inspection** | `workspace_info` | Normalized authoritative root, revisions, operational capability catalog |
-| **Filesystem** | `fs_read`, `fs_stat`, `fs_write`, `fs_patch` | Bounded chunk streaming, SHA-256 fingerprinting, single-file CAS mutation, Hashline anchor patching, atomic replacement |
+| **Filesystem** | `fs_read`, `fs_stat`, `fs_write`, `fs_patch` | Bounded chunk streaming, SHA-256 fingerprinting, content-preconditioned single-file mutation, Hashline anchor patching, atomic replacement |
 | **Search** | `search` | Grep & Glob with pre-read policy boundary, gitignore respect, exact total count |
 | **AST** | `ast_search` | Tree-Sitter structural search across 5 languages (TypeScript, JavaScript, Python, Rust, Go) |
 | **LSP** | `lsp_status`, `lsp_diagnostics`, `lsp_symbols`, `lsp_navigate` | Multi-language server lifecycle (TypeScript, Python, Rust, Go), auto-restart with exponential backoff, hover/definition/references/symbols |
@@ -23,7 +23,7 @@ my-pi v1.1 advertises a complete 13-tool MCP catalog over stdio transport; clean
 
 1. **Pre-read Policy Boundary (P0.2)**: Sensitive and secret files (`.env*`, `.aws/`, `id_rsa`, etc.) are denied *before* reading or traversal into directories.
 2. **Read-Spy Verification**: Zero unauthorized file handles are opened on denied visible paths.
-3. **Compare-And-Swap (CAS) Mutation (P0.8)**: `fs_write` and `fs_patch` on existing files require `expected_hash` matching the current file content. Stale writes fail closed.
+3. **Content-Preconditioned Mutation (P0.8)**: `fs_write` and `fs_patch` on existing files require `expected_hash` matching the current file content. Stale writes fail closed.
 4. **Atomic Replacement (P0.9)**: File mutations write to adjacent temporary files and atomically replace targets, preserving file modes and avoiding partial writes.
 5. **No-Clobber File Creation (R0.1.4)**: New file creations fail closed if target path appears prior to publication.
 6. **Deterministic Cancellation (P0.4)**: In-flight MCP requests abort with typed `ERR_ABORTED` on client cancellation.

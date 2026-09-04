@@ -12,10 +12,10 @@ function result<T>(ctx: CapabilityContext, data: T, started: number): Capability
   };
 }
 
-function makeCapability(client: CoordinationClient, name: string, method: string): Capability<unknown, unknown> {
+function makeCapability(client: CoordinationClient, name: string, method: string, risk: "read" | "write"): Capability<unknown, unknown> {
   return {
     name,
-    risk: "read",
+    risk,
     async execute(input, ctx) {
       const started = performance.now();
       ctx.signal.throwIfAborted();
@@ -34,5 +34,13 @@ export function createCoordinationCapabilities(client: CoordinationClient): Map<
     ["coord_publish", "coord_publish"],
     ["coord_complete", "coord_complete"],
   ] as const;
-  return new Map(methods.map(([name, method]) => [name, makeCapability(client, name, method)]));
+  const risks: Record<string, "read" | "write"> = {
+    coord_join: "write",
+    coord_claim: "write",
+    coord_intent: "write",
+    coord_sync: "read",
+    coord_publish: "write",
+    coord_complete: "write",
+  };
+  return new Map(methods.map(([name, method]) => [name, makeCapability(client, name, method, risks[name]!) ]));
 }

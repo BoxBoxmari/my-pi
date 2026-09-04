@@ -15,4 +15,9 @@ export interface DaemonHealth {
   startedAt: string;
   rssBytes: number;
   store: "ready" | "degraded" | "closed";
+  codeState: {
+    activeWorktrees: number;
+    readyWorktrees: number;
+    degradedWorktrees: number;
+  };
 }

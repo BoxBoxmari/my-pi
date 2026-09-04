@@ -1,13 +1,11 @@
 import type { CoordinationEvent, WorkItemRef } from "@my-pi/contracts";
 import type { AgentSessionId, ProjectId, WorkItemId } from "@my-pi/contracts";
-import type { CodeStateSnapshot } from "@my-pi/coordination-store";
 
 export interface CoordinationSyncRequest {
   agentSessionId: AgentSessionId;
   sinceSequence?: bigint;
   maxEvents?: number;
   maxBytes?: number;
-  codeState?: CodeStateSnapshot;
 }
 
 export interface RoutedContextItem {
@@ -39,7 +37,7 @@ export function eventWorkItemId(event: CoordinationEvent): string | undefined {
 
 export function routeEvent(event: CoordinationEvent, agentSessionId: AgentSessionId, workItemIds: Set<WorkItemId>, dependencyWorkItemIds: Set<WorkItemId>): RoutedContextItem | undefined {
   const payload = payloadRecord(event);
-  const directAgent = payload.agentSessionId === agentSessionId || payload.sessionId === agentSessionId || payload.assignee === agentSessionId;
+  const directAgent = payload.agentSessionId === agentSessionId || payload.authorAgentSessionId === agentSessionId || payload.sessionId === agentSessionId || payload.assignee === agentSessionId;
   if (directAgent) return { event, priority: "high", reason: "same_agent" };
   const workItemId = eventWorkItemId(event);
   if (workItemId && workItemIds.has(workItemId as WorkItemId)) return { event, priority: "high", reason: "same_work_item" };

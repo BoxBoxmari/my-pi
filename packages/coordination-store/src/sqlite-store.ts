@@ -10,7 +10,7 @@ import {
 } from "@my-pi/contracts";
 import { normalizeCoordinationStoreError } from "./errors.js";
 import { applyMigrations } from "./migrations.js";
-import { applyCodeStateDelta, applyEventProjection, getCodeState, getProjection, listProjections, parseJson, putProjection, serializeJson } from "./projections.js";
+import { applyCodeStateDelta, applyEventProjection, getCodeState, getEvaluationDecision, getFeedbackPacket, getProjection, getRetryCycle, listEvaluationResults, listProjections, parseJson, putProjection, serializeJson } from "./projections.js";
 import type {
   AppendEventInput,
   CoordinationStore,
@@ -188,6 +188,38 @@ export class SqliteCoordinationStore implements CoordinationStore {
     });
   }
 
+  async listEvaluationResults<T>(projectId: ProjectId, runId: string): Promise<T[]> {
+    try {
+      return listEvaluationResults<T>(this.requireDb(), projectId, runId);
+    } catch (error) {
+      throw normalizeCoordinationStoreError(error);
+    }
+  }
+
+  async getEvaluationDecision<T>(projectId: ProjectId, runId: string): Promise<T | undefined> {
+    try {
+      return getEvaluationDecision<T>(this.requireDb(), projectId, runId);
+    } catch (error) {
+      throw normalizeCoordinationStoreError(error);
+    }
+  }
+
+  async getFeedbackPacket<T>(projectId: ProjectId, runId: string): Promise<T | undefined> {
+    try {
+      return getFeedbackPacket<T>(this.requireDb(), projectId, runId);
+    } catch (error) {
+      throw normalizeCoordinationStoreError(error);
+    }
+  }
+
+  async getRetryCycle<T>(projectId: ProjectId, runId: string): Promise<T | undefined> {
+    try {
+      return getRetryCycle<T>(this.requireDb(), projectId, runId);
+    } catch (error) {
+      throw normalizeCoordinationStoreError(error);
+    }
+  }
+
   async close(): Promise<void> {
     const db = this.db;
     this.db = undefined;
@@ -212,6 +244,10 @@ export class SqliteCoordinationStore implements CoordinationStore {
       appendAudit: (record: AuditRecord) => this.appendAuditInTransaction(db, record),
       getIdempotency: (input: IdempotencyInput) => this.getIdempotencyInTransaction(db, input),
       putIdempotency: (record: StoredIdempotency) => this.putIdempotencyInTransaction(db, record),
+      listEvaluationResults: <T>(projectId: ProjectId, runId: string) => listEvaluationResults<T>(db, projectId, runId),
+      getEvaluationDecision: <T>(projectId: ProjectId, runId: string) => getEvaluationDecision<T>(db, projectId, runId),
+      getFeedbackPacket: <T>(projectId: ProjectId, runId: string) => getFeedbackPacket<T>(db, projectId, runId),
+      getRetryCycle: <T>(projectId: ProjectId, runId: string) => getRetryCycle<T>(db, projectId, runId),
     };
   }
 

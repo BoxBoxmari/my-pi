@@ -16,9 +16,12 @@ export class FileSystemCodeStateProvider implements CodeStateProvider {
 
   async indexFile(context: IndexContext, filePath: string): Promise<CodeGraphDelta> {
     context.signal.throwIfAborted();
-    const absolute = path.resolve(context.root, filePath);
-    const relativePath = relativePosix(context.root, absolute);
-    if (relativePath.startsWith("../") || relativePath === "..") throw new Error("code-state path is outside the worktree");
+    const resolved = await context.resolveReadPath(filePath);
+    const absolute = resolved.absolute;
+    const relativePath = resolved.relPosix;
+    if (!resolved.exists) {
+      return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [fileStableKey(context.repositoryIdentity, relativePath)], observedAt: new Date().toISOString(), providerHealth: { fs: { status: "ready" } } };
+    }
     const stableKey = fileStableKey(context.repositoryIdentity, relativePath);
     const observedAt = new Date().toISOString();
     try {

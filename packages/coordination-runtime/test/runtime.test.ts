@@ -12,7 +12,7 @@ import {
 } from "@my-pi/contracts";
 import { SqliteCoordinationStore } from "@my-pi/coordination-store";
 import { CoordinationRuntime } from "@my-pi/coordination-runtime";
-import { EvaluationRuntime } from "../../evaluation-runtime/dist/index.js";
+import { DeterministicProvider, EvaluationRuntime } from "../../evaluation-runtime/dist/index.js";
 
 async function setup() {
   const dir = await mkdtemp(path.join(tmpdir(), "my-pi-runtime-"));
@@ -78,7 +78,7 @@ test("PN4 end-to-end: dependency claim, typed publication, selective sync, and u
     assert.ok(!bSync.normalPriority.some((item) => item.event.payload && JSON.stringify(item.event.payload).includes(agentC.agentSessionId)));
 
     const cSync = await runtime.sync({ agentSessionId: agentC.agentSessionId, sinceSequence: 0n });
-    assert.equal(cSync.highPriority.length, 1);
+    assert.equal(cSync.highPriority.length, 0);
     assert.equal(cSync.normalPriority.length, 0);
 
     const completed = await runtime.complete({ agentSessionId: agentA.agentSessionId, workItemId: backend.id });
@@ -157,6 +157,7 @@ test("PN7 change receipt is stored and surfaced as an applied/rejected coordinat
       projectId: runtime.projectId,
       status: "APPLIED" as const,
       resources: [{ path: "src/example.ts", absent: false }],
+      receiptDigest: "test-receipt-digest",
       publishedAt: "2026-09-04T00:00:00.000Z",
     };
     await runtime.recordChangeReceipt(receipt);
@@ -169,14 +170,53 @@ test("PN7 change receipt is stored and surfaced as an applied/rejected coordinat
   }
 });
 
+test("PN4 coord_sync refreshes a lease without durable heartbeat-event growth", async () => {
+  const { dir, store, runtime } = await setup();
+  try {
+    const agent = await join(runtime, createWorktreeId(), "heartbeat-agent");
+    const before = await store.listEvents({ projectId: runtime.projectId, limit: 100 });
+    for (let index = 0; index < 10; index++) await runtime.sync({ agentSessionId: agent.agentSessionId, sinceSequence: 0n, maxEvents: 20 });
+    const after = await store.listEvents({ projectId: runtime.projectId, limit: 100 });
+    assert.equal(after.events.filter((event) => event.eventType === "AgentHeartbeat").length, before.events.filter((event) => event.eventType === "AgentHeartbeat").length);
+    assert.equal(after.events.length, before.events.length);
+    const session = await store.getProjection<{ heartbeatAt?: string }>("agent_session", agent.agentSessionId);
+    assert.equal(typeof session?.heartbeatAt, "string");
+  } finally {
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("PN4 coord_sync remains bounded under a high event volume", async () => {
+  const { dir, store, runtime } = await setup();
+  try {
+    const agent = await join(runtime, createWorktreeId(), "scale-agent");
+    for (let index = 0; index < 250; index++) {
+      await runtime.publish({
+        agentSessionId: agent.agentSessionId,
+        kind: "finding",
+        contentDigest: `sha256:scale-${String(index).padStart(4, "0")}`,
+        classification: "internal",
+        retention: "until-superseded",
+      });
+    }
+    const result = await runtime.sync({ agentSessionId: agent.agentSessionId, sinceSequence: 0n, maxEvents: 10, maxBytes: 64 * 1024 });
+    assert.ok(result.highPriority.length + result.normalPriority.length <= 10);
+    assert.ok(result.warnings.includes("sync result is bounded; more events remain"));
+  } finally {
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("PN8 gated WorkItems wait for evaluation, expose retry state, and only then become done", async () => {
   const { dir, store, runtime } = await setup();
   try {
     const agent = await join(runtime, createWorktreeId(), "evaluation-gated-agent");
-    const evaluation = new EvaluationRuntime(store, runtime.projectId);
+    const evaluation = new EvaluationRuntime(store, runtime.projectId, [new DeterministicProvider()]);
     const spec = await evaluation.registerSpec({
       name: "gated completion",
-      criteria: [{ id: "target", kind: "artifact", required: true, severity: "critical", evaluatorRef: "test", expected: "accepted" }],
+      criteria: [{ id: "target", kind: "artifact", required: true, severity: "critical", evaluatorRef: "deterministic-local", expected: "accepted" }],
     });
     const item = await runtime.createWorkItem({ title: "gated implementation", evaluationSpecId: spec.id });
     await runtime.claim({ agentSessionId: agent.agentSessionId, workItemId: item.id, expectedVersion: 0 });
@@ -186,13 +226,7 @@ test("PN8 gated WorkItems wait for evaluation, expose retry state, and only then
     assert.deepEqual(await runtime.complete({ agentSessionId: agent.agentSessionId, workItemId: item.id }), { workItem: awaiting.workItem, releasedIntentIds: [], releasedScopeIds: [], unblockedWorkItemIds: [], currentSequence: 0n });
 
     const failedRun = await evaluation.requestRun({ specId: spec.id, workItemId: item.id, repositoryStateRef: "tree:attempt-1", attempt: 1 });
-    await evaluation.recordResult(failedRun.id, {
-      providerResultId: "gated-fail",
-      providerId: "test",
-      criterionId: "target",
-      result: { criterionId: "target", outcome: "fail", observed: "attempt-1", reasonCode: "TARGET_NOT_READY", evidence: [{ provider: "test", digest: "sha256:attempt-1", targetStateRef: "tree:attempt-1", observedAt: "2026-09-04T00:00:00.000Z" }] },
-    });
-    const failed = await evaluation.completeRun(failedRun.id);
+    const failed = await evaluation.evaluateRun(failedRun.id, { target: "attempt-1" });
     assert.equal(failed.decision?.decision, "rejected");
     const needsRetry = await runtime.applyEvaluationDecision(failedRun.id);
     assert.equal(needsRetry.state, "needs_retry");
@@ -203,13 +237,7 @@ test("PN8 gated WorkItems wait for evaluation, expose retry state, and only then
     const retryAwaiting = await runtime.complete({ agentSessionId: agent.agentSessionId, workItemId: item.id });
     assert.equal(retryAwaiting.workItem.state, "awaiting_evaluation");
     const passedRun = await evaluation.requestRun({ specId: spec.id, workItemId: item.id, repositoryStateRef: "tree:attempt-2", attempt: 2 });
-    await evaluation.recordResult(passedRun.id, {
-      providerResultId: "gated-pass",
-      providerId: "test",
-      criterionId: "target",
-      result: { criterionId: "target", outcome: "pass", observed: "accepted", evidence: [{ provider: "test", digest: "sha256:attempt-2", targetStateRef: "tree:attempt-2", observedAt: "2026-09-04T00:00:00.000Z" }] },
-    });
-    const passed = await evaluation.completeRun(passedRun.id);
+    const passed = await evaluation.evaluateRun(passedRun.id, { target: "accepted" });
     assert.equal(passed.decision?.decision, "accepted");
     const accepted = await runtime.applyEvaluationDecision(passedRun.id);
     assert.equal(accepted.state, "accepted");
@@ -254,6 +282,7 @@ test("PN6 intent declaration emits a bounded impact result and routes it to the 
     const impact = events.events.find((event) => event.eventType === "ImpactDetected");
     assert.ok(impact);
     assert.equal((impact.payload as { subject: string }).subject, sourceIntent.id);
+    assert.equal((await store.getProjection<{ intentId: string }>("impact_result", sourceIntent.id))?.intentId, sourceIntent.id);
     assert.ok((impact.payload as { affectedWorkItems: Array<{ workItemId: string }> }).affectedWorkItems.some((item) => item.workItemId === dependent.id));
     const sync = await runtime.sync({ agentSessionId: agentB.agentSessionId, sinceSequence: 0n });
     assert.ok(sync.highPriority.some((item) => item.event.eventType === "ImpactDetected" && item.reason === "impact_result"));

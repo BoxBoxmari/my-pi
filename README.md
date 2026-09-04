@@ -29,12 +29,12 @@
 
 ## Product overview
 
-**my-pi** is a deterministic coding capability runtime exposed through the official **Model Context Protocol (MCP)**. It gives coding agents a controlled interface to local workspaces through explicit workspace authority, bounded reads, compare-and-swap writes, structural search, language-server integration, and Git operations.
+**my-pi** is a deterministic coding capability runtime exposed through the official **Model Context Protocol (MCP)**. It gives coding agents a controlled interface to local workspaces through explicit workspace authority, bounded reads, content-preconditioned writes, structural search, language-server integration, and Git operations.
 
 > **Release channel:** Alpha · `0.1.0-alpha.1`<br>
 > The public package is intended for evaluation and controlled local development. Review the [security model](docs/SECURITY_MODEL.md) before enabling the trusted profile.
 
-Rather than granting unrestricted shell access or relying on fragile line-based edits, **my-pi** enforces **Compare-And-Swap (CAS)** atomic mutations, pre-read credential protection, Tree-Sitter AST structural search, and multi-language Language Server Protocol (LSP) intelligence directly over a local stdio transport.
+Rather than granting unrestricted shell access or relying on fragile line-based edits, **my-pi** enforces content preconditions, per-file atomic publication, pre-read credential protection, Tree-Sitter AST structural search, and multi-language Language Server Protocol (LSP) intelligence directly over a local stdio transport.
 
 ---
 
@@ -59,7 +59,7 @@ The npm download badge is maintained by npm and reflects its rolling download co
 
 ## Production Next (experimental)
 
-The checkout also contains an opt-in local coordination candidate. Start one daemon for a logical project with `my-pi-daemon --workspace /path/to/your/project`, then connect an agent host with `my-pi-mcp --workspace /path/to/your/project --coordination`. Add `--evaluation` only when the evaluation plane is required.
+The checkout also contains an opt-in local coordination candidate. Start one daemon for a logical project with `my-pi-daemon --workspace /path/to/your/project`, then connect an agent host with `my-pi-mcp --workspace /path/to/your/project --coordination`. Add `--evaluation` only when the evaluation plane is required. Evaluation targets must be bound to a server-verified change receipt in a production daemon.
 
 The stable public claim remains the 13-tool MCP capability surface. Coordination, code-state, change-receipt, evaluation, and feedback behavior are experimental and remain subject to PN6/PN8/PN9 benchmark and promotion gates. The candidate keeps source and detailed code state local, does not select models or spawn agents, and does not require a hosted control plane.
 
@@ -71,7 +71,7 @@ Candidate qualification commands are `pnpm bench:impact-arms`, `pnpm bench:evalu
 
 | Feature | Description | Guarantee |
 | :--- | :--- | :--- |
-| **Compare-and-swap (CAS)** | File updates verify raw SHA-256 byte fingerprints before write | Rejects stale or unguarded overwrites |
+| **Content-preconditioned mutation** | File updates verify raw SHA-256 byte fingerprints before per-file publication | Rejects stale or unguarded overwrites |
 | **Pre-read security policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Sensitive files stay outside model context |
 | **Explicit security profiles** | Read-only is the default; writes and LSP require `--security-profile trusted` | Workspace authority is never silently inherited from CWD |
 | **Deterministic AST search** | Structural syntax tree queries via Tree-Sitter for 5 core languages | Accurate AST node filtering across large codebases |
@@ -122,7 +122,7 @@ Candidate qualification commands are `pnpm bench:impact-arms`, `pnpm bench:evalu
 
 ### 1. Filesystem & Mutation
 - **`fs_read`**: Byte-bounded window streaming with SHA-256 fingerprinting, byte-offset pagination, and automatic UTF-8 / UTF-16 / BOM / CRLF decoding.
-- **`fs_write`**: Safe file creation with strict no-clobber semantics or CAS-validated overwrites (`expected_hash`).
+- **`fs_write`**: Safe file creation with strict no-clobber semantics or content-preconditioned overwrites (`expected_hash`).
 - **`fs_patch`**: Hunk-based anchored patching with stale detection; fails closed if anchor lines diverge.
 - **`fs_stat`**: Comprehensive file metadata, size, timestamps, POSIX mode bits, and binary classification.
 
@@ -260,13 +260,13 @@ packages/
 ├── native-loader/      # Safe fallback platform loader
 ├── fs/                 # Hardened filesystem operations
 ├── search/             # High-throughput grep & glob search
-├── hashline/           # CAS chunk-based patch engine
+├── hashline/           # Hashline-anchored patch engine
 ├── ast/                # Tree-Sitter 5-language structural search
 ├── lsp/                # Multi-language LSP client and process pool
 ├── vcs/                # Git-backed status and diff engine
 ├── mcp-adapter/        # Official Model Context Protocol stdio server
 ├── host-profiles/      # Configuration renderers for IDE hosts
-├── change-runtime/     # Compare-and-swap proposals and receipts
+├── change-runtime/     # Content preconditions and publication receipts
 ├── code-state/         # AST, filesystem, LSP, and VCS code state
 ├── coordination-client/ # Versioned local daemon client
 ├── coordination-runtime/ # Claims, work graph, intents, and sync

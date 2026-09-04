@@ -5,6 +5,14 @@ export interface ResourceVersion {
   path: string;
   fingerprint?: FileFingerprint;
   absent?: boolean;
+  operation?: "create" | "replace";
+  payloadDigest?: string;
+}
+
+export interface ResourcePublicationResult {
+  path: string;
+  status: "APPLIED" | "REJECTED";
+  error?: string;
 }
 
 export interface Snapshot {
@@ -26,6 +34,7 @@ export interface ChangeProposal {
   preconditions?: ResourceVersion[];
   payloadDigest?: string;
   planDigest?: string;
+  policyContext?: { workspaceMode?: "read-only" | "workspace-write" | "review-required" };
   proposedAt: string;
 }
 
@@ -57,6 +66,8 @@ export interface ChangeReceipt {
   inputVersions?: ResourceVersion[];
   outputVersions?: ResourceVersion[];
   resources: ResourceVersion[];
+  resourceResults?: ResourcePublicationResult[];
+  errors?: string[];
   verification?: { verified: boolean; digest?: string };
   startedAt?: string;
   publishedAt: string;

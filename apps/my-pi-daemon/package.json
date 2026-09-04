@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "@my-pi/contracts": "workspace:*",
+    "@my-pi/change-runtime": "workspace:*",
     "@my-pi/code-state": "workspace:*",
     "@my-pi/coordination-client": "workspace:*",
     "@my-pi/coordination-runtime": "workspace:*",
     "@my-pi/coordination-store": "workspace:*",
-    "@my-pi/evaluation-runtime": "workspace:*"
+    "@my-pi/evaluation-runtime": "workspace:*",
+    "@my-pi/workspace-runtime": "workspace:*"
   }
 }

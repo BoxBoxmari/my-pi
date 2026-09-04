@@ -9,14 +9,27 @@ export interface ProviderResultInput {
   result: EvaluationResult;
 }
 
+export type EvaluationProvenance = "verified_provider" | "external_unverified";
+
+export interface ExternalResultInput extends ProviderResultInput {
+  /** The provider name asserted by an external caller; never trusted as authority. */
+  declaredProviderId: string;
+}
+
 export interface StoredEvaluationResult extends ProviderResultInput {
   runId: string;
   resultDigest: string;
   recordedAt: string;
+  provenance: EvaluationProvenance;
+  declaredProviderId?: string;
 }
 
 export function resultDigest(input: ProviderResultInput): string {
   return createHash("sha256").update(JSON.stringify({ providerResultId: input.providerResultId, providerId: input.providerId, criterionId: input.criterionId, result: input.result }, (_key, value) => typeof value === "bigint" ? value.toString() : value), "utf8").digest("hex");
+}
+
+export function storedResultDigest(input: ProviderResultInput, provenance: EvaluationProvenance, declaredProviderId?: string): string {
+  return createHash("sha256").update(JSON.stringify({ ...input, provenance, ...(declaredProviderId === undefined ? {} : { declaredProviderId }) }, (_key, value) => typeof value === "bigint" ? value.toString() : value), "utf8").digest("hex");
 }
 
 export function validateProviderResult(input: ProviderResultInput, targetStateRef: string): void {

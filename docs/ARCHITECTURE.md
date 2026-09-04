@@ -57,8 +57,15 @@ MCP / CLI adapters
   -> coordination-client
   -> local my-pi-daemon
   -> coordination-runtime + SQLite coordination-store
-  -> code-state -> impact-engine -> context-router
+  -> daemon-managed code-state/worktree lifecycle -> impact-engine -> context-router
   -> change-runtime -> evaluation-runtime
 ```
 
 The daemon is one local authority per logical project and uses a Unix socket or Windows named pipe, never public TCP in the local profile. Coordination and evaluation are opt-in; the legacy MCP entry point remains usable without a daemon. The candidate records evidence and bounded retry state but does not spawn replacement agents. PN6, PN8, and PN9 remain empirical gates before enterprise positioning.
+
+The daemon registers canonical worktree roots before indexing them. Code-state
+reads pass through the workspace path and sensitive-path policy. File events are
+invalidation hints; bounded reconciliation keeps fingerprints authoritative when
+recursive watching is unavailable or overflows. Impact is materialized at intent
+or code-state update time, while `coord_sync` reads bounded events and does not
+recompute the full graph on every poll.

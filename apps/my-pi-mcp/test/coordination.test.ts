@@ -14,7 +14,7 @@ const DAEMON = path.join(ROOT, "apps", "my-pi-daemon", "dist", "main.js");
 const MCP = path.join(ROOT, "apps", "my-pi-mcp", "dist", "main.js");
 
 function startDaemon(runtimeDir: string): ChildProcess {
-  return spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir], {
+  return spawn(process.execPath, [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir, "--test-mode"], {
     cwd: ROOT,
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
@@ -54,7 +54,7 @@ test("PN4 MCP adapter: coordination mode exposes six opt-in tools backed by the 
 
     const transport = new StdioClientTransport({
       command: process.execPath,
-      args: [MCP, "--workspace", ROOT, "--coordination", "--coordination-runtime-dir", runtimeDir],
+      args: [MCP, "--workspace", ROOT, "--security-profile", "trusted", "--coordination", "--coordination-runtime-dir", runtimeDir],
       cwd: ROOT,
       stderr: "pipe",
     });
@@ -117,18 +117,18 @@ test("PN8 MCP adapter: evaluation mode exposes only the opt-in evaluation family
     const workItem = await raw.call<{ id: string }>("coord_create_work_item", { projectId: metadata.projectId, title: "MCP evaluation work", evaluationSpecId: spec.id });
     await raw.call("coord_claim", { projectId: metadata.projectId, agentSessionId: joined.agentSessionId, workItemId: workItem.id, expectedVersion: 0 });
     await raw.call("coord_complete", { projectId: metadata.projectId, agentSessionId: joined.agentSessionId, workItemId: workItem.id });
-    const transport = new StdioClientTransport({ command: process.execPath, args: [MCP, "--workspace", ROOT, "--evaluation", "--coordination-runtime-dir", runtimeDir], cwd: ROOT, stderr: "pipe" });
+    const transport = new StdioClientTransport({ command: process.execPath, args: [MCP, "--workspace", ROOT, "--security-profile", "trusted", "--evaluation", "--coordination-runtime-dir", runtimeDir], cwd: ROOT, stderr: "pipe" });
     client = new Client({ name: "my-pi-evaluation-mcp-test", version: "1" });
     await client.connect(transport);
     const names = (await client.listTools()).tools.map((tool) => tool.name).sort();
-    assert.equal(names.length, 16);
+    assert.equal(names.length, 17);
     assert.ok(names.includes("eval_request"));
     assert.ok(names.includes("eval_record"));
+    assert.ok(names.includes("eval_evaluate"));
     assert.ok(names.includes("eval_status"));
     assert.equal(names.includes("coord_join"), false);
     const requested = capabilityData(await client.callTool({ name: "eval_request", arguments: { specId: spec.id, workItemId: workItem.id, repositoryStateRef: "receipt-mcp-eval" } }));
-    await client.callTool({ name: "eval_record", arguments: { runId: requested.id, providerResultId: "mcp-eval-result", providerId: "deterministic-local", criterionId: "check", result: { criterionId: "check", outcome: "pass", evidence: [{ provider: "deterministic-local", digest: "sha256:mcp1234", targetStateRef: "receipt-mcp-eval", observedAt: "2026-09-04T00:00:01.000Z" }] } } });
-    await raw.call("eval_complete", { runId: requested.id });
+    await client.callTool({ name: "eval_evaluate", arguments: { runId: requested.id, observed: { check: true } } });
     const status = capabilityData(await client.callTool({ name: "eval_status", arguments: { runId: requested.id } }));
     assert.equal(status.decision.decision, "accepted");
     assert.equal(joined.agentSessionId.length > 0, true);

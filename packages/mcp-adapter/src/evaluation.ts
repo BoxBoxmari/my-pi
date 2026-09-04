@@ -5,10 +5,10 @@ function result<T>(ctx: CapabilityContext, data: T, started: number): Capability
   return { schemaVersion: "1", requestId: ctx.requestId, workspaceId: ctx.workspace.id, revision: ctx.workspace.revision, data, timing: { totalMs: performance.now() - started } };
 }
 
-function makeCapability(client: CoordinationClient, name: string, method: string): Capability<unknown, unknown> {
+function makeCapability(client: CoordinationClient, name: string, method: string, risk: "read" | "write"): Capability<unknown, unknown> {
   return {
     name,
-    risk: "read",
+    risk,
     async execute(input, ctx) {
       const started = performance.now();
       ctx.signal.throwIfAborted();
@@ -20,8 +20,9 @@ function makeCapability(client: CoordinationClient, name: string, method: string
 
 export function createEvaluationCapabilities(client: CoordinationClient): Map<string, Capability<unknown, unknown>> {
   return new Map([
-    ["eval_request", makeCapability(client, "eval_request", "eval_request")],
-    ["eval_record", makeCapability(client, "eval_record", "eval_record")],
-    ["eval_status", makeCapability(client, "eval_status", "eval_status")],
+    ["eval_request", makeCapability(client, "eval_request", "eval_request", "write")],
+    ["eval_record", makeCapability(client, "eval_record", "eval_record", "write")],
+    ["eval_evaluate", makeCapability(client, "eval_evaluate", "eval_evaluate", "write")],
+    ["eval_status", makeCapability(client, "eval_status", "eval_status", "read")],
   ]);
 }

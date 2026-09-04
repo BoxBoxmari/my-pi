@@ -13,6 +13,7 @@
   "dependencies": {
     "@my-pi/ast": "workspace:*",
     "@my-pi/contracts": "workspace:*",
-    "@my-pi/coordination-store": "workspace:*"
+    "@my-pi/coordination-store": "workspace:*",
+    "@my-pi/workspace-runtime": "workspace:*"
   }
 }

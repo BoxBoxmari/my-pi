@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -198,6 +198,64 @@ test("audit records persist separately from coordination event sequence", async 
     } finally {
       await reopened.close();
     }
+  } finally {
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("evaluation lookup uses run-scoped indexed records instead of project-wide projection scans", async () => {
+  const { dir, file } = await makeDatabase();
+  const projectId = createProjectId();
+  const store = new SqliteCoordinationStore(file);
+  try {
+    await store.init();
+    await store.transact((tx) => {
+      tx.putProjection("project", projectId, { id: projectId, schemaVersion: "1", createdAt: "2026-09-04T00:00:00.000Z" }, projectId);
+      tx.putProjection("evaluation_run", "evalrun-indexed", { id: "evalrun-indexed", projectId, specId: "evalspec-indexed", specVersion: 1, repositoryStateRef: "state-indexed", workItemId: "work-indexed", attempt: 1, state: "completed" }, projectId);
+      for (let index = 0; index < 100; index++) {
+        tx.putProjection("evaluation_result", `evalrun-indexed:criterion-${index}`, { runId: "evalrun-indexed", criterionId: `criterion-${index}`, providerResultId: `provider-${index}`, resultDigest: `digest-${index}`, recordedAt: "2026-09-04T00:00:00.000Z" }, projectId);
+      }
+    });
+    const selected = await store.listEvaluationResults<{ criterionId: string }>(projectId, "evalrun-indexed");
+    assert.equal(selected.length, 100);
+    assert.equal(selected[0]?.criterionId, "criterion-0");
+
+    const db = new DatabaseSync(file);
+    try {
+      const indexes = db.prepare("PRAGMA index_list('evaluation_results')").all() as Array<{ name?: unknown }>;
+      assert.ok(indexes.some((index) => index.name === "evaluation_results_run_criterion_idx"));
+    } finally {
+      db.close();
+    }
+  } finally {
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("evaluation query migration backfills projection records from schema version four", async () => {
+  const { dir, file } = await makeDatabase();
+  const projectId = createProjectId();
+  const expectedResult = { runId: "evalrun-legacy", criterionId: "check", providerResultId: "provider-legacy", resultDigest: "digest-legacy", recordedAt: "2026-09-04T00:00:00.000Z" };
+  const legacy = new DatabaseSync(file);
+  try {
+    for (const version of [1, 2, 3, 4]) {
+      legacy.exec(await readFile(path.join(process.cwd(), "packages", "coordination-store", "migrations", `000${version}_${version === 1 ? "initial" : version === 2 ? "code_state" : version === 3 ? "evaluation" : "audit"}.sql`), "utf8"));
+      legacy.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)").run(version, "2026-09-04T00:00:00.000Z");
+    }
+    const run = { id: "evalrun-legacy", projectId, specId: "evalspec-legacy", specVersion: 1, repositoryStateRef: "state-legacy", workItemId: "work-legacy", attempt: 1, state: "completed" };
+    legacy.prepare("INSERT INTO projection_records(kind, id, project_id, payload_json, updated_at) VALUES (?, ?, ?, ?, ?)").run("evaluation_run", run.id, projectId, JSON.stringify(run), "2026-09-04T00:00:00.000Z");
+    legacy.prepare("INSERT INTO projection_records(kind, id, project_id, payload_json, updated_at) VALUES (?, ?, ?, ?, ?)").run("evaluation_result", `${run.id}:check`, projectId, JSON.stringify(expectedResult), "2026-09-04T00:00:00.000Z");
+  } finally {
+    legacy.close();
+  }
+
+  const store = new SqliteCoordinationStore(file);
+  try {
+    await store.init();
+    const results = await store.listEvaluationResults<{ runId: string; providerResultId: string }>(projectId, "evalrun-legacy");
+    assert.deepEqual(results, [expectedResult]);
   } finally {
     await store.close();
     await rm(dir, { recursive: true, force: true });

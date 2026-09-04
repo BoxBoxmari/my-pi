@@ -19,27 +19,28 @@ export function evaluateAcceptance(spec: EvaluationSpec, targetStateRef: string,
   for (const criterion of spec.criteria) {
     const criterionResults = byCriterion.get(criterion.id) ?? [];
     if (!criterion.required) continue;
-    if (criterionResults.length === 0) {
+    const trustedResults = criterionResults.filter((stored) => stored.provenance === "verified_provider");
+    if (trustedResults.length === 0) {
       inconclusiveCriteria.push(criterion.id);
-      reasons.push(`${criterion.id}: missing required evidence`);
+      reasons.push(criterionResults.length === 0 ? `${criterion.id}: missing required evidence` : `${criterion.id}: evidence is not from a verified provider`);
       continue;
     }
-    if (criterionResults.some((stored) => stored.result.outcome === "fail")) {
+    if (trustedResults.some((stored) => stored.result.outcome === "fail")) {
       failedCriteria.push(criterion.id);
       reasons.push(`${criterion.id}: criterion failed`);
       continue;
     }
-    if (criterionResults.some((stored) => stored.result.evidence.length === 0)) {
+    if (trustedResults.some((stored) => stored.result.evidence.length === 0)) {
       inconclusiveCriteria.push(criterion.id);
       reasons.push(`${criterion.id}: required evidence is empty`);
       continue;
     }
-    if (criterionResults.some((stored) => stored.result.evidence.some((evidence) => evidence.targetStateRef !== targetStateRef))) {
+    if (trustedResults.some((stored) => stored.result.evidence.some((evidence) => evidence.targetStateRef !== targetStateRef))) {
       inconclusiveCriteria.push(criterion.id);
       reasons.push(`${criterion.id}: stale target-state evidence`);
       continue;
     }
-    if (criterionResults.some((stored) => stored.result.outcome !== "pass")) {
+    if (trustedResults.some((stored) => stored.result.outcome !== "pass")) {
       inconclusiveCriteria.push(criterion.id);
       reasons.push(`${criterion.id}: one or more outcomes are not acceptance`);
     }

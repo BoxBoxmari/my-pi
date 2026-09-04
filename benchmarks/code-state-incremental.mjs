@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
@@ -9,7 +9,15 @@ import { CodeStateIndexer } from "../packages/code-state/dist/index.js";
 
 const dir = await mkdtemp(path.join(os.tmpdir(), "my-pi-code-state-incremental-"));
 const store = new SqliteCoordinationStore(path.join(dir, "coordination.sqlite"));
-const context = { projectId: createProjectId(), repositoryId: createRepositoryId(), worktreeId: createWorktreeId(), repositoryIdentity: "git:benchmark:code-state", root: dir, signal: new AbortController().signal };
+const resolveReadPath = async (filePath) => {
+  const absolute = path.resolve(dir, filePath);
+  const relPosix = path.relative(dir, absolute).replaceAll(path.sep, "/");
+  if (relPosix === ".." || relPosix.startsWith("../") || path.isAbsolute(relPosix)) throw new Error("benchmark path escaped its workspace");
+  let exists = true;
+  try { await stat(absolute); } catch (error) { if (error?.code !== "ENOENT") throw error; exists = false; }
+  return { absolute, relPosix, exists };
+};
+const context = { projectId: createProjectId(), repositoryId: createRepositoryId(), worktreeId: createWorktreeId(), repositoryIdentity: "git:benchmark:code-state", root: dir, signal: new AbortController().signal, resolveReadPath };
 const indexer = new CodeStateIndexer(store);
 const sample = path.join(dir, "sample.ts");
 try {
