@@ -72,7 +72,7 @@ function validatePN9(evidence, errors) {
     add(errors, evidence.stableNMinusOneVerified === true, "PN9: stableNMinusOneVerified must be true");
     add(errors, FULL_SHA.test(evidence.bootstrapSha ?? "") && evidence.bootstrapSha.toLowerCase() !== HEAD, "PN9: bootstrapSha must be a distinct stable N-1 commit");
   }
-  const report = evidence.report ?? {};
+  const report = evidence.report ?? evidence;
   add(errors, report.routing?.impactDetected === true, "PN9: observed self-host impact routing is required");
   add(errors, report.verification?.acceptedAfterRetry === true, "PN9: observed accepted retry is required");
   add(errors, report.verification?.noAutonomousSpawn === true, "PN9: no-autonomous-spawn control is required");
