@@ -1,0 +1,348 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-001",
+  "taskDefinition": "dogfood/observed-tasks/OT-001.json",
+  "taskDefinitionCommit": "07e30ad054400d419b642932ac4f5a973b813845",
+  "taskCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+  "status": "RECORDED",
+  "outcome": "accepted_by_external_ci_and_task_criteria",
+  "filesChanged": [
+    "packages/code-state/src/watcher.ts",
+    "packages/code-state/test/code-state.test.ts"
+  ],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon + stable ChangeRuntime",
+    "projectId": "project_57a99d285efc",
+    "processId": 13292,
+    "mutationReceiptIds": [
+      "receipt_9e4d17549242",
+      "receipt_160536b153b2"
+    ],
+    "candidateDaemonUsed": false
+  },
+  "coordination": {
+    "workItemId": "work_a65356b3e5e9",
+    "preChangeIntentId": "intent_9ae0d0dd1718",
+    "verificationIntentId": "intent_561830004049",
+    "agentSessions": [
+      {
+        "id": "session_f00703b203fa",
+        "phase": "pre-change",
+        "status": "expired_during_wait"
+      },
+      {
+        "id": "session_e48fe329349d",
+        "phase": "claim-recovery",
+        "status": "expired_during_wait"
+      },
+      {
+        "id": "session_cc1fc52885aa",
+        "phase": "rejoin-attempt",
+        "status": "rejected_by_worktree_binding"
+      },
+      {
+        "id": "session_f659901a74f9",
+        "phase": "final-verify-and-complete",
+        "status": "completed"
+      }
+    ],
+    "finalWorkItem": {
+      "id": "work_a65356b3e5e9",
+      "projectId": "project_57a99d285efc",
+      "title": "OT-001: contain late watcher errors after stop",
+      "summary": "Implement the pre-registered task card acceptance criteria in dogfood/observed-tasks/OT-001.json",
+      "state": "done",
+      "version": 3,
+      "createdAt": "2026-09-04T18:40:00.523Z",
+      "updatedAt": "2026-09-04T18:55:01.567Z",
+      "assignee": "session_f659901a74f9"
+    },
+    "eventLog": {
+      "count": 2271,
+      "lastSequence": "2271",
+      "relevantEvents": [
+        {
+          "sequence": "2",
+          "eventType": "AgentJoined",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f00703b203fa"
+          },
+          "payload": {
+            "id": "session_f00703b203fa",
+            "status": "active",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "4",
+          "eventType": "IntentDeclared",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f00703b203fa"
+          },
+          "payload": {
+            "id": "intent_9ae0d0dd1718",
+            "workItemId": "work_a65356b3e5e9",
+            "agentSessionId": "session_f00703b203fa",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2257",
+          "eventType": "ChangeApplied",
+          "actor": {
+            "kind": "system",
+            "name": "coordination-runtime"
+          },
+          "payload": {
+            "id": "receipt_02c4022c5350",
+            "agentSessionId": "session_f00703b203fa",
+            "status": "APPLIED",
+            "receiptDigest": "5808518849a6c5308d0338b43073fe55bd3671ecaba9802192b0a88c550c595f",
+            "verification": {
+              "verified": true,
+              "digest": "5f6ecae1eeb3fa0b450ddd8af3f63d30b71f3c86384d31083a1a02588f054e9b"
+            },
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2260",
+          "eventType": "ChangeApplied",
+          "actor": {
+            "kind": "system",
+            "name": "coordination-runtime"
+          },
+          "payload": {
+            "id": "receipt_9e4d17549242",
+            "agentSessionId": "session_f00703b203fa",
+            "status": "APPLIED",
+            "receiptDigest": "6d58d89b93c4fb311e9abd6c00ec26ddc8f35c32b83f2e7e2be905ddd3ee937b",
+            "verification": {
+              "verified": true,
+              "digest": "ea416252b38098c4d78703cb46028e615b60c1362fd8079d89237194fa07500f"
+            },
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2261",
+          "eventType": "ChangeApplied",
+          "actor": {
+            "kind": "system",
+            "name": "coordination-runtime"
+          },
+          "payload": {
+            "id": "receipt_160536b153b2",
+            "agentSessionId": "session_f00703b203fa",
+            "status": "APPLIED",
+            "receiptDigest": "5249964b89d81148706fe4bf1bf1e0462c3003d2092368038838c744e28b2a38",
+            "verification": {
+              "verified": true,
+              "digest": "5f6ecae1eeb3fa0b450ddd8af3f63d30b71f3c86384d31083a1a02588f054e9b"
+            },
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2262",
+          "eventType": "AgentJoined",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_e48fe329349d"
+          },
+          "payload": {
+            "id": "session_e48fe329349d",
+            "status": "active",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2263",
+          "eventType": "WorkItemClaimed",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_e48fe329349d"
+          },
+          "payload": {
+            "id": "work_a65356b3e5e9",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2264",
+          "eventType": "AgentJoined",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_cc1fc52885aa"
+          },
+          "payload": {
+            "id": "session_cc1fc52885aa",
+            "status": "active",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2265",
+          "eventType": "AgentJoined",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f659901a74f9"
+          },
+          "payload": {
+            "id": "session_f659901a74f9",
+            "status": "active",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2266",
+          "eventType": "WorkItemClaimed",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f659901a74f9"
+          },
+          "payload": {
+            "id": "work_a65356b3e5e9",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2267",
+          "eventType": "IntentDeclared",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f659901a74f9"
+          },
+          "payload": {
+            "id": "intent_561830004049",
+            "workItemId": "work_a65356b3e5e9",
+            "agentSessionId": "session_f659901a74f9",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2269",
+          "eventType": "ContextPublished",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f659901a74f9"
+          },
+          "payload": {
+            "id": "context_1fe60238ba1c",
+            "workItemId": "work_a65356b3e5e9",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2270",
+          "eventType": "WorkItemCompleted",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f659901a74f9"
+          },
+          "payload": {
+            "id": "work_a65356b3e5e9",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "2271",
+          "eventType": "IntentSuperseded",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_f659901a74f9"
+          },
+          "payload": {
+            "id": "intent_561830004049",
+            "workItemId": "work_a65356b3e5e9",
+            "agentSessionId": "session_f659901a74f9",
+            "reasonCodes": []
+          }
+        }
+      ]
+    },
+    "interventions": [
+      {
+        "type": "agent-session-expired",
+        "sessions": [
+          "session_f00703b203fa",
+          "session_e48fe329349d"
+        ],
+        "recovery": "rejoined with allowShared=true after preserving ownership/worktree binding"
+      },
+      {
+        "type": "worktree-binding-rejection",
+        "session": "session_cc1fc52885aa",
+        "resolution": "rejoined with original repository ID"
+      }
+    ]
+  },
+  "impactObservation": {
+    "preChangeIntent": {
+      "intentId": "intent_9ae0d0dd1718",
+      "observed": true
+    },
+    "verificationIntent": {
+      "intentId": "intent_561830004049",
+      "impactDetected": true,
+      "affectedEntities": 2,
+      "affectedAgents": 1,
+      "reasons": [
+        "same_work_item",
+        "exact_scope_overlap"
+      ],
+      "downstreamRoutingObserved": true
+    },
+    "missedDependencies": "not assessed",
+    "falsePositives": "not assessed",
+    "promotionVerdict": "one real task recorded; sample is insufficient for PN6 promotion"
+  },
+  "correctness": {
+    "targetedNode24": {
+      "command": "node --test ... packages/code-state/test/code-state.test.ts apps/my-pi-daemon/test/code-state-lifecycle.test.ts",
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    "fullLocalVerify": {
+      "command": "pnpm verify",
+      "total": 204,
+      "passed": 203,
+      "failed": 0,
+      "skipped": 1,
+      "releaseTests": "48/48"
+    },
+    "remote": {
+      "ciRunId": "33907778502",
+      "ciUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33907778502",
+      "codeqlRunId": "33907778380",
+      "codeqlUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33907778380",
+      "requiredChecks": [
+        "quality (windows-latest, node 24)",
+        "quality (ubuntu-latest, node 22)",
+        "quality (ubuntu-latest, node 24)",
+        "quality (macos-latest, node 24)",
+        "CodeQL Analysis (javascript-typescript)"
+      ],
+      "allSuccess": true
+    }
+  },
+  "feedbackObservation": {
+    "initialEvaluation": "not run; OT-001 was not evaluation-gated",
+    "structuredFeedbackGenerated": false,
+    "retryAttempts": 0,
+    "regressionsObserved": 0,
+    "humanInterventions": 2
+  },
+  "acceptanceCriteria": {
+    "stopped-state-preserved": "pass",
+    "no-post-stop-reconciliation": "pass",
+    "lifecycle-regression": "pass",
+    "release-integrity": "pass"
+  },
+  "observedEvidenceBoundary": "Real commit and CI outcome are recorded. PN6/PN8 promotion remains withheld because one task has no independent repair-feedback cycle and impact quality/false-positive accounting is not yet repeated across heterogeneous work."
+}
