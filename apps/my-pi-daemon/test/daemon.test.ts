@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, open, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { once } from "node:events";
@@ -10,6 +10,7 @@ import {
   readDaemonMetadata,
   type DaemonMetadata,
 } from "@my-pi/coordination-client";
+import { acquireProjectLock, ProjectAlreadyRunningError } from "../dist/project-lock.js";
 
 const ROOT = path.resolve(".");
 const DAEMON = path.join(ROOT, "apps", "my-pi-daemon", "dist", "main.js");
@@ -133,6 +134,35 @@ test("PN3: concurrent daemon startup admits one project owner", async () => {
     await firstResult.catch(() => undefined);
     await secondResult.catch(() => undefined);
     await rm(runtimeDir, { recursive: true, force: true });
+  }
+});
+
+test("PN3: partial project lock records are retried and never deleted as stale", async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "my-pi-project-lock-partial-"));
+  const lockPath = path.join(dir, "daemon.lock");
+  const handle = await open(lockPath, "wx");
+  try {
+    const contender = acquireProjectLock(lockPath);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    await handle.writeFile(JSON.stringify({ token: "owner-token", pid: process.pid, startedAt: new Date().toISOString() }), "utf8");
+    await handle.close();
+    await assert.rejects(contender, (error: unknown) => error instanceof ProjectAlreadyRunningError);
+    assert.equal(JSON.parse(await readFile(lockPath, "utf8")).token, "owner-token");
+  } finally {
+    await handle.close().catch(() => undefined);
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("PN3: unreadable project lock records fail closed without deletion", async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "my-pi-project-lock-invalid-"));
+  const lockPath = path.join(dir, "daemon.lock");
+  await writeFile(lockPath, "{", "utf8");
+  try {
+    await assert.rejects(acquireProjectLock(lockPath), (error: unknown) => error instanceof ProjectAlreadyRunningError && /unreadable|refusing stale cleanup/i.test((error as Error).message));
+    assert.equal(await readFile(lockPath, "utf8"), "{");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
   }
 });
 

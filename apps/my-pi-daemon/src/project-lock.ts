@@ -8,6 +8,9 @@ interface LockRecord {
   startedAt: string;
 }
 
+const LOCK_READ_ATTEMPTS = 5;
+const LOCK_READ_DELAY_MS = 5;
+
 export class ProjectAlreadyRunningError extends Error {
   readonly code = "ERR_DAEMON_ALREADY_RUNNING";
 
@@ -33,14 +36,28 @@ function processIsAlive(pid: number): boolean {
   }
 }
 
-async function readLock(lockPath: string): Promise<LockRecord | undefined> {
-  try {
-    const value = JSON.parse(await readFile(lockPath, "utf8")) as Partial<LockRecord>;
-    if (typeof value.token !== "string" || typeof value.pid !== "number" || typeof value.startedAt !== "string") return undefined;
-    return { token: value.token, pid: value.pid, startedAt: value.startedAt };
-  } catch {
-    return undefined;
+type LockReadState =
+  | { kind: "missing" }
+  | { kind: "invalid" }
+  | { kind: "valid"; record: LockRecord };
+
+async function readLockState(lockPath: string): Promise<LockReadState> {
+  for (let attempt = 0; attempt < LOCK_READ_ATTEMPTS; attempt++) {
+    try {
+      const value = JSON.parse(await readFile(lockPath, "utf8")) as Partial<LockRecord>;
+      if (typeof value.token !== "string" || typeof value.pid !== "number" || typeof value.startedAt !== "string") return { kind: "invalid" };
+      return { kind: "valid", record: { token: value.token, pid: value.pid, startedAt: value.startedAt } };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return { kind: "missing" };
+      if (attempt + 1 < LOCK_READ_ATTEMPTS) await new Promise((resolve) => setTimeout(resolve, LOCK_READ_DELAY_MS));
+    }
   }
+  return { kind: "invalid" };
+}
+
+async function readLock(lockPath: string): Promise<LockRecord | undefined> {
+  const state = await readLockState(lockPath);
+  return state.kind === "valid" ? state.record : undefined;
 }
 
 export async function acquireProjectLock(lockPath: string): Promise<ProjectLock> {
@@ -48,7 +65,7 @@ export async function acquireProjectLock(lockPath: string): Promise<ProjectLock>
   const token = randomUUID();
   const record: LockRecord = { token, pid: process.pid, startedAt: new Date().toISOString() };
 
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const handle = await open(lockPath, "wx", 0o600);
       try {
@@ -66,9 +83,14 @@ export async function acquireProjectLock(lockPath: string): Promise<ProjectLock>
       };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-      const existing = await readLock(lockPath);
-      if (existing && processIsAlive(existing.pid)) throw new ProjectAlreadyRunningError();
-      await unlink(lockPath).catch(() => undefined);
+      const existing = await readLockState(lockPath);
+      if (existing.kind === "valid") {
+        if (processIsAlive(existing.record.pid)) throw new ProjectAlreadyRunningError();
+        await unlink(lockPath).catch(() => undefined);
+        continue;
+      }
+      if (existing.kind === "missing") continue;
+      throw new ProjectAlreadyRunningError("lock record is unreadable; refusing stale cleanup");
     }
   }
 
