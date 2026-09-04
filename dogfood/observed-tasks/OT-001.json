@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-001",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Contain late CodeStateWatcher backend errors after stop",
+  "problem": "A filesystem watcher can report an asynchronous backend error after shutdown; that late callback must not restart reconciliation or move the stopped lifecycle back to degraded.",
+  "plannedTargets": [
+    "packages/code-state/src/watcher.ts",
+    "packages/code-state/test/code-state.test.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "stopped-state-preserved",
+      "condition": "After stop, a late watcher error leaves CodeStateWatcher.status equal to stopped."
+    },
+    {
+      "id": "no-post-stop-reconciliation",
+      "condition": "A late watcher error after stop does not schedule overflow or reconciliation callbacks."
+    },
+    {
+      "id": "lifecycle-regression",
+      "condition": "The targeted watcher and daemon lifecycle tests pass on Windows Node 24 and the existing Linux/macOS matrix remains green."
+    },
+    {
+      "id": "release-integrity",
+      "condition": "The full repository verify, release checks, and installed-package smoke test pass without changing the 13-tool compatibility surface."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Record WorkItem, pre-change Intent, routed ImpactDetected events, and final handoff through the stable N-1 runtime.",
+    "correctness": "Bind the final commit and GitHub Actions check-run conclusions to this task.",
+    "feedback": "Preserve any failed test attempt and retry lineage before recording final acceptance."
+  }
+}
