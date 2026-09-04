@@ -238,3 +238,38 @@ test("PN5 watcher contains startup failure and can be stopped and restarted", as
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("PN5 watcher ignores a late backend error after stop", async () => {
+  const { dir, store } = await setup();
+  let backend: (EventEmitter & { close: () => void }) | undefined;
+  let closeCount = 0;
+  let overflowCount = 0;
+  let errorCount = 0;
+  const watcher = new CodeStateWatcher(dir, {
+    platform: "linux",
+    watchFactory: (_target, _options, _listener) => {
+      backend = new EventEmitter() as EventEmitter & { close: () => void };
+      backend.close = () => { closeCount++; };
+      return backend as unknown as FSWatcher;
+    },
+    reconcileMs: 5,
+    onPaths: () => undefined,
+    onOverflow: () => { overflowCount++; },
+    onError: () => { errorCount++; },
+  });
+  try {
+    watcher.start();
+    assert.equal(watcher.status, "ready");
+    watcher.stop();
+    backend?.emit("error", new Error("late backend failure"));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal(watcher.status, "stopped");
+    assert.equal(closeCount, 1);
+    assert.equal(overflowCount, 0);
+    assert.equal(errorCount, 0);
+  } finally {
+    watcher.stop();
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});

@@ -102,6 +102,7 @@ export class CodeStateWatcher {
   }
 
   private handleError(error: unknown): void {
+    if (this.state === "stopped") return;
     try {
       this.watcher?.close();
     } catch {
