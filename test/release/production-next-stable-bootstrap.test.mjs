@@ -79,3 +79,9 @@ test("stable bootstrap rejects evidence when the N-1 runtime was not used", () =
   evidence.bootstrapProof.authority.candidateDaemonUsed = true;
   assert.ok(validateStableBootstrapEvidence(evidence, { head: HEAD, stateDigest: STATE_DIGEST }).some((error) => error.includes("candidate daemon")));
 });
+
+test("stable bootstrap accepts workflow and job API qualification provenance", () => {
+  const evidence = validEvidence();
+  evidence.bootstrapProof.remoteQualification.provider = "github-actions-workflows";
+  assert.deepEqual(validateStableBootstrapEvidence(evidence, { head: HEAD, stateDigest: STATE_DIGEST }), []);
+});

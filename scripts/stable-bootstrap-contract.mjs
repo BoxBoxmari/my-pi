@@ -8,6 +8,7 @@ export const REQUIRED_REMOTE_CHECKS = [
   "quality (macos-latest, node 24)",
   "CodeQL Analysis (javascript-typescript)",
 ];
+export const REMOTE_QUALIFICATION_PROVIDERS = ["github-check-runs", "github-actions-workflows"];
 
 function add(errors, condition, message) {
   if (!condition) errors.push(message);
@@ -33,7 +34,7 @@ export function validateStableBootstrapEvidence(evidence, { head, stateDigest } 
   if (stateDigest !== undefined) add(errors, evidence?.candidateStateDigest === stateDigest, "PN9 stable bootstrap candidate state digest is stale");
 
   const remote = proof.remoteQualification ?? {};
-  add(errors, remote.provider === "github-check-runs" && remote.status === "success" && remote.commit === bootstrapSha, "PN9 stable predecessor remote qualification is missing");
+  add(errors, REMOTE_QUALIFICATION_PROVIDERS.includes(remote.provider) && remote.status === "success" && remote.commit === bootstrapSha, "PN9 stable predecessor remote qualification is missing");
   const remoteChecks = new Map((remote.checks ?? []).map((check) => [check.name, check]));
   for (const name of REQUIRED_REMOTE_CHECKS) add(errors, remoteChecks.get(name)?.conclusion === "success", `PN9 stable predecessor check is not green: ${name}`);
 
