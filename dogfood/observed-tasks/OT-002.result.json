@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-002",
+  "taskDefinition": "dogfood/observed-tasks/OT-002.json",
+  "taskDefinitionCommit": "0aaa469495c9c580eb437591a552bf1e02eb1467",
+  "taskCommit": "6a2d5c32f351e126236ee1bcaa85f83f69523abf",
+  "status": "PARTIAL_OBSERVATION",
+  "outcome": "accepted_by_local_and_remote_correctness_checks",
+  "filesChanged": [
+    "apps/my-pi-daemon/src/project-lock.ts",
+    "apps/my-pi-daemon/test/daemon.test.ts"
+  ],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon + stable ChangeRuntime",
+    "projectId": "project_57a99d285efc",
+    "workItemId": "work_ffca790230a9",
+    "preChangeIntentId": "intent_ae3f91e3c2fc",
+    "mutationReceiptIds": [
+      "receipt_b8b435cf30d6",
+      "receipt_2643b26e3b48"
+    ],
+    "desiredReceiptStatus": "APPLIED",
+    "desiredReceiptReadBackVerified": true
+  },
+  "coordination": {
+    "agentSessionId": "session_e043488a6034",
+    "eventLog": {
+      "status": "not_persisted",
+      "reason": "The temporary stable runtime was cleaned before the compact event export was written. No final WorkItem or routed-impact claim is made from memory."
+    },
+    "missingRequiredEvidence": [
+      "persisted pre-change Intent event",
+      "persisted ImpactDetected event summary",
+      "persisted final WorkItem handoff"
+    ]
+  },
+  "correctness": {
+    "targetedNode24": {
+      "command": "node --test ... apps/my-pi-daemon/test/daemon.test.ts",
+      "total": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "fullLocalVerify": {
+      "command": "pnpm verify",
+      "total": 206,
+      "passed": 205,
+      "failed": 0,
+      "skipped": 1,
+      "releaseTests": "48/48"
+    },
+    "remote": {
+      "ciRunId": "33909925020",
+      "ciUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33909925020",
+      "codeqlRunId": "33909925018",
+      "codeqlUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33909925018",
+      "allRequiredChecksSuccess": true
+    }
+  },
+  "acceptanceCriteria": {
+    "single-owner": "pass by Node24 and remote matrix checks",
+    "partial-lock-safety": "pass by deterministic partial-lock test",
+    "stale-recovery": "pass by existing daemon recovery test",
+    "matrix-regression": "pass on Windows Node24, Ubuntu Node22/24, macOS Node24"
+  },
+  "observedEvidenceBoundary": "Commit, receipts, local tests, and remote CI are real. Because the stable event log was not persisted, OT-002 is not sufficient PN6/PN8 promotion evidence and must not be upgraded after the fact."
+}
