@@ -190,6 +190,18 @@ async function listAllEvents(client, projectId) {
   throw new Error("observed review event pagination exceeded its bounded page limit");
 }
 
+async function waitForCodeState(client, projectId, worktreeId) {
+  const started = Date.now();
+  for (;;) {
+    const snapshot = await client.call("code_state_snapshot", { projectId, worktreeId });
+    if (Array.isArray(snapshot?.entities) && snapshot.entities.length > 0) {
+      return { entities: snapshot.entities.length, edges: Array.isArray(snapshot.edges) ? snapshot.edges.length : 0 };
+    }
+    if (Date.now() - started > 30_000) throw new Error(`code-state snapshot did not become ready for ${worktreeId}`);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+}
+
 async function join(client, projectId, root, role, candidateSha) {
   const identity = await discoverProjectIdentity(root);
   const repositoryId = `repo-observed-${role}`;
@@ -270,6 +282,11 @@ try {
     implementation: await join(stableClient, projectId, candidateRoot, "implementation", candidateSha),
     reviewer: await join(stableClient, projectId, reviewerRoot, "reviewer", candidateSha),
     observer: await join(stableClient, projectId, observerRoot, "observer", candidateSha),
+  };
+  const codeStateReady = {
+    implementation: await waitForCodeState(stableClient, projectId, joined.implementation.worktreeId),
+    reviewer: await waitForCodeState(stableClient, projectId, joined.reviewer.worktreeId),
+    observer: await waitForCodeState(stableClient, projectId, joined.observer.worktreeId),
   };
 
   const sourceItem = await stableClient.call("coord_create_work_item", {
@@ -361,6 +378,7 @@ try {
       reviewerWorktreeHead,
       reviewerClean,
       builds: { stable: stableBuild, candidate: candidateBuild, reviewer: reviewerBuild },
+      codeStateReady,
       remote: { stable: stableRemote, candidate: candidateRemote },
     },
     coordination: {
