@@ -190,9 +190,10 @@ async function listAllEvents(client, projectId) {
   throw new Error("observed review event pagination exceeded its bounded page limit");
 }
 
-async function waitForCodeState(client, projectId, worktreeId) {
+async function waitForCodeState(client, projectId, worktreeId, agentSessionId) {
   const started = Date.now();
   for (;;) {
+    await client.call("coord_sync", { projectId, agentSessionId, sinceSequence: "0", maxEvents: 1, maxBytes: 4 * 1024 });
     const snapshot = await client.call("code_state_snapshot", { projectId, worktreeId });
     if (Array.isArray(snapshot?.entities) && snapshot.entities.length > 0) {
       return { entities: snapshot.entities.length, edges: Array.isArray(snapshot.edges) ? snapshot.edges.length : 0 };
@@ -283,11 +284,8 @@ try {
     reviewer: await join(stableClient, projectId, reviewerRoot, "reviewer", candidateSha),
     observer: await join(stableClient, projectId, observerRoot, "observer", candidateSha),
   };
-  const codeStateReady = {
-    implementation: await waitForCodeState(stableClient, projectId, joined.implementation.worktreeId),
-    reviewer: await waitForCodeState(stableClient, projectId, joined.reviewer.worktreeId),
-    observer: await waitForCodeState(stableClient, projectId, joined.observer.worktreeId),
-  };
+  const codeStateReadyEntries = await Promise.all(Object.entries(joined).map(async ([role, value]) => [role, await waitForCodeState(stableClient, projectId, value.worktreeId, value.agentSessionId)]));
+  const codeStateReady = Object.fromEntries(codeStateReadyEntries);
 
   const sourceItem = await stableClient.call("coord_create_work_item", {
     projectId,
