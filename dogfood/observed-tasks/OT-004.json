@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-004",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Expose bounded code-state scan metrics in daemon health",
+  "problem": "The daemon reports worktree health but not how much bounded discovery work was performed, making scan starvation and reconciliation overhead difficult to diagnose.",
+  "plannedTargets": [
+    "apps/my-pi-daemon/src/code-state-manager.ts",
+    "apps/my-pi-daemon/src/health.ts",
+    "apps/my-pi-daemon/test/code-state-lifecycle.test.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "bounded-scan-metrics",
+      "condition": "Health reports the most recent bounded file scan count and reconciliation duration without exposing unbounded source data."
+    },
+    {
+      "id": "metric-refresh",
+      "condition": "Initial indexing and a later reconciliation update the metrics while unchanged files remain free of synthetic graph-update churn."
+    },
+    {
+      "id": "feedback-repair",
+      "condition": "If the first implementation fails the new lifecycle assertion, the stable evaluator records the exact failing criterion and a bounded retry repairs it without regressing prior tests."
+    },
+    {
+      "id": "matrix-regression",
+      "condition": "Windows Node 24, Ubuntu Node 22/24, macOS Node 24, release checks, and installed-package smoke all pass."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Record pre-change Intent, impact entities, stable N-1 receipts, feedback/retry lineage, and final WorkItem handoff before cleanup.",
+    "evaluation": "Bind each evaluation run to the exact stable receipt and preserve the initial failed criterion plus FeedbackPacket.",
+    "correctness": "Bind final implementation commit and all remote check-run conclusions."
+  }
+}
