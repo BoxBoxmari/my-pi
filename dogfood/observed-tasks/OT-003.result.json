@@ -1,0 +1,327 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-003",
+  "taskDefinition": "dogfood/observed-tasks/OT-003.json",
+  "taskDefinitionCommit": "526df4b902e1ea071672e056497abb6c7600b8dc",
+  "implementationCommit": "2b0129cc6b2d786186036b22b1489b952018ff89",
+  "status": "RECORDED",
+  "outcome": "accepted_by_targeted_checks_and_remote_ci",
+  "filesChanged": [
+    "apps/my-pi-daemon/src/code-state-manager.ts",
+    "apps/my-pi-daemon/test/code-state-lifecycle.test.ts"
+  ],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon + stable ChangeRuntime",
+    "projectId": "project_57a99d285efc",
+    "processId": 1880,
+    "mutationReceiptIds": [
+      "receipt_e381cb9ce00f",
+      "receipt_0dde295682fd"
+    ],
+    "desiredReceiptReadBackVerified": true
+  },
+  "coordination": {
+    "workItemId": "work_6a284d43669f",
+    "preChangeIntentId": "intent_6f2bae077ef1",
+    "verificationIntentId": "intent_88add4327ecb",
+    "agentSessionId": "session_0d144bc242b3",
+    "finalWorkItem": {
+      "id": "work_6a284d43669f",
+      "projectId": "project_57a99d285efc",
+      "title": "OT-003: exclude agent metadata from code-state",
+      "summary": "Implement the pre-registered discovery acceptance criteria in dogfood/observed-tasks/OT-003.json",
+      "state": "done",
+      "version": 2,
+      "createdAt": "2026-09-05T04:01:49.291Z",
+      "updatedAt": "2026-09-05T04:05:49.641Z",
+      "assignee": "session_0d144bc242b3"
+    },
+    "eventLog": {
+      "count": 1842,
+      "lastSequence": "1842",
+      "relevantEvents": [
+        {
+          "sequence": "8",
+          "eventType": "AgentJoined",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_dd9e867a42b3"
+          },
+          "payload": {
+            "id": "session_dd9e867a42b3",
+            "status": "active",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "10",
+          "eventType": "IntentDeclared",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_dd9e867a42b3"
+          },
+          "payload": {
+            "id": "intent_6f2bae077ef1",
+            "workItemId": "work_6a284d43669f",
+            "agentSessionId": "session_dd9e867a42b3",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "11",
+          "eventType": "ImpactDetected",
+          "actor": {
+            "kind": "system",
+            "name": "impact-engine"
+          },
+          "payload": {
+            "intentId": "intent_6f2bae077ef1",
+            "affectedEntities": 0,
+            "affectedAgents": 0,
+            "score": 100,
+            "reasonCodes": [
+              "same_work_item"
+            ]
+          }
+        },
+        {
+          "sequence": "1831",
+          "eventType": "ChangeApplied",
+          "actor": {
+            "kind": "system",
+            "name": "coordination-runtime"
+          },
+          "payload": {
+            "id": "receipt_e381cb9ce00f",
+            "agentSessionId": "session_dd9e867a42b3",
+            "status": "APPLIED",
+            "receiptDigest": "0e007420a385951e4f52e9e00269513d3c32e7daadc5fdff3b1addab99c25032",
+            "verification": {
+              "verified": true,
+              "digest": "6a0bbec5e3aa6b0956fda3e0bf3957cd8fac3f5af73285c35b5adbd2d52b6ad8"
+            },
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "1832",
+          "eventType": "ChangeApplied",
+          "actor": {
+            "kind": "system",
+            "name": "coordination-runtime"
+          },
+          "payload": {
+            "id": "receipt_0dde295682fd",
+            "agentSessionId": "session_dd9e867a42b3",
+            "status": "APPLIED",
+            "receiptDigest": "bf8c543925ff0296d9c889b9f7c457f258e1ef1d366d879ba9117b236c3688a8",
+            "verification": {
+              "verified": true,
+              "digest": "59554a4e6275772846cbd1dcd84b7f63534fb7f219682c0355b56a46b689587c"
+            },
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "1836",
+          "eventType": "AgentJoined",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_0d144bc242b3"
+          },
+          "payload": {
+            "id": "session_0d144bc242b3",
+            "status": "active",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "1837",
+          "eventType": "WorkItemClaimed",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_0d144bc242b3"
+          },
+          "payload": {
+            "id": "work_6a284d43669f",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "1838",
+          "eventType": "IntentDeclared",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_0d144bc242b3"
+          },
+          "payload": {
+            "id": "intent_88add4327ecb",
+            "workItemId": "work_6a284d43669f",
+            "agentSessionId": "session_0d144bc242b3",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "1839",
+          "eventType": "ImpactDetected",
+          "actor": {
+            "kind": "system",
+            "name": "impact-engine"
+          },
+          "payload": {
+            "intentId": "intent_88add4327ecb",
+            "affectedEntities": 2,
+            "affectedAgents": 1,
+            "score": 100,
+            "reasonCodes": [
+              "same_work_item",
+              "exact_scope_overlap"
+            ]
+          }
+        },
+        {
+          "sequence": "1840",
+          "eventType": "ContextPublished",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_0d144bc242b3"
+          },
+          "payload": {
+            "id": "context_acaf4f220154",
+            "workItemId": "work_6a284d43669f",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "1841",
+          "eventType": "WorkItemCompleted",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_0d144bc242b3"
+          },
+          "payload": {
+            "id": "work_6a284d43669f",
+            "reasonCodes": []
+          }
+        },
+        {
+          "sequence": "1842",
+          "eventType": "IntentSuperseded",
+          "actor": {
+            "kind": "agent_session",
+            "id": "session_0d144bc242b3"
+          },
+          "payload": {
+            "id": "intent_88add4327ecb",
+            "workItemId": "work_6a284d43669f",
+            "agentSessionId": "session_0d144bc242b3",
+            "reasonCodes": []
+          }
+        }
+      ]
+    },
+    "interventions": []
+  },
+  "impactObservation": {
+    "impactDetected": true,
+    "byIntent": [
+      {
+        "sequence": "11",
+        "eventType": "ImpactDetected",
+        "actor": {
+          "kind": "system",
+          "name": "impact-engine"
+        },
+        "payload": {
+          "intentId": "intent_6f2bae077ef1",
+          "affectedEntities": 0,
+          "affectedAgents": 0,
+          "score": 100,
+          "reasonCodes": [
+            "same_work_item"
+          ]
+        }
+      },
+      {
+        "sequence": "1839",
+        "eventType": "ImpactDetected",
+        "actor": {
+          "kind": "system",
+          "name": "impact-engine"
+        },
+        "payload": {
+          "intentId": "intent_88add4327ecb",
+          "affectedEntities": 2,
+          "affectedAgents": 1,
+          "score": 100,
+          "reasonCodes": [
+            "same_work_item",
+            "exact_scope_overlap"
+          ]
+        }
+      }
+    ],
+    "missedDependencies": "not assessed",
+    "falsePositives": "not assessed",
+    "promotionVerdict": "one real task recorded; sample remains insufficient for PN6 promotion"
+  },
+  "correctness": {
+    "targetedLocal": {
+      "node": "v26.7.0",
+      "command": "node --test ... packages/code-state/test/code-state.test.ts apps/my-pi-daemon/test/code-state-lifecycle.test.ts",
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    "fullLocalVerify": {
+      "status": "INCONCLUSIVE_LOCAL_RESOURCE_SATURATION",
+      "parallelAttempt": {
+        "total": 206,
+        "passed": 202,
+        "failed": 3,
+        "skipped": 1,
+        "failures": ["PN4 IPC daemon readiness timeout", "PN10 daemon IPC timeout", "PN8 evaluator IPC timeout"]
+      },
+      "serialAttempt": {
+        "total": 206,
+        "passed": 199,
+        "failed": 6,
+        "skipped": 1,
+        "failures": ["PN3 daemon readiness timeout", "PN4 IPC daemon readiness timeout", "PN10 daemon IPC timeout", "PN8 evaluator IPC timeout", "PN4 MCP daemon readiness timeout"]
+      },
+      "targetedNode26": "9/9",
+      "releaseTests": "not reached after local suite timeout"
+    },
+    "remote": {
+      "status": "success",
+      "ciRunId": "33944408467",
+      "ciUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33944408467",
+      "codeqlRunId": "33944408458",
+      "codeqlUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33944408458",
+      "requiredChecks": [
+        "quality (windows-latest, node 24)",
+        "quality (ubuntu-latest, node 22)",
+        "quality (ubuntu-latest, node 24)",
+        "quality (macos-latest, node 24)",
+        "CodeQL Analysis (javascript-typescript)"
+      ],
+      "allRequiredChecksSuccess": true,
+      "stableBootstrapStepSuccess": true
+    }
+  },
+  "feedbackObservation": {
+    "initialEvaluation": "not run; task is not evaluation-gated",
+    "structuredFeedbackGenerated": false,
+    "retryAttempts": 0,
+    "humanInterventions": 0
+  },
+  "acceptanceCriteria": {
+    "metadata-excluded": "pass by targeted lifecycle test and remote CI",
+    "source-discovered": "pass by targeted lifecycle test and remote CI",
+    "quiet-reconciliation": "pass by existing unchanged-file lifecycle coverage; local full verify was resource-saturated",
+    "matrix-regression": "pass by remote CI 33944408467"
+  },
+  "observedEvidenceBoundary": "This record preserves real stable-runtime coordination, source mutation, local resource-saturation failures, and remote acceptance. It is one heterogeneous task and is not sufficient by itself for PN6 or PN8 promotion."
+}
