@@ -7,10 +7,12 @@ execution profiles: the candidate-current-build replay remains diagnostic,
 while `scripts/dogfood-stable-bootstrap.mjs` builds and runs a distinct stable
 N-1 runtime before producing stable-bootstrap evidence. The latest PN9 run is
 `ACCEPTED` for its exact candidate SHA and uses predecessor `fe671ae`; rerun it
-after each final commit. OT-001 through OT-007 now provide local observed-task
-records, including three real evaluation reject/retry cycles and one downstream
-exact-scope route, but this does not
-make the overall promotion gate pass while PN6/PN8/PN12 remain withheld.
+after each final commit. OT-001 through OT-010 now provide local observed-task
+records, including three real evaluation reject/retry cycles and three executed
+paired downstream route baselines. OT-008 through OT-010 each observed zero
+baseline routes, two intent-aware routes, deterministic replay, observer
+isolation, and independent downstream tests. This does not make the overall
+promotion gate pass while PN6/PN8/PN12 remain withheld.
 
 An authorized release review may replace a document only after rerunning the
 same profile against a clean candidate commit. The envelope must then use
@@ -31,4 +33,6 @@ untested fault list must not be removed without corresponding evidence.
 
 Run `node scripts/verify-production-next-promotion.mjs` before creating the
 extended manifest. The verifier is read-only and returns `WITHHELD` until all
-four envelopes satisfy these conditions.
+four envelopes satisfy these conditions. The remaining observed evidence gap is
+downstream repair/rework measurement and an ordinary-log versus structured
+feedback comparison; neither should be inferred from a passing review run.

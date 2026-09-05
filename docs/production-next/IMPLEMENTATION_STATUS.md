@@ -58,7 +58,9 @@ evidence:
   builds a clean candidate using distinct stable predecessor `fe671ae`, opens
   it through the stable MCP runtime, and proves stable ChangeRuntime/evaluation
   authority without starting the candidate daemon. The latest run exited `0`
-  and PN9 evidence is accepted by the read-only verifier.
+  and PN9 evidence is accepted by the read-only verifier. The same stable my-pi
+  authority also drove the paired observed-review runner for OT-008, OT-009,
+  and OT-010.
 - `node benchmarks/impact-routing-arms.mjs --evidence-out evidence/PN6.json`
   compares the controlled impact-routing arms.
 - `node benchmarks/evaluation-feedback-arms.mjs --evidence-out evidence/PN8.json`
@@ -82,12 +84,13 @@ Reconciliation is fingerprint-aware: unchanged files do not generate repeated
 
 ## Withheld gates
 
-PN6 remains withheld until the seven real task records can support repeated
-missed-dependency and false-positive accounting with traceable downstream
-correctness/rework. PN8 remains withheld until structured-feedback repair yield
-and regression protection are observed across independent evaluation-gated
-engineering work; OT-004 through OT-006 supply three such reject/retry cycles, and
-OT-007 supplies one downstream exact-scope route. PN9 is
+PN6 remains withheld until the ten real task records can support downstream
+repair/rework, precision/recall, and repeated missed-dependency/false-positive
+accounting beyond the paired observer control. PN8 remains withheld until
+structured-feedback repair yield and regression protection are compared with an
+ordinary-log handoff across independent evaluation-gated engineering work;
+OT-004 through OT-006 supply three real reject/retry cycles, while OT-008 through
+OT-010 supply three executed paired route baselines without a repair claim. PN9 is
 accepted by the stable-bootstrap verifier for the last evidence-bound candidate
 and predecessor `fe671ae`; rerun it for the current final SHA after any commit.
 
@@ -99,13 +102,15 @@ PN11 is not started. PN13 is not admitted. A passing local test suite does not
 override these external evidence requirements or the read-only promotion gate.
 
 The current public GitHub history contains dependency-update PRs only. Local
-observed-task records now preserve independent engineering run identifiers and
-stable N-1 evidence, but the promotion verifier still withholds PN6/PN8 until
-their required observed envelopes are assembled from those records.
+observed-task records now preserve independent engineering run identifiers,
+executed route baselines, downstream test results, and stable N-1 evidence, but
+the promotion verifier still withholds PN6/PN8 until their required observed
+envelopes are assembled from those records.
 
 ## Recommended next action
 
-Use the existing OT-001…OT-007 records to assemble only evidence that is
-actually supported by their stored outcomes, add one heterogeneous task if a
-required metric is still missing, and rerun the read-only promotion verifier.
-Only then reconsider PN11 entry.
+Use OT-001…OT-010 to assemble only evidence supported by stored outcomes. Add
+one evaluation-gated task with an executed downstream repair comparison and an
+ordinary-log feedback arm if those missing metrics cannot be recovered from the
+records, then rerun the read-only promotion verifier. Only then reconsider PN11
+entry.
