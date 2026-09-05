@@ -144,8 +144,16 @@ async function verifyRemoteQualification(sha) {
   if (typeof fetch !== "function") throw new Error("fetch is unavailable for remote predecessor qualification");
   const headers = { Accept: "application/vnd.github+json", "User-Agent": "my-pi-stable-bootstrap" };
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  const response = await fetch(`https://api.github.com/repos/BoxBoxmari/my-pi/commits/${sha}/check-runs?per_page=100`, { headers });
-  if (!response.ok) throw new Error(`cannot read predecessor GitHub checks: HTTP ${response.status}`);
+  const url = `https://api.github.com/repos/BoxBoxmari/my-pi/commits/${sha}/check-runs?per_page=100`;
+  let response = await fetch(url, { headers });
+  let authenticatedStatus = response.status;
+  if (!response.ok && process.env.GITHUB_TOKEN && (response.status === 401 || response.status === 403)) {
+    // The repository is public. Some Actions installation tokens expose the
+    // declared checks:read permission but still reject historical check-run
+    // reads; public check data remains independently readable without auth.
+    response = await fetch(url, { headers: { Accept: headers.Accept, "User-Agent": headers["User-Agent"] } });
+  }
+  if (!response.ok) throw new Error(`cannot read predecessor GitHub checks: authenticated HTTP ${authenticatedStatus}, public HTTP ${response.status}`);
   const payload = await response.json();
   const checks = new Map((payload.check_runs ?? []).map((check) => [check.name, check]));
   const missing = REQUIRED_REMOTE_CHECKS.filter((name) => !checks.has(name));

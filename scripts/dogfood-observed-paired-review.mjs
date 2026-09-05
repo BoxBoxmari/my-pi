@@ -123,8 +123,15 @@ async function sha256Text(value) {
 async function verifyRemoteQualification(sha) {
   const headers = { Accept: "application/vnd.github+json", "User-Agent": "my-pi-observed-paired-review" };
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  const response = await fetch(`https://api.github.com/repos/BoxBoxmari/my-pi/commits/${sha}/check-runs?per_page=100`, { headers });
-  if (!response.ok) throw new Error(`cannot read GitHub checks for ${sha}: HTTP ${response.status}`);
+  const url = `https://api.github.com/repos/BoxBoxmari/my-pi/commits/${sha}/check-runs?per_page=100`;
+  let response = await fetch(url, { headers });
+  const authenticatedStatus = response.status;
+  if (!response.ok && process.env.GITHUB_TOKEN && (response.status === 401 || response.status === 403)) {
+    // Public check data can be read without auth when an Actions token cannot
+    // read historical runs despite its declared repository permissions.
+    response = await fetch(url, { headers: { Accept: headers.Accept, "User-Agent": headers["User-Agent"] } });
+  }
+  if (!response.ok) throw new Error(`cannot read GitHub checks for ${sha}: authenticated HTTP ${authenticatedStatus}, public HTTP ${response.status}`);
   const payload = await response.json();
   const checks = new Map((payload.check_runs ?? []).map((check) => [check.name, check]));
   const missing = REQUIRED_REMOTE_CHECKS.filter((name) => !checks.has(name));
