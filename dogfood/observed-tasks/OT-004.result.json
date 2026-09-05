@@ -1,0 +1,278 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-004",
+  "taskDefinition": "dogfood/observed-tasks/OT-004.json",
+  "taskDefinitionCommit": "4e71d88e86820f603a498bfbc3f600ada8bd56fe",
+  "implementationCommit": "8bade0f0b5a3cc749866946d6a5be4b07a3fea2a",
+  "status": "RECORDED",
+  "outcome": "accepted_by_targeted_checks_remote_ci_and_stable_retry",
+  "filesChanged": [
+    "apps/my-pi-daemon/src/code-state-manager.ts",
+    "apps/my-pi-daemon/src/health.ts",
+    "apps/my-pi-daemon/test/code-state-lifecycle.test.ts"
+  ],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon + stable ChangeRuntime",
+    "processId": 24136,
+    "projectId": "project_57a99d285efc",
+    "workItemId": "work_640f6451ad07",
+    "preChangeIntentId": "intent_675a6eb1cc57",
+    "initialAttempt": {
+      "intentId": "intent_9b5620c8f764",
+      "receiptId": "receipt_baba3ee881d1",
+      "evaluationRunId": "evalrun_55663dedd954",
+      "feedbackPacketId": "feedback_1947f7b2c342",
+      "decision": "rejected",
+      "retryState": "recommended"
+    },
+    "retryAttempt": {
+      "intentId": "intent_fbe83238ab1a",
+      "receiptId": "receipt_382d9e03ee10",
+      "evaluationRunId": "evalrun_983358bffafc",
+      "decision": "accepted"
+    },
+    "mutationReceiptIds": [
+      "receipt_baba3ee881d1",
+      "receipt_382d9e03ee10"
+    ],
+    "desiredReceiptStatus": "APPLIED",
+    "desiredReceiptReadBackVerified": true,
+    "candidateDaemonUsedForMutationOrEvaluation": false,
+    "receiptMode": "stable-runtime-republish_and_readback_of_apply_patch_candidate_state"
+  },
+  "coordination": {
+    "agentSessions": [
+      {
+        "id": "session_7f3805c237a8",
+        "phase": "initial-evaluation",
+        "receiptId": "receipt_baba3ee881d1"
+      },
+      {
+        "id": "session_a256e7b99d12",
+        "phase": "retry-and-completion",
+        "receiptId": "receipt_382d9e03ee10"
+      }
+    ],
+    "finalWorkItem": {
+      "id": "work_640f6451ad07",
+      "state": "done",
+      "version": 11,
+      "acceptedEvaluationRunId": "evalrun_983358bffafc",
+      "assignee": "session_a256e7b99d12"
+    },
+    "verificationIntentId": "intent_fbe83238ab1a",
+    "contextArtifactId": "context_27e94b5c1c11",
+    "eventLog": {
+      "count": 4368,
+      "lastSequence": "4368",
+      "relevantEvents": [
+        {
+          "eventType": "IntentDeclared",
+          "id": "intent_675a6eb1cc57",
+          "phase": "pre-change",
+          "affectedEntities": 0,
+          "affectedAgents": 0
+        },
+        {
+          "eventType": "IntentDeclared",
+          "id": "intent_9b5620c8f764",
+          "phase": "initial-attempt",
+          "affectedEntities": 52,
+          "affectedAgents": 1
+        },
+        {
+          "eventType": "ChangeApplied",
+          "id": "receipt_baba3ee881d1",
+          "status": "APPLIED",
+          "verification": "verified"
+        },
+        {
+          "eventType": "EvaluationCompleted",
+          "id": "evalrun_55663dedd954",
+          "decision": "rejected",
+          "feedbackPacketId": "feedback_1947f7b2c342"
+        },
+        {
+          "eventType": "IntentDeclared",
+          "id": "intent_fbe83238ab1a",
+          "phase": "bounded-retry",
+          "affectedEntities": 52,
+          "affectedAgents": 1
+        },
+        {
+          "eventType": "ChangeApplied",
+          "id": "receipt_382d9e03ee10",
+          "status": "APPLIED",
+          "verification": "verified",
+          "paths": [
+            "apps/my-pi-daemon/src/code-state-manager.ts",
+            "apps/my-pi-daemon/src/health.ts",
+            "apps/my-pi-daemon/test/code-state-lifecycle.test.ts"
+          ]
+        },
+        {
+          "eventType": "EvaluationCompleted",
+          "id": "evalrun_983358bffafc",
+          "decision": "accepted",
+          "attempt": 2
+        },
+        {
+          "eventType": "ContextPublished",
+          "id": "context_27e94b5c1c11"
+        },
+        {
+          "eventType": "WorkItemCompleted",
+          "id": "work_640f6451ad07",
+          "state": "done"
+        }
+      ]
+    },
+    "interventions": [
+      {
+        "type": "session-lease-expiry",
+        "sessionIds": [
+          "session_97c76441931b",
+          "session_b37fa655e7dc"
+        ],
+        "resolution": "rejoined on an already-registered clean worktree and continued with allowShared claim"
+      }
+    ]
+  },
+  "impactObservation": {
+    "impactDetected": true,
+    "preChangeIntent": {
+      "intentId": "intent_675a6eb1cc57",
+      "affectedEntities": 0,
+      "affectedAgents": 0
+    },
+    "initialAttempt": {
+      "intentId": "intent_9b5620c8f764",
+      "affectedEntities": 52,
+      "affectedAgents": 1,
+      "reasons": [
+        "same_work_item",
+        "exact_scope_overlap",
+        "graph_edge"
+      ]
+    },
+    "retryAttempt": {
+      "intentId": "intent_fbe83238ab1a",
+      "affectedEntities": 52,
+      "affectedAgents": 1,
+      "reasons": [
+        "same_work_item",
+        "exact_scope_overlap",
+        "graph_edge"
+      ]
+    },
+    "missedDependencies": "not assessed",
+    "falsePositives": "not assessed",
+    "promotionVerdict": "one additional real task recorded; PN6 promotion remains withheld until miss and false-positive accounting is repeated across heterogeneous tasks"
+  },
+  "evaluationObservation": {
+    "initial": {
+      "runId": "evalrun_55663dedd954",
+      "decision": "rejected",
+      "feedbackPacketId": "feedback_1947f7b2c342",
+      "failedCriteria": [
+        "bounded-scan-metrics",
+        "metric-refresh",
+        "regression-guard"
+      ],
+      "retryState": "recommended",
+      "interpretation": "The first two failures correspond to the missing measurement assignment. The regression criterion was also rejected because the deterministic provider compares the structured observation to the declared scalar expected value; the independent test output recorded 8 passing tests and 1 failing assertion. This evaluator-shape limitation is preserved, not reclassified."
+    },
+    "retry": {
+      "runId": "evalrun_983358bffafc",
+      "attempt": 2,
+      "decision": "accepted",
+      "criteria": {
+        "bounded-scan-metrics": "pass",
+        "metric-refresh": "pass",
+        "regression-guard": "pass"
+      }
+    },
+    "structuredFeedbackGenerated": true,
+    "retryAttempts": 1,
+    "evaluationFalseAccepts": 0
+  },
+  "correctness": {
+    "initialAttempt": {
+      "command": "node --test packages/code-state/test/code-state.test.ts apps/my-pi-daemon/test/code-state-lifecycle.test.ts",
+      "buildExitCode": 0,
+      "total": 9,
+      "passed": 8,
+      "failed": 1,
+      "failure": "assert.ok(initialHealth.lastScanFiles > 0)"
+    },
+    "candidateRetry": {
+      "buildCommand": "pnpm --dir <clean-candidate-worktree> build",
+      "buildExitCode": 0,
+      "testCommand": "node --test <clean-candidate-worktree>/packages/code-state/test/code-state.test.ts <clean-candidate-worktree>/apps/my-pi-daemon/test/code-state-lifecycle.test.ts",
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    "targetedLocal": {
+      "node": "v26.7.0",
+      "command": "node --test packages/code-state/test/code-state.test.ts apps/my-pi-daemon/test/code-state-lifecycle.test.ts",
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    "candidateHealthSmoke": {
+      "candidateDaemonPid": 24504,
+      "candidateDaemonUsedForAuthority": false,
+      "beforeJoin": {
+        "lastScanFiles": 0,
+        "lastReconcileMs": 0,
+        "lastReconcileAt": null
+      },
+      "afterJoin": {
+        "lastScanFiles": 200,
+        "lastReconcileMs": 4638,
+        "lastReconcileAt": "2026-09-05T05:13:59.631Z"
+      },
+      "fieldsPresent": true,
+      "windowsReconciliationMode": "degraded watcher state with bounded reconciliation; metrics still reported"
+    },
+    "fullLocalVerify": {
+      "status": "not_run_for_OT004",
+      "reason": "targeted local build/test plus the complete remote matrix supplied the scoped correctness evidence"
+    },
+    "remote": {
+      "status": "success",
+      "ciRunId": "33946762065",
+      "ciUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33946762065",
+      "codeqlRunId": "33946762083",
+      "codeqlUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33946762083",
+      "requiredChecks": [
+        "quality (windows-latest, node 24)",
+        "quality (ubuntu-latest, node 22)",
+        "quality (ubuntu-latest, node 24)",
+        "quality (macos-latest, node 24)",
+        "CodeQL Analysis (javascript-typescript)"
+      ],
+      "allRequiredChecksSuccess": true,
+      "additionalRemoteStepsSuccess": [
+        "release checks",
+        "secret scan",
+        "pnpm audit",
+        "cargo audit and deny",
+        "SBOM generation and verification",
+        "benchmark smoke",
+        "runtime boundary evidence",
+        "Production Next candidate qualification"
+      ]
+    }
+  },
+  "acceptanceCriteria": {
+    "bounded-scan-metrics": "pass by final health contract, targeted lifecycle test, and candidate daemon health payload",
+    "metric-refresh": "pass by bounded Windows-reconciliation test asserting a later timestamp and zero unchanged-file delta churn",
+    "feedback-repair": "pass by stable rejected evaluation, persisted FeedbackPacket, bounded retry, accepted evaluation, and done WorkItem",
+    "matrix-regression": "pass by remote CI and CodeQL on implementation commit 8bade0f"
+  },
+  "observedEvidenceBoundary": "The OT-004 implementation, stable coordination lineage, initial failure, structured feedback, retry acceptance, candidate health smoke, and remote CI are real. The receipt layer re-published apply_patch-prepared bytes so stable ChangeRuntime verified final state and evaluation authority; it does not claim that the stable runtime authored the source diff. This is one additional task and one repair-feedback cycle. PN6 and PN8 promotion remain withheld because impact miss/false-positive quality is not yet measured repeatedly across heterogeneous tasks and the observed sample is not a promotion admission."
+}
