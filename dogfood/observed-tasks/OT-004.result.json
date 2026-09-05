@@ -239,8 +239,18 @@
       "windowsReconciliationMode": "degraded watcher state with bounded reconciliation; metrics still reported"
     },
     "fullLocalVerify": {
-      "status": "not_run_for_OT004",
-      "reason": "targeted local build/test plus the complete remote matrix supplied the scoped correctness evidence"
+      "status": "INCONCLUSIVE_LOCAL_RESOURCE_SATURATION",
+      "command": "pnpm verify",
+      "total": 206,
+      "passed": 203,
+      "failed": 2,
+      "skipped": 1,
+      "failures": [
+        "PN10 daemon binds worktrees and evaluation targets to server-observed state: ERR_DAEMON_UNAVAILABLE coordination IPC request timed out",
+        "PN8 MCP adapter evaluation mode exposes only the opt-in evaluation family: ERR_DAEMON_UNAVAILABLE coordination IPC request timed out"
+      ],
+      "releaseTests": "not reached after pnpm test failure",
+      "reason": "Local daemon IPC saturated during the full suite; targeted OT-004 checks and the complete remote matrix remained successful."
     },
     "remote": {
       "status": "success",
