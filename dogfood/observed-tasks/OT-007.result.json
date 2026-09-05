@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-007",
+  "taskDefinition": "dogfood/observed-tasks/OT-007.json",
+  "taskDefinitionCommit": "a257fe404bd1e2f313a91779e72d2e13e2773c34",
+  "reviewedImplementationCommit": "5d9c69659b90bd4aeccac79bb34703c340037e23",
+  "status": "RECORDED",
+  "outcome": "accepted_by_downstream_review_and_stable_evaluation",
+  "filesChanged": [],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon + stable ChangeRuntime",
+    "processId": 35528,
+    "projectId": "project_57a99d285efc",
+    "candidateDaemonUsedForReviewAuthority": false,
+    "reviewReceiptId": "receipt_ed93a0fb89c8",
+    "reviewReceiptReadBackVerified": true,
+    "receiptMode": "stable-runtime-republish_and_readback_of_committed_candidate_state"
+  },
+  "coordination": {
+    "sourceWorkItemId": "work_ec638cf68cbd",
+    "reviewWorkItemId": "work_bd6abf78839a",
+    "agentSessions": [
+      {
+        "id": "session_81b32f565710",
+        "role": "implementation"
+      },
+      {
+        "id": "session_4f130a41bc53",
+        "role": "reviewer"
+      }
+    ],
+    "implementationIntentId": "intent_4c0ddfc446ec",
+    "reviewerIntentId": "intent_87619f146640",
+    "reviewEvaluationRunId": "evalrun_8821be15fbb3",
+    "reviewEvaluationDecision": "accepted",
+    "contextArtifactId": "context_9e787c802685",
+    "workItemsDone": true,
+    "explicitDependenciesBetweenReviewAndSource": [],
+    "eventLog": {
+      "count": 857,
+      "lastSequence": "857",
+      "relevantEvents": [
+        {
+          "sequence": "837",
+          "eventType": "IntentDeclared",
+          "id": "intent_4c0ddfc446ec",
+          "workItemId": "work_ec638cf68cbd",
+          "role": "implementation"
+        },
+        {
+          "sequence": "839",
+          "eventType": "IntentDeclared",
+          "id": "intent_87619f146640",
+          "workItemId": "work_bd6abf78839a",
+          "role": "reviewer"
+        },
+        {
+          "sequence": "840",
+          "eventType": "ImpactDetected",
+          "intentId": "intent_87619f146640",
+          "affectedWorkItems": [
+            "work_bd6abf78839a",
+            "work_ec638cf68cbd"
+          ],
+          "affectedAgents": [
+            "session_4f130a41bc53",
+            "session_81b32f565710"
+          ],
+          "reasons": [
+            "same_work_item",
+            "exact_scope_overlap",
+            "graph_edge"
+          ]
+        },
+        {
+          "sequence": "841",
+          "eventType": "ChangeApplied",
+          "id": "receipt_ed93a0fb89c8",
+          "status": "APPLIED",
+          "verification": "verified"
+        },
+        {
+          "sequence": "850",
+          "eventType": "EvaluationCompleted",
+          "id": "evalrun_8821be15fbb3",
+          "decision": "accepted"
+        },
+        {
+          "sequence": "853",
+          "eventType": "ContextPublished",
+          "id": "context_9e787c802685"
+        },
+        {
+          "sequence": "854",
+          "eventType": "WorkItemCompleted",
+          "id": "work_bd6abf78839a",
+          "state": "done"
+        },
+        {
+          "sequence": "856",
+          "eventType": "WorkItemCompleted",
+          "id": "work_ec638cf68cbd",
+          "state": "done"
+        }
+      ]
+    },
+    "operationalRecovery": [
+      {
+        "type": "cold-candidate-review-timeout",
+        "observation": "The first cold candidate reviewer run timed out at the 500 ms join bound; a warm rerun passed.",
+        "humanInterventions": 0
+      },
+      {
+        "type": "bounded-observer-correction",
+        "observation": "Initial analysis used sinceSequence=0 and the wrong receipt wrapper field; subsequent bounded replay used the reviewer join cursor and the registered worktree ID.",
+        "humanInterventions": 0
+      }
+    ]
+  },
+  "impactObservation": {
+    "downstreamRouteObserved": true,
+    "routeEventSequence": "840",
+    "sourceIntentId": "intent_4c0ddfc446ec",
+    "reviewerIntentId": "intent_87619f146640",
+    "reviewerReceivedImpactResult": true,
+    "affectedEntities": 3,
+    "affectedAgents": 2,
+    "affectedWorkItems": 2,
+    "reasons": [
+      "same_work_item",
+      "exact_scope_overlap",
+      "graph_edge"
+    ],
+    "routeReplay": {
+      "firstCount": 3,
+      "secondCount": 3,
+      "deterministic": true
+    },
+    "counterfactualTaskBoardBaseline": "No dependency edge was declared between the source and review WorkItems, so a task-board-only route would not have this dependency signal; this baseline was reasoned from the stored dependency set, not run as a separate experimental arm.",
+    "missedDependencies": "not assessed",
+    "falsePositives": "not assessed",
+    "downstreamCorrectness": "Independent reviewer ran join-latency test 1/1 and code-state suite 9/9 on the committed async coord_join implementation.",
+    "promotionVerdict": "One real downstream route is now observed, but PN6 remains withheld until repeated heterogeneous tasks include executed baseline comparisons and miss/false-positive accounting."
+  },
+  "reviewObservation": {
+    "reviewerCorrectness": {
+      "initialColdRun": {
+        "command": "node --test --test-name-pattern \"coord_join returns before\" apps/my-pi-daemon/test/daemon.test.ts",
+        "exitCode": 1,
+        "failure": "ERR_DAEMON_UNAVAILABLE coordination IPC request timed out"
+      },
+      "warmRetry": {
+        "command": "node --test --test-name-pattern \"coord_join returns before\" apps/my-pi-daemon/test/daemon.test.ts",
+        "exitCode": 0,
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "codeStateSuite": {
+        "command": "node --test packages/code-state/test/code-state.test.ts",
+        "exitCode": 0,
+        "total": 9,
+        "passed": 9,
+        "failed": 0
+      }
+    },
+    "evaluation": {
+      "runId": "evalrun_8821be15fbb3",
+      "attempt": 1,
+      "decision": "accepted",
+      "feedbackPacketGenerated": false,
+      "retryAttempts": 0
+    }
+  },
+  "correctness": {
+    "reviewedImplementationRemote": {
+      "status": "success",
+      "ciRunId": "33950972082",
+      "ciUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33950972082",
+      "codeqlRunId": "33950972093",
+      "codeqlUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33950972093",
+      "allRequiredChecksSuccess": true
+    },
+    "fullLocalVerify": {
+      "status": "not_run_for_OT007",
+      "reason": "Scoped independent review suites supplied the task result; the reviewed implementation already had complete remote matrix coverage."
+    }
+  },
+  "acceptanceCriteria": {
+    "downstream-impact-route": "pass by event 840 and reviewer coord_sync impact_result delivery without a WorkItem dependency",
+    "reviewer-correctness": "pass by independent warm join test 1/1 and code-state suite 9/9",
+    "replay-determinism": "pass by two bounded sync replays with three identical route items",
+    "matrix-regression": "pass by remote CI 33950972082 and CodeQL 33950972093 for the reviewed implementation"
+  },
+  "observedEvidenceBoundary": "OT-007 is a real downstream review of the async coord_join implementation. It provides the first observed cross-WorkItem impact route and independent correctness result, while preserving a cold-run timeout and observer corrections. It is not a standalone PN6 promotion admission: the task-board comparison was counterfactual rather than an executed paired arm, and PN6/PN8 still require aggregate independent evidence with explicit miss/false-positive and ordinary-feedback accounting."
+}
