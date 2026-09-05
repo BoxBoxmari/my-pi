@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-006",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Return coord_join before bounded code-state registration blocks the lease",
+  "problem": "coord_join currently waits for initial code-state indexing before returning the agent lease, so a large worktree can make a valid session time out or expire before the caller receives its handle.",
+  "plannedTargets": [
+    "apps/my-pi-daemon/src/main.ts",
+    "apps/my-pi-daemon/test/daemon.test.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "join-latency-bound",
+      "condition": "coord_join returns the project/session handle within a bounded client timeout without waiting for the full initial code-state scan."
+    },
+    {
+      "id": "eventual-code-state-registration",
+      "condition": "The joined worktree is registered and code-state indexing completes or degrades explicitly after the join response."
+    },
+    {
+      "id": "failure-containment",
+      "condition": "Background registration failures are contained and do not create an unhandled rejection or invalidate the already-issued session handle."
+    },
+    {
+      "id": "matrix-regression",
+      "condition": "Windows Node 24, Ubuntu Node 22/24, macOS Node 24, release checks, and installed-package smoke all pass."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Record pre-change Intent, impact entities, stable predecessor receipt, retry lineage, and final WorkItem handoff.",
+    "evaluation": "Bind the initial join-latency failure and repaired retry to server-verified stable receipts.",
+    "correctness": "Preserve the exact join timeout, eventual health observation, targeted tests, and remote check-run conclusions."
+  }
+}
