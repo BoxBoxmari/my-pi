@@ -284,6 +284,8 @@ try {
   });
   await stableClient.call("coord_claim", { projectId, agentSessionId: joined.implementation.agentSessionId, workItemId: sourceItem.id, expectedVersion: sourceItem.version });
   await stableClient.call("coord_claim", { projectId, agentSessionId: joined.reviewer.agentSessionId, workItemId: reviewerItem.id, expectedVersion: reviewerItem.version });
+  const setupSync = await stableClient.call("coord_sync", { projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: String(joined.reviewer.currentSequence ?? "0"), maxEvents: 100, maxBytes: 128 * 1024 });
+  const reviewerCursorBeforeIntent = String(setupSync.throughSequence ?? joined.reviewer.currentSequence ?? "0");
   const sourceIntent = await stableClient.call("coord_intent", {
     projectId,
     agentSessionId: joined.implementation.agentSessionId,
@@ -292,7 +294,6 @@ try {
     summary: "review the committed watcher and daemon platform changes",
     targets: options.targets.map((value) => ({ type: "path", value })),
   });
-  const reviewerCursorBeforeIntent = String(joined.reviewer.currentSequence ?? "0");
   const baseline = await stableClient.call("coord_sync", { projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: reviewerCursorBeforeIntent, maxEvents: 100, maxBytes: 128 * 1024 });
   const baselineKeys = routeKeys(baseline);
 
