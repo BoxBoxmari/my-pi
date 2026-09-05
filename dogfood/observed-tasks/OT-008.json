@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-008",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Paired downstream review of candidate platform hardening",
+  "problem": "The candidate contains real watcher and asynchronous daemon fixes whose downstream review should be measured with an executed no-route baseline and an intent-aware route, not inferred from a task-board dependency.",
+  "plannedTargets": [
+    "packages/code-state/src/watcher.ts",
+    "apps/my-pi-daemon/src/code-state-manager.ts",
+    "apps/my-pi-daemon/src/main.ts",
+    "apps/my-pi-daemon/test/daemon.test.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "executed-baseline",
+      "condition": "A reviewer WorkItem is claimed and synchronized before its verification intent; the persisted baseline reports the route items actually delivered in that state."
+    },
+    {
+      "id": "intent-aware-route",
+      "condition": "The same reviewer, with an overlapping verification intent and no explicit WorkItem dependency, receives a persisted ImpactDetected route with explainable reasons."
+    },
+    {
+      "id": "observer-isolation-and-replay",
+      "condition": "An unrelated observer receives no routed item, and two bounded replays from the same cursor return identical route keys."
+    },
+    {
+      "id": "downstream-correctness",
+      "condition": "An independent reviewer workspace runs the real watcher and daemon suites; the exact exit code and test counts are recorded."
+    },
+    {
+      "id": "stable-authority",
+      "condition": "Coordination is controlled by a distinct, remotely qualified stable predecessor; the candidate daemon is not started and the candidate SHA is recorded."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Persist source/reviewer/observer WorkItems, sessions, source and reviewer intents, baseline and intent-aware sync cursors, ImpactDetected reasons, replay keys, observer isolation, and completion events.",
+    "evaluation": "This review records a real downstream test outcome; it does not manufacture a rejection or claim a repair cycle that was not observed.",
+    "correctness": "Bind the reviewer workspace HEAD, test command/output, candidate SHA, stable predecessor SHA, and remote check-run conclusions to the result."
+  },
+  "observedEvidenceBoundary": "This is an executed paired review of committed my-pi platform changes. It can contribute observed routing evidence, but it must not be promoted into a PN6 rework-improvement claim unless the run measures downstream rework against the executed baseline."
+}
