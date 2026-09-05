@@ -6,7 +6,8 @@ withheld.
 
 Capture date: 2026-09-05
 
-Candidate HEAD: `0227f5c7d7ae46cf3a53b984411e0af63f7c0c18`; `origin/main` matches.
+Candidate HEAD: current `main` HEAD; verify with `git rev-parse HEAD` and the
+candidate-bound verifier. `origin/main` must match after each push.
 
 Candidate state: candidate-state policy reports clean source state; generated
 candidate evidence remains intentionally untracked and is regenerated for each
@@ -48,10 +49,10 @@ evidence:
 
 - `pnpm verify` covers build, architecture, public-boundary, unit/integration,
   release, gate-evidence, and installed-artifact smoke checks.
-- Latest targeted local run: `pnpm build` plus watcher/daemon tests, `9/9`
-  passed. The full `pnpm verify` reached 206 tests with `203` passed, two
+- Latest targeted local run: `pnpm build` plus watcher/daemon tests, `10/10`
+  passed after OT-005. The full `pnpm verify` reached 206 tests with `203` passed, two
   daemon IPC timeouts, and one platform-specific skip; the boundary is recorded
-  in `OT-004.result.json`.
+  in `OT-004.result.json`; OT-005 has its own scoped result record.
 - `node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json`
   builds a clean candidate using distinct stable predecessor `fe671ae`, opens
   it through the stable MCP runtime, and proves stable ChangeRuntime/evaluation
@@ -80,13 +81,13 @@ Reconciliation is fingerprint-aware: unchanged files do not generate repeated
 
 ## Withheld gates
 
-PN6 remains withheld until the four real task records can support repeated
+PN6 remains withheld until the five real task records can support repeated
 missed-dependency and false-positive accounting with traceable downstream
 correctness/rework. PN8 remains withheld until structured-feedback repair yield
 and regression protection are observed across independent evaluation-gated
-engineering work; OT-004 currently supplies one such reject/retry cycle. PN9 is
-accepted by the stable-bootstrap verifier for candidate `0227f5c` and
-predecessor `fe671ae`.
+engineering work; OT-004 and OT-005 supply two such reject/retry cycles. PN9 is
+accepted by the stable-bootstrap verifier for the last evidence-bound candidate
+and predecessor `fe671ae`; rerun it for the current final SHA after any commit.
 
 PN12 may remain local, but its untested fault classes remain explicit: disk-full,
 permission loss, artifact-store disk-full, LSP crash loops, Git cancellation,
@@ -102,7 +103,7 @@ their required observed envelopes are assembled from those records.
 
 ## Recommended next action
 
-Use the existing OT-001…OT-004 records to assemble only evidence that is
+Use the existing OT-001…OT-005 records to assemble only evidence that is
 actually supported by their stored outcomes, add one heterogeneous task if a
 required metric is still missing, and rerun the read-only promotion verifier.
 Only then reconsider PN11 entry.

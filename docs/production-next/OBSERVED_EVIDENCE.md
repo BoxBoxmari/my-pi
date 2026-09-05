@@ -5,9 +5,11 @@ are intentionally not promotion evidence: controlled fixture labels and local
 fault scenarios do not establish independent product outcomes. PN9 has two
 execution profiles: the candidate-current-build replay remains diagnostic,
 while `scripts/dogfood-stable-bootstrap.mjs` builds and runs a distinct stable
-N-1 runtime before producing stable-bootstrap evidence. The current PN9 record
-for candidate `0227f5c` is `ACCEPTED` and uses predecessor `fe671ae`; this does
-not make the overall promotion gate pass while PN6/PN8/PN12 remain withheld.
+N-1 runtime before producing stable-bootstrap evidence. The latest PN9 run is
+`ACCEPTED` for its exact candidate SHA and uses predecessor `fe671ae`; rerun it
+after each final commit. OT-001 through OT-005 now provide local observed-task
+records, including two real evaluation reject/retry cycles, but this does not
+make the overall promotion gate pass while PN6/PN8/PN12 remain withheld.
 
 An authorized release review may replace a document only after rerunning the
 same profile against a clean candidate commit. The envelope must then use
