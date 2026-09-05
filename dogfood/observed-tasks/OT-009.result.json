@@ -1,0 +1,625 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-009",
+  "taskDefinition": "dogfood/observed-tasks/OT-009.json",
+  "taskDefinitionCommit": "d41992c98110b78693239d836766d73f2cdfb39c",
+  "status": "RECORDED",
+  "outcome": "accepted_by_executed_paired_route_and_downstream_tests",
+  "reviewedCandidateSha": "a3285510202456190015157562491d10ce23e923",
+  "candidateSourceStateDigestBeforeRecord": "9ae278890974f078260e0bbea84b27bce592dbbcd42dfd731f35aa5e94b37f92",
+  "filesChanged": [],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon controls coordination against candidate worktrees",
+    "processId": 26620,
+    "projectId": "project_57a99d285efc",
+    "candidateDaemonStarted": false,
+    "stableWorktreeHead": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "stableClean": true,
+    "candidateWorktreeHead": "a3285510202456190015157562491d10ce23e923",
+    "candidateClean": true,
+    "reviewerWorktreeHead": "a3285510202456190015157562491d10ce23e923",
+    "reviewerClean": true,
+    "builds": {
+      "stable": {
+        "label": "stable-predecessor",
+        "passed": true,
+        "installCommand": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\Admin\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.mjs",
+          "install",
+          "--frozen-lockfile"
+        ],
+        "buildCommand": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\Admin\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.mjs",
+          "build"
+        ]
+      },
+      "candidate": {
+        "label": "candidate",
+        "passed": true,
+        "installCommand": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\Admin\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.mjs",
+          "install",
+          "--frozen-lockfile"
+        ],
+        "buildCommand": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\Admin\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.mjs",
+          "build"
+        ]
+      },
+      "reviewer": {
+        "label": "reviewer",
+        "passed": true,
+        "installCommand": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\Admin\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.mjs",
+          "install",
+          "--frozen-lockfile"
+        ],
+        "buildCommand": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\Admin\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.mjs",
+          "build"
+        ]
+      }
+    },
+    "codeStateReady": {
+      "implementation": {
+        "entities": 53,
+        "edges": 182
+      },
+      "reviewer": {
+        "entities": 112,
+        "edges": 125
+      },
+      "observer": {
+        "entities": 19,
+        "edges": 16
+      }
+    },
+    "remote": {
+      "stable": {
+        "provider": "github-actions-workflows",
+        "commit": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+        "status": "success",
+        "checks": [
+          {
+            "name": "quality (windows-latest, node 24)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591070"
+          },
+          {
+            "name": "quality (ubuntu-latest, node 22)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591405"
+          },
+          {
+            "name": "quality (ubuntu-latest, node 24)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591483"
+          },
+          {
+            "name": "quality (macos-latest, node 24)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591463"
+          },
+          {
+            "name": "CodeQL Analysis (javascript-typescript)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068520"
+          }
+        ]
+      },
+      "candidate": {
+        "provider": "github-actions-workflows",
+        "commit": "a3285510202456190015157562491d10ce23e923",
+        "status": "success",
+        "checks": [
+          {
+            "name": "quality (windows-latest, node 24)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729286"
+          },
+          {
+            "name": "quality (ubuntu-latest, node 22)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729417"
+          },
+          {
+            "name": "quality (ubuntu-latest, node 24)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729394"
+          },
+          {
+            "name": "quality (macos-latest, node 24)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729409"
+          },
+          {
+            "name": "CodeQL Analysis (javascript-typescript)",
+            "conclusion": "success",
+            "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105629"
+          }
+        ]
+      }
+    }
+  },
+  "coordination": {
+    "sourceWorkItemId": "work_219cc0c9ad1b",
+    "reviewWorkItemId": "work_665c5263b20e",
+    "agentSessions": [
+      {
+        "id": "session_2519540fc1d0",
+        "role": "implementation"
+      },
+      {
+        "id": "session_089e26b0704a",
+        "role": "reviewer"
+      },
+      {
+        "id": "session_a83f2461917d",
+        "role": "observer"
+      }
+    ],
+    "implementationIntentId": "intent_1ed8bf43d6fc",
+    "reviewerIntentId": "intent_fa48e89eca46",
+    "explicitDependenciesBetweenReviewAndSource": [],
+    "baselineArm": {
+      "sinceSequence": "11",
+      "throughSequence": "13",
+      "routeKeys": [],
+      "routeCount": 0
+    },
+    "intentAwareArm": {
+      "sinceSequence": "13",
+      "throughSequence": "15",
+      "routeKeys": [
+        "high:impact_result:event_58da1e63070e",
+        "high:same_agent:event_110cbd71f26b"
+      ],
+      "routeCount": 2
+    },
+    "replay": {
+      "first": [
+        "high:impact_result:event_58da1e63070e",
+        "high:same_agent:event_110cbd71f26b"
+      ],
+      "second": [
+        "high:impact_result:event_58da1e63070e",
+        "high:same_agent:event_110cbd71f26b"
+      ],
+      "deterministic": true
+    },
+    "observer": {
+      "sinceSequence": "5",
+      "routeKeys": [],
+      "routeCount": 0
+    },
+    "relevantEvents": [
+      {
+        "sequence": "12",
+        "eventType": "IntentDeclared",
+        "eventId": "event_dfcbf295fb22",
+        "payload": {
+          "id": "intent_1ed8bf43d6fc",
+          "projectId": "project_57a99d285efc",
+          "agentSessionId": "session_2519540fc1d0",
+          "workItemId": "work_219cc0c9ad1b",
+          "kind": "modify",
+          "summary": "review the committed watcher and daemon platform changes",
+          "targets": [
+            {
+              "type": "path",
+              "value": "packages/coordination-runtime/src/runtime.ts"
+            },
+            {
+              "type": "path",
+              "value": "packages/impact-engine/src/engine.ts"
+            },
+            {
+              "type": "path",
+              "value": "packages/context-router/src/router.ts"
+            },
+            {
+              "type": "path",
+              "value": "packages/evaluation-runtime/src/runtime.ts"
+            }
+          ],
+          "state": "active",
+          "createdAt": "2026-09-05T12:16:24.032Z"
+        }
+      },
+      {
+        "sequence": "13",
+        "eventType": "ImpactDetected",
+        "eventId": "event_b0d7db0cd280",
+        "payload": {
+          "subject": "intent_1ed8bf43d6fc",
+          "affectedWorkItems": [
+            {
+              "workItemId": "work_219cc0c9ad1b",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedAgents": [
+            {
+              "agentSessionId": "session_2519540fc1d0",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedEntities": [],
+          "confidence": 0,
+          "reasons": [
+            {
+              "code": "same_work_item",
+              "score": 100,
+              "explanation": "the intent belongs to this work item"
+            }
+          ],
+          "graphVersion": "1048aac7c63fade57e159180",
+          "truncated": false,
+          "intentId": "intent_1ed8bf43d6fc"
+        }
+      },
+      {
+        "sequence": "14",
+        "eventType": "IntentDeclared",
+        "eventId": "event_110cbd71f26b",
+        "payload": {
+          "id": "intent_fa48e89eca46",
+          "projectId": "project_57a99d285efc",
+          "agentSessionId": "session_089e26b0704a",
+          "workItemId": "work_665c5263b20e",
+          "kind": "verify",
+          "summary": "verify the same committed platform changes as an independent downstream reviewer",
+          "targets": [
+            {
+              "type": "path",
+              "value": "packages/coordination-runtime/src/runtime.ts"
+            },
+            {
+              "type": "path",
+              "value": "packages/impact-engine/src/engine.ts"
+            },
+            {
+              "type": "path",
+              "value": "packages/context-router/src/router.ts"
+            },
+            {
+              "type": "path",
+              "value": "packages/evaluation-runtime/src/runtime.ts"
+            }
+          ],
+          "state": "active",
+          "createdAt": "2026-09-05T12:16:24.051Z"
+        }
+      },
+      {
+        "sequence": "15",
+        "eventType": "ImpactDetected",
+        "eventId": "event_58da1e63070e",
+        "payload": {
+          "subject": "intent_fa48e89eca46",
+          "affectedWorkItems": [
+            {
+              "workItemId": "work_665c5263b20e",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedAgents": [
+            {
+              "agentSessionId": "session_089e26b0704a",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedEntities": [],
+          "confidence": 0,
+          "reasons": [
+            {
+              "code": "same_work_item",
+              "score": 100,
+              "explanation": "the intent belongs to this work item"
+            }
+          ],
+          "graphVersion": "4775066b2099626b7798d4b1",
+          "truncated": false,
+          "intentId": "intent_fa48e89eca46"
+        }
+      },
+      {
+        "sequence": "16",
+        "eventType": "ContextPublished",
+        "eventId": "event_9f141b28de86",
+        "payload": {
+          "id": "context_291224a83006",
+          "kind": "verification",
+          "authorAgentSessionId": "session_089e26b0704a",
+          "workItemId": "work_665c5263b20e",
+          "scopeIds": [],
+          "codeEntityIds": [],
+          "contentDigest": "sha256:80b6c7af2a622f7d868cb3d433d551077bcbf7cd7130b63ede2c221d67c362c7",
+          "classification": "internal",
+          "retention": "until-superseded",
+          "createdAt": "2026-09-05T12:16:27.033Z"
+        }
+      },
+      {
+        "sequence": "17",
+        "eventType": "WorkItemCompleted",
+        "eventId": "event_2632c9467dfd",
+        "payload": {
+          "id": "work_219cc0c9ad1b",
+          "projectId": "project_57a99d285efc",
+          "title": "OT-009: review committed platform hardening",
+          "summary": "Review the committed watcher and asynchronous daemon changes as a real downstream consumer.",
+          "state": "done",
+          "version": 2,
+          "createdAt": "2026-09-05T12:16:24.001Z",
+          "updatedAt": "2026-09-05T12:16:27.074Z",
+          "assignee": "session_2519540fc1d0"
+        }
+      },
+      {
+        "sequence": "19",
+        "eventType": "WorkItemCompleted",
+        "eventId": "event_5c71cad1f0de",
+        "payload": {
+          "id": "work_665c5263b20e",
+          "projectId": "project_57a99d285efc",
+          "title": "OT-009: independent downstream verification",
+          "summary": "Run the real platform review suites with and without intent-aware coordination context.",
+          "state": "done",
+          "version": 2,
+          "createdAt": "2026-09-05T12:16:24.012Z",
+          "updatedAt": "2026-09-05T12:16:27.077Z",
+          "assignee": "session_089e26b0704a"
+        }
+      }
+    ],
+    "impactEvents": [
+      {
+        "sequence": "13",
+        "eventType": "ImpactDetected",
+        "eventId": "event_b0d7db0cd280",
+        "payload": {
+          "subject": "intent_1ed8bf43d6fc",
+          "affectedWorkItems": [
+            {
+              "workItemId": "work_219cc0c9ad1b",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedAgents": [
+            {
+              "agentSessionId": "session_2519540fc1d0",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedEntities": [],
+          "confidence": 0,
+          "reasons": [
+            {
+              "code": "same_work_item",
+              "score": 100,
+              "explanation": "the intent belongs to this work item"
+            }
+          ],
+          "graphVersion": "1048aac7c63fade57e159180",
+          "truncated": false,
+          "intentId": "intent_1ed8bf43d6fc"
+        }
+      },
+      {
+        "sequence": "15",
+        "eventType": "ImpactDetected",
+        "eventId": "event_58da1e63070e",
+        "payload": {
+          "subject": "intent_fa48e89eca46",
+          "affectedWorkItems": [
+            {
+              "workItemId": "work_665c5263b20e",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedAgents": [
+            {
+              "agentSessionId": "session_089e26b0704a",
+              "score": 100,
+              "reasons": [
+                {
+                  "code": "same_work_item",
+                  "score": 100,
+                  "explanation": "the intent belongs to this work item"
+                }
+              ]
+            }
+          ],
+          "affectedEntities": [],
+          "confidence": 0,
+          "reasons": [
+            {
+              "code": "same_work_item",
+              "score": 100,
+              "explanation": "the intent belongs to this work item"
+            }
+          ],
+          "graphVersion": "4775066b2099626b7798d4b1",
+          "truncated": false,
+          "intentId": "intent_fa48e89eca46"
+        }
+      }
+    ],
+    "contextArtifactId": "context_291224a83006",
+    "workItemsDone": true
+  },
+  "impactObservation": {
+    "executedBaselineRouteCount": 0,
+    "intentAwareRouteCount": 2,
+    "impactDetected": true,
+    "explainableReasons": [
+      {
+        "code": "same_work_item",
+        "score": 100,
+        "explanation": "the intent belongs to this work item"
+      },
+      {
+        "code": "same_work_item",
+        "score": 100,
+        "explanation": "the intent belongs to this work item"
+      }
+    ],
+    "missedDependencies": "not assessed beyond the declared paired review scope",
+    "falsePositives": 0,
+    "downstreamReworkIterations": "not assessed; this run did not invent a repair cycle",
+    "promotionVerdict": "contributes an executed route baseline and downstream review result; no PN6 rework-improvement claim is made from this task alone"
+  },
+  "reviewObservation": {
+    "testProfile": "contract",
+    "testResult": {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--test",
+        "--experimental-strip-types",
+        "packages/coordination-runtime/test/runtime.test.ts",
+        "packages/evaluation-runtime/test/evaluation.test.ts"
+      ],
+      "exitCode": 0,
+      "durationMs": 2904,
+      "stdout": "✔ PN4 end-to-end: dependency claim, typed publication, selective sync, and unblock (199.0824ms)\n✔ PN4 claim rejects stale versions and complete releases active scopes (126.704ms)\n✔ PN4 coordination validates dependency targets and WorkItem ownership (113.8866ms)\n✔ PN7 change receipt is stored and surfaced as an applied/rejected coordination event (98.257ms)\n✔ PN4 coord_sync refreshes a lease without durable heartbeat-event growth (102.0457ms)\n✔ PN4 coord_sync remains bounded under a high event volume (370.0965ms)\n✔ PN8 gated WorkItems wait for evaluation, expose retry state, and only then become done (134.5569ms)\n✔ PN6 intent declaration emits a bounded impact result and routes it to the affected agent (123.9091ms)\n✔ PN8 accepts only all-required exact-state evidence and survives reopen (234.0055ms)\n✔ PN8 rejects stale evidence, missing evidence, and evaluator errors without passing (127.4305ms)\n✔ PN8 provider result identity is idempotent but cannot be replayed with a different digest (116.566ms)\n✔ PN8 caller-declared evaluator identity cannot satisfy a trusted criterion (117.2073ms)\n✔ PN8 retry budget is bounded and deterministic provider never executes shell (1.0716ms)\n✔ PN8 evaluator errors are recorded as inconclusive and never leave a run implicitly accepted (97.163ms)\n✔ PN8 duplicate criterion results aggregate conservatively instead of letting a pass mask a failure (100.834ms)\nℹ tests 15\nℹ suites 0\nℹ pass 15\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2378.0101\n",
+      "stderr": ""
+    },
+    "reviewerWorktree": "C:\\Users\\Admin\\AppData\\Local\\Temp\\my-pi-observed-review-3LwlzY\\reviewer",
+    "contextArtifactId": "context_291224a83006",
+    "humanInterventions": 0
+  },
+  "correctness": {
+    "candidateRemote": {
+      "provider": "github-actions-workflows",
+      "commit": "a3285510202456190015157562491d10ce23e923",
+      "status": "success",
+      "checks": [
+        {
+          "name": "quality (windows-latest, node 24)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729286"
+        },
+        {
+          "name": "quality (ubuntu-latest, node 22)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729417"
+        },
+        {
+          "name": "quality (ubuntu-latest, node 24)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729394"
+        },
+        {
+          "name": "quality (macos-latest, node 24)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105626/job/101303729409"
+        },
+        {
+          "name": "CodeQL Analysis (javascript-typescript)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33965105629"
+        }
+      ]
+    },
+    "stableRemote": {
+      "provider": "github-actions-workflows",
+      "commit": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+      "status": "success",
+      "checks": [
+        {
+          "name": "quality (windows-latest, node 24)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591070"
+        },
+        {
+          "name": "quality (ubuntu-latest, node 22)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591405"
+        },
+        {
+          "name": "quality (ubuntu-latest, node 24)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591483"
+        },
+        {
+          "name": "quality (macos-latest, node 24)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591463"
+        },
+        {
+          "name": "CodeQL Analysis (javascript-typescript)",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068520"
+        }
+      ]
+    },
+    "downstreamTestsPassed": true
+  },
+  "metrics": {
+    "baselineRouteCount": 0,
+    "intentAwareRouteCount": 2,
+    "replayRouteCount": 2,
+    "observerRouteCount": 0,
+    "repairIterations": "not_assessed",
+    "humanInterventions": 0
+  },
+  "observedEvidenceBoundary": "OT-008 is a real paired downstream review over committed my-pi platform code. It records both executed route arms and the independent test outcome. It is observed evidence, but it does not by itself establish improved integration rework, precision/recall across heterogeneous tasks, or PN6 promotion eligibility."
+}
