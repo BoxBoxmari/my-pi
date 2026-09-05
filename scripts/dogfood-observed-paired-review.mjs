@@ -342,7 +342,7 @@ try {
     projectId,
     agentSessionId: joined.reviewer.agentSessionId,
     workItemId: reviewerItem.id,
-    kind: "review_result",
+    kind: "verification",
     contentDigest: `sha256:${await sha256Text(JSON.stringify(testResult))}`,
     classification: "internal",
     retention: "until-superseded",
