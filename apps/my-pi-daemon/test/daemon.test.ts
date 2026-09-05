@@ -16,9 +16,10 @@ const ROOT = path.resolve(".");
 const DAEMON = path.join(ROOT, "apps", "my-pi-daemon", "dist", "main.js");
 const WORKER = path.join(ROOT, "apps", "my-pi-daemon", "test", "client-worker.mjs");
 
-function startDaemon(runtimeDir: string, testMode = true): ChildProcess {
-  const args = [DAEMON, "--workspace", ROOT, "--runtime-dir", runtimeDir];
+function startDaemon(runtimeDir: string, testMode = true, workspaceRoot = ROOT, allowNonGit = false): ChildProcess {
+  const args = [DAEMON, "--workspace", workspaceRoot, "--runtime-dir", runtimeDir];
   if (testMode) args.push("--test-mode");
+  if (allowNonGit) args.push("--allow-non-git");
   const child = spawn(process.execPath, args, {
     cwd: ROOT,
     stdio: ["ignore", "pipe", "pipe"],
@@ -231,6 +232,41 @@ test("PN4 IPC: join, intent, typed publication, and bounded sync use the daemon 
   } finally {
     if (daemon) await stopDaemon(daemon).catch(() => undefined);
     await rm(runtimeDir, { recursive: true, force: true });
+  }
+});
+
+test("PN10 coord_join returns before a large code-state registration consumes the lease", async () => {
+  const runtimeDir = await mkdtemp(path.join(os.tmpdir(), "my-pi-daemon-join-latency-"));
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), "my-pi-daemon-large-workspace-"));
+  let daemon: ChildProcess | undefined;
+  try {
+    await Promise.all(Array.from({ length: 240 }, (_, index) => writeFile(path.join(workspaceRoot, `file-${String(index).padStart(3, "0")}.ts`), `export function file${index}(): number { return ${index}; }\n`, "utf8")));
+    daemon = startDaemon(runtimeDir, true, workspaceRoot, true);
+    const metadata = await waitForReady(runtimeDir, daemon);
+    const client = new CoordinationClient({ endpoint: metadata.endpoint, timeoutMs: 500, maxAttempts: 1 });
+    const startedAt = performance.now();
+    const joined = await client.call<{ agentSessionId: string }>("coord_join", {
+      project: { displayName: "join latency test" },
+      repository: { id: "repo-join-latency", projectId: metadata.projectId, vcs: "git", canonicalIdentity: "path:join-latency" },
+      worktree: { id: "worktree-join-latency", repositoryId: "repo-join-latency", root: workspaceRoot, branch: "join-latency", observedAt: new Date().toISOString() },
+      host: "join-latency-host",
+      clientInstance: "join-latency-client",
+      role: "observer",
+    });
+    assert.ok(performance.now() - startedAt < 500);
+    let indexed = false;
+    const deadline = Date.now() + 10_000;
+    while (!indexed && Date.now() < deadline) {
+      const snapshot = await client.call<{ entities: Array<{ path?: string }> }>("code_state_snapshot", { projectId: metadata.projectId, worktreeId: "worktree-join-latency" });
+      indexed = snapshot.entities.some((entity) => entity.path === "file-000.ts");
+      if (!indexed) await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    assert.equal(indexed, true);
+    assert.ok(joined.agentSessionId);
+  } finally {
+    if (daemon) await stopDaemon(daemon).catch(() => undefined);
+    await rm(runtimeDir, { recursive: true, force: true });
+    await rm(workspaceRoot, { recursive: true, force: true });
   }
 });
 

@@ -22,7 +22,7 @@ import {
   SqliteCoordinationStore,
   type AuditRecord,
 } from "@my-pi/coordination-store";
-import { createEventId, err, fingerprintBytes, isMyPiError, type AcceptancePolicy, type ActorRef, type AgentSession, type ChangeReceipt, type ContextArtifactKind, type EvaluationResult, type IntentKind, type ProjectId, type Repository, type ScopeRef, type WorkDependency, type Worktree } from "@my-pi/contracts";
+import { createEventId, err, fingerprintBytes, isMyPiError, type AcceptancePolicy, type ActorRef, type AgentSession, type ChangeReceipt, type ContextArtifactKind, type EvaluationResult, type IntentKind, type ProjectId, type Repository, type RepositoryId, type ScopeRef, type WorkDependency, type Worktree, type WorktreeId } from "@my-pi/contracts";
 import { resolveDaemonConfig, type DaemonConfig } from "./config.js";
 import { DaemonLifecycle } from "./lifecycle.js";
 import type { DaemonHealth } from "./health.js";
@@ -39,6 +39,16 @@ interface CliOptions {
   testMode: boolean;
   protocolVersion?: string;
 }
+
+interface CodeStateRegistrationInput {
+  projectId: ProjectId;
+  repositoryId: RepositoryId;
+  worktreeId: WorktreeId;
+  repositoryIdentity: string;
+  root: string;
+}
+
+type ScheduleCodeStateRegistration = (input: CodeStateRegistrationInput) => void;
 
 function parseArgs(argv: string[]): CliOptions {
   const options: CliOptions = { allowNonGit: false, testMode: false };
@@ -193,7 +203,7 @@ async function writeMetadata(config: DaemonConfig, health: DaemonHealth): Promis
   }
 }
 
-async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], codeStateManager?: CodeStateManager): Promise<unknown> {
+async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], scheduleCodeStateRegistration?: ScheduleCodeStateRegistration): Promise<unknown> {
   const params = recordParams(request);
   switch (request.method) {
     case "health":
@@ -207,17 +217,13 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
         clientInstance: optionalString(params, "clientInstance"),
         role: optionalString(params, "role"),
       } satisfies JoinInput);
-      if (codeStateManager) {
-        const worktreeRuntime = new WorkspaceRuntime();
-        await worktreeRuntime.open({ root: verified.worktree.root });
-        await codeStateManager.register({
+      if (scheduleCodeStateRegistration) {
+        scheduleCodeStateRegistration({
           projectId: expectedProjectId,
           repositoryId: verified.repository.id,
           worktreeId: verified.worktree.id,
           repositoryIdentity: verified.repository.canonicalIdentity,
           root: verified.worktree.root,
-          signal: new AbortController().signal,
-          resolveReadPath: (filePath) => worktreeRuntime.pathPolicy.resolveForRead(worktreeRuntime.workspaceOrThrow, filePath, { allowMissing: true }),
         });
       }
       return { ...result, currentSequence: result.currentSequence.toString() };
@@ -420,9 +426,9 @@ async function recordAudit(store: SqliteCoordinationStore, request: IpcRequest, 
   await store.appendAudit(record).catch(() => undefined);
 }
 
-async function handleRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], codeStateManager?: CodeStateManager): Promise<unknown> {
+async function handleRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], scheduleCodeStateRegistration?: ScheduleCodeStateRegistration): Promise<unknown> {
   try {
-    const result = await dispatchRequest(request, runtime, evaluation, store, health, expectedProjectId, testMode, daemonProject, codeStateManager);
+    const result = await dispatchRequest(request, runtime, evaluation, store, health, expectedProjectId, testMode, daemonProject, scheduleCodeStateRegistration);
     await recordAudit(store, request, expectedProjectId, "OK");
     return result;
   } catch (error) {
@@ -459,6 +465,36 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
       await coordination.refreshImpactsForWorktree(context.worktreeId);
     },
   });
+  const pendingCodeStateRegistrations = new Set<Promise<void>>();
+  const scheduleCodeStateRegistration: ScheduleCodeStateRegistration = (input) => {
+    const registration = (async () => {
+      const worktreeRuntime = new WorkspaceRuntime();
+      await worktreeRuntime.open({ root: input.root });
+      await codeStateManager.register({
+        projectId: input.projectId,
+        repositoryId: input.repositoryId,
+        worktreeId: input.worktreeId,
+        repositoryIdentity: input.repositoryIdentity,
+        root: input.root,
+        signal: new AbortController().signal,
+        resolveReadPath: (filePath) => worktreeRuntime.pathPolicy.resolveForRead(worktreeRuntime.workspaceOrThrow, filePath, { allowMissing: true }),
+      });
+    })();
+    let tracked: Promise<void>;
+    tracked = registration.catch(async (error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[my-pi-daemon] code-state registration failed worktree=${input.worktreeId}: ${message}`);
+      await store.appendEvent({
+        projectId: input.projectId,
+        eventType: "CodeStateRegistrationFailed",
+        actor: { kind: "system", name: "code-state-manager" },
+        payload: { worktreeId: input.worktreeId, message },
+      }).catch(() => undefined);
+    }).finally(() => {
+      pendingCodeStateRegistrations.delete(tracked);
+    });
+    pendingCodeStateRegistrations.add(tracked);
+  };
   const evaluation = new EvaluationRuntime(store, config.projectId, [new DeterministicProvider()], {
     resolveStateRef: async (input) => {
       if (!input.changeReceiptId) {
@@ -493,7 +529,7 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
   });
   try {
     await store.init();
-    ipc = new IpcServer(config.endpoint, (request) => handleRequest(request, coordination, evaluation, store, health, config.projectId, options.testMode, config.project, codeStateManager), config.maxFrameBytes, config.protocolVersion);
+    ipc = new IpcServer(config.endpoint, (request) => handleRequest(request, coordination, evaluation, store, health, config.projectId, options.testMode, config.project, scheduleCodeStateRegistration), config.maxFrameBytes, config.protocolVersion);
     await ipc.listen();
     lifecycle.set("ready");
     await writeMetadata(config, health());
@@ -510,6 +546,7 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
   } finally {
     lifecycle.set("stopping");
     await ipc?.close();
+    await Promise.allSettled([...pendingCodeStateRegistrations]);
     await codeStateManager.stop();
     await store.close();
     await unlink(config.metadataPath).catch(() => undefined);
