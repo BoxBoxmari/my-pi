@@ -1,6 +1,6 @@
 # Pre-PN11 Production Next Closeout Report
 
-Status: `REMEDIATION_INCOMPLETE`
+Status: `PROMOTION_WITHHELD`
 
 Capture date: 2026-09-05
 
@@ -12,17 +12,17 @@ stable-bootstrap claims.
 
 | Field | Observed value |
 |---|---|
-| Candidate HEAD | Captured by the final verifier and commit record; the exact SHA is intentionally not duplicated here |
-| `origin/main` | Compared with the candidate by `git ls-remote origin refs/heads/main` after push |
+| Candidate HEAD | `0227f5c7d7ae46cf3a53b984411e0af63f7c0c18` |
+| `origin/main` | Same SHA, verified by `git ls-remote origin refs/heads/main` after push |
 | Approved baseline | `273ed28947a94a2495b10721f725447ea769994d` |
 | Baseline relation | `git merge-base --is-ancestor` passes; baseline is an ancestor, not an exact-HEAD requirement |
-| Worktree | Tracked closeout changes are committed; generated `evidence/PN6.json`, `PN8.json`, `PN9.json`, and `PN12.json` remain intentionally untracked |
+| Worktree | Candidate-state policy reports clean source state; generated evidence, gate evidence, and SBOM files remain local and uncommitted |
 | Package version | `0.1.0-alpha.1` |
 | Store migration | 5 |
 
-The hardening batch is committed as one user-authorized change set. The final
-remote synchronization is established separately by the post-push `git
-ls-remote` check, rather than by copying a volatile SHA into this report.
+The hardening and evidence records are committed as user-authorized commits.
+The final remote synchronization is established by the post-push `git
+ls-remote` check and the candidate-bound GitHub Actions runs below.
 
 ## 2. Findings disposition
 
@@ -42,7 +42,7 @@ ls-remote` check, rather than by copying a volatile SHA into this report.
 | 12 | `PARTIAL` collapsed into rejection | `CONFIRMED` | Receipts carry resource-level outcomes and `ChangePartiallyApplied` is preserved as a distinct event/projection path. |
 | 13 | Strict verifier required baseline equal to HEAD | `CONFIRMED` | Readiness now checks baseline ancestry; tests cover equality, descendant, unrelated, dirty, and wrong-evidence cases. |
 | 14 | Stale implementation/provenance documentation | `CONFIRMED` | Production Next status, observed-evidence guidance, security, contracts, architecture, release wording, and this report were refreshed. |
-| 15 | Final multi-platform qualification | `DEFERRED_WITH_REASON` | The prior `303f8c3` run passed CodeQL, Ubuntu Node 22, and macOS Node 24, but Windows Node 24 hit the libuv `src\\win\\fs-event.c:72` assertion in both watcher-bearing test files; Ubuntu Node 24 gitleaks failed because shallow checkout omitted predecessor `f6c058d...` from its requested range. The current successor fix removes all Windows native watcher calls and gives CI full history; remote qualification is determined only by the blocking workflow run attached to that successor. A read-only audit of available GitHub PRs found only Dependabot changes, not independent engineering outcomes for PN6/PN8/PN9. |
+| 15 | Final multi-platform qualification | `PASS` | The successor at `0227f5c` passed the blocking CI matrix in [run 33947729849](https://github.com/BoxBoxmari/my-pi/actions/runs/33947729849) and CodeQL in [run 33947729846](https://github.com/BoxBoxmari/my-pi/actions/runs/33947729846): Windows Node 24, Ubuntu Node 22/24, macOS Node 24, release checks, supply-chain checks, runtime boundary evidence, and Production Next candidate qualification all completed successfully. |
 
 ## 3. Implementation summary
 
@@ -130,81 +130,70 @@ or a clean rejection.
 
 ## 8. Tests and benchmark results
 
-The final local `pnpm verify` run passed:
+The targeted local qualification for the current implementation passed with
+`pnpm build` and the watcher/daemon tests at `9/9`. The full local `pnpm verify`
+run reached 206 tests with `203` passed, `2` daemon IPC timeouts, and `1`
+platform-specific skip; the two failures were recorded as local resource
+saturation in `dogfood/observed-tasks/OT-004.result.json`, not silently ignored.
 
-- 202 unit/integration/compatibility tests: 201 passed, 1 platform-specific skip;
-- release test suite: 41/41 passed;
-- project references, architecture boundary, public boundary, gate evidence,
-  build, installed-package smoke, and 13-tool artifact checks: passed;
-- local PN6 controlled replay: 5 cases, full routing recall `1.0` versus the
-  task-board-only `0.5` baseline, 1.4 fewer average repair iterations, and 7
-  fewer modeled stale-contract mistakes;
-- local PN8 controlled replay: 8 cases, structured repair yield `1.0` versus
-  ordinary-log `0.4`, five prior passes preserved, zero seeded false accepts;
-- PN9 self-host replay: passed with a rejected first evaluation, accepted bounded
-  retry, receipt-verified target state, impact routing, and no autonomous spawn;
-- PN12 local reliability: all six local scenarios passed, including crash
-  recovery, idempotency, stale evidence rejection, evaluator failure handling,
-  retry exhaustion, and oversized IPC rejection; repeated Windows/Node 26 runs
-  measured crash recovery in the approximately `1.45–1.67 s` range.
+The final remote workflow [33947729849](https://github.com/BoxBoxmari/my-pi/actions/runs/33947729849)
+and CodeQL workflow [33947729846](https://github.com/BoxBoxmari/my-pi/actions/runs/33947729846)
+both completed successfully. The remote job also passed release verification,
+SBOM generation, benchmark smoke, runtime boundary evidence, and the stable
+Production Next qualification step.
 
-The local `pnpm audit --prod` check reported no known vulnerabilities. The
-prior pushed-commit GitHub Actions run [33857668261](https://github.com/BoxBoxmari/my-pi/actions/runs/33857668261)
-completed with CodeQL and macOS Node 24 success, but Windows Node 24 unit tests
-failed; its public annotations exposed only process exit codes and job logs
-returned HTTP 403. The successor candidate's current workflow run is the only
-authoritative source for post-fix remote qualification, so the prior failure is
-not attributed to code or infrastructure beyond the separately reproduced
-recursive-watcher risk.
-
-The next successor run [33897503533](https://github.com/BoxBoxmari/my-pi/actions/runs/33897503533)
-confirmed the Windows failure with `Assertion failed: !_wcsnicmp(filename, dir,
-dirlen), file src\\win\\fs-event.c, line 72` in
-`apps/my-pi-daemon/test/code-state-lifecycle.test.ts` and
-`packages/code-state/test/code-state.test.ts`. Its Ubuntu Node 24 gitleaks step
-failed before scanning because the shallow checkout did not contain the
-`f6c058d...^..303f8c3...` range requested by the action. The current working-tree
-fix addresses both concrete causes; its successor run is still required.
+The stable self-build command
+`node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json`
+completed with exit code `0` against candidate `0227f5c`. It built the distinct
+predecessor `fe671aec2b31c8d71e7a95e7e15a37073e0c4d39`, built a clean candidate
+checkout, used the predecessor daemon/MCP/ChangeRuntime/evaluation runtime, and
+kept `candidateDaemonStarted=false`. The read-only evidence verifier accepted
+this PN9 record.
 
 ## 9. Remaining limitations
 
-PN6 and PN8 evidence remains controlled replay, not independent engineering
-outcomes. PN9 still uses the current candidate build as its bootstrap and has not
-verified a distinct stable N-1 runtime. PN12 intentionally leaves disk-full,
-permission-loss, artifact-store disk-full, LSP crash-loop, Git-cancellation,
+PN6 and PN8 generated envelopes remain controlled replay, not promotion evidence.
+Four real task records now exist in `dogfood/observed-tasks/`: OT-001, OT-002,
+OT-003, and OT-004. They provide traceable commits, CI, impact observations,
+and one real stable evaluation reject/retry cycle, but miss/false-positive
+accounting is not repeated across the task set and the observed envelopes have
+not been accepted by the promotion contract. PN9 now has a distinct stable N-1
+proof using `fe671ae`; PN12 intentionally leaves disk-full, permission-loss,
+artifact-store disk-full, LSP crash-loop, Git-cancellation,
 enterprise-network-partition, and PostgreSQL-failover faults untested.
 
 Native acceleration remains deferred. The current code-state lifecycle is
 bounded and local, not a complete cross-host distributed state service. The
- prior remote CI results are bound to `d28b799` and `303f8c3`; neither is
- evidence for the next watcher fix. Candidate qualification must use the exact
- SHA and blocking workflow conclusions reported after that change is pushed.
+Local strict release verification still depends on generated legacy artifacts
+being rebound to the exact candidate SHA. Remote candidate qualification is
+green and is the authoritative cross-platform result for `0227f5c`.
 
-The public GitHub PR and issue history currently exposes only dependency update
-work. It does not provide traceable engineering run IDs, reviewer decisions,
-downstream correctness, repair yield, or a stable N-1 bootstrap that can be
-used as PN6/PN8/PN9 promotion evidence.
+The public GitHub PR and issue history exposes no independent product-work PRs,
+but the local observed-task records preserve stable WorkItem, Intent,
+ChangeReceipt, EvaluationRun, FeedbackPacket, commit, and CI identifiers. Those
+records are useful observed inputs; they do not by themselves satisfy the
+promotion verifier's PN6/PN8 envelope requirements.
 
 ## 10. Gate status
 
 | Gate | Status | Decision |
 |---|---|---|
-| Gate A: platform and CI correctness | Local pass; current remote matrix passed on `fe671ae` | Windows native watcher assertion is removed by reconciliation-only mode; every later candidate still requires its own blocking matrix. |
+| Gate A: platform and CI correctness | Pass on `0227f5c` remote matrix | Windows native watcher assertion is removed by reconciliation-only mode; the final blocking matrix and CodeQL runs are green. |
 | Gate B: trust and authority | Local pass | Raw mutation and evaluator provenance boundaries are enforced. |
 | Gate C: live code state | Local pass | Daemon-managed, worktree-aware, policy-authorized lifecycle is exercised. |
 | Gate D: coordination scalability | Local pass | Materialized impact, projection-only heartbeat, and indexed evaluation paths are exercised. |
 | Gate E: semantic integrity | Local pass | Composite receipts and explicit PARTIAL semantics are exercised. |
-| Gate F: release qualification | Incomplete | Baseline ancestry is fixed, but remote candidate qualification and clean candidate admission are not complete. |
+| Gate F: release qualification | Remote pass; local strict admission withheld | Remote bind/release checks pass. Local generated legacy gate evidence remains a separate freshness boundary and is not used to claim release admission. |
 
 ## 11. Production Next status
 
 | Area | Status |
 |---|---|
 | Implementation architecture | Implemented locally; additive and opt-in |
-| Local candidate qualification | Passed on Windows/Node 26 |
-| PN6 observed evidence | Withheld; controlled replay only |
-| PN8 observed evidence | Withheld; controlled replay only |
-| PN9 stable N-1 | Determined by the stable-bootstrap verifier; harness now available |
+| Local candidate qualification | Targeted `9/9`; full suite inconclusive from two IPC timeouts |
+| PN6 observed evidence | Withheld; OT-001…OT-004 records lack repeated miss/false-positive accounting and an accepted observed envelope |
+| PN8 observed evidence | Withheld; OT-004 has one real reject/retry cycle, while the remaining tasks were not evaluation-gated |
+| PN9 stable N-1 | Accepted by stable-bootstrap verifier using distinct `fe671ae` |
 | PN11 entry | Withheld; PN6/PN8/PN9 prerequisites are not satisfied |
 | PN13 promotion | Withheld by the read-only promotion verifier |
 
@@ -215,20 +204,22 @@ runtime-generated predecessor and authority proof.
 
 ## 12. Recommended next action
 
-Do not start PN11. Run the stable-bootstrap profile on a clean candidate
-checkout, collect traceable PR/CI or real work-item outcomes for PN6 and PN8,
-then rerun the read-only evidence and promotion verifiers. Keep any remaining
-external or platform failures explicitly classified until their logs or
-independent reproductions are available.
+Do not start PN11. Consolidate the four real task records into an approved
+observed-replay envelope only where the stored outcomes support the required
+metrics, or collect another heterogeneous evaluation-gated task with explicit
+miss/false-positive accounting. Then rerun the read-only evidence and promotion
+verifiers. Keep local IPC saturation and any other platform failures explicitly
+classified.
 
 ## Final decision
 
-`PRODUCTION_NEXT_CLOSEOUT: FAIL`
+`PRODUCTION_NEXT_CLOSEOUT: WITHHELD`
 
 `PN11_ENTRY: WITHHELD`
 
 Recommended PR/commit decomposition: separate watcher and daemon lifecycle;
 trust/evaluation authority; code-state and impact materialization; change/store
-semantics; and final documentation/evidence qualification. This closeout batch
-is intentionally shipped as one user-authorized commit; the admission decision
-remains withheld pending the evidence boundaries recorded above.
+semantics; and final documentation/evidence qualification. The current
+implementation, evidence record, and documentation commits are synchronized on
+`origin/main`; the admission decision remains withheld pending the evidence
+boundaries recorded above.

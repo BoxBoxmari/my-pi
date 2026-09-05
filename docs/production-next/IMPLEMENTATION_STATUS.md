@@ -1,14 +1,14 @@
 # Production Next Implementation Status
 
-Status: `REMEDIATION_INCOMPLETE`; closeout hardening is committed in this change
-set, while release and promotion admission remain withheld.
+Status: `PROMOTION_WITHHELD`; closeout hardening and the stable self-build are
+committed/verified, while PN6, PN8, and overall promotion admission remain
+withheld.
 
 Capture date: 2026-09-05
 
-Candidate HEAD: captured from the final commit and verifier output; see the
-commit/push record for the exact SHA.
+Candidate HEAD: `0227f5c7d7ae46cf3a53b984411e0af63f7c0c18`; `origin/main` matches.
 
-Candidate state: tracked source is clean after the authorized commit; generated
+Candidate state: candidate-state policy reports clean source state; generated
 candidate evidence remains intentionally untracked and is regenerated for each
 final SHA. The approved baseline remains
 `273ed28947a94a2495b10721f725447ea769994d`; the baseline is an ancestor of the
@@ -23,7 +23,7 @@ candidate HEAD, rather than a required exact match.
 | Gate C | Implemented locally | The daemon registers canonical worktree roots, starts bounded live indexing, routes reads through path policy, and keeps provider degradation non-fatal. |
 | Gate D | Implemented locally | Impact is materialized at intent/code-state update time; `coord_sync` reads bounded events, does not reload the graph, and does not append heartbeat events. Evaluation queries use run-scoped indexes. |
 | Gate E | Implemented locally | Composite proposals include every normalized resource and payload digest; receipts preserve resource outcomes and `PARTIAL` has its own event type. |
-| Gate F | Partial | Baseline ancestry logic and local qualification are covered; candidate-bound release evidence remains incomplete, while cross-platform qualification is tracked by the successor candidate's GitHub Actions run. |
+| Gate F | Remote pass; local strict admission withheld | Baseline ancestry and remote candidate qualification are covered; local generated legacy release artifacts remain a separate freshness boundary. |
 
 ## Implemented local layers
 
@@ -36,22 +36,27 @@ PN6 materializes bounded impact results with directional graph traversal and
 selective routing. PN7 uses content preconditions, per-file atomic publication,
 composite plan digests, read-back verification, and explicit `PARTIAL` results.
 PN8 separates external declarations from server-registered evaluator output and
-binds production runs to verified change receipts. PN9 has an isolated
-self-host replay with a rejected first attempt, a bounded accepted retry,
-impact routing, and no autonomous spawning. PN10 remains a local policy and
-audit seam; it is not enterprise authentication.
+binds production runs to verified change receipts. PN9 has both a candidate
+diagnostic replay and an accepted stable N-1 bootstrap with a rejected first
+attempt, a bounded accepted retry, impact routing, and no autonomous spawning.
+PN10 remains a local policy and audit seam; it is not enterprise authentication.
 
 ## Qualification evidence
 
-The following are local qualification records, not promotion evidence:
+The following are local qualification records, not all of which are promotion
+evidence:
 
 - `pnpm verify` covers build, architecture, public-boundary, unit/integration,
   release, gate-evidence, and installed-artifact smoke checks.
-- Latest local run: 202 tests, 201 passed, 1 platform-specific skip, and 41/41
-  release tests passed.
-- `node scripts/dogfood-self-host.mjs --evidence-out evidence/PN9.json`
-  exercises the candidate daemon, isolated worktrees, change receipts, and
-  server-side evaluator execution.
+- Latest targeted local run: `pnpm build` plus watcher/daemon tests, `9/9`
+  passed. The full `pnpm verify` reached 206 tests with `203` passed, two
+  daemon IPC timeouts, and one platform-specific skip; the boundary is recorded
+  in `OT-004.result.json`.
+- `node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json`
+  builds a clean candidate using distinct stable predecessor `fe671ae`, opens
+  it through the stable MCP runtime, and proves stable ChangeRuntime/evaluation
+  authority without starting the candidate daemon. The latest run exited `0`
+  and PN9 evidence is accepted by the read-only verifier.
 - `node benchmarks/impact-routing-arms.mjs --evidence-out evidence/PN6.json`
   compares the controlled impact-routing arms.
 - `node benchmarks/evaluation-feedback-arms.mjs --evidence-out evidence/PN8.json`
@@ -65,21 +70,23 @@ Repeated local reliability runs measured crash recovery at approximately
 
 The four PN evidence files are deliberately generated outside the tracked
 release commit. `pnpm verify:production-next-evidence` checks their schema,
-candidate state digest, and exact candidate commit. Controlled fixtures cannot
-be upgraded into product-value or stable-bootstrap claims.
+candidate state digest, and exact candidate commit. PN6/PN8/PN12 remain
+controlled/local qualification records; the stable PN9 profile is accepted only
+because its predecessor runtime proof is independently checked. Controlled
+fixtures cannot be upgraded into product-value claims.
 
 Reconciliation is fingerprint-aware: unchanged files do not generate repeated
 `CodeGraphUpdated` events during fallback polling.
 
 ## Withheld gates
 
-PN6 remains withheld until the impact-routing improvement is observed on
-independent engineering work with traceable downstream correctness and rework
-outcomes. PN8 remains withheld until structured-feedback repair yield and
-regression protection are observed on independent engineering work. PN9 status
-is determined by the stable-bootstrap verifier; the repository now contains the
-proof harness, but the harness itself is not evidence until it has run against
-the exact candidate SHA.
+PN6 remains withheld until the four real task records can support repeated
+missed-dependency and false-positive accounting with traceable downstream
+correctness/rework. PN8 remains withheld until structured-feedback repair yield
+and regression protection are observed across independent evaluation-gated
+engineering work; OT-004 currently supplies one such reject/retry cycle. PN9 is
+accepted by the stable-bootstrap verifier for candidate `0227f5c` and
+predecessor `fe671ae`.
 
 PN12 may remain local, but its untested fault classes remain explicit: disk-full,
 permission loss, artifact-store disk-full, LSP crash loops, Git cancellation,
@@ -88,14 +95,14 @@ enterprise network partition, and PostgreSQL failover.
 PN11 is not started. PN13 is not admitted. A passing local test suite does not
 override these external evidence requirements or the read-only promotion gate.
 
-The current public GitHub history contains dependency-update PRs only; no
-independent engineering run, reviewer decision, downstream correctness result,
-repair-yield observation, or stable N-1 bootstrap is available there for PN6,
-PN8, or PN9 admission.
+The current public GitHub history contains dependency-update PRs only. Local
+observed-task records now preserve independent engineering run identifiers and
+stable N-1 evidence, but the promotion verifier still withholds PN6/PN8 until
+their required observed envelopes are assembled from those records.
 
 ## Recommended next action
 
-Run `node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json`
-against the exact candidate SHA, then collect independent PR/CI or work-item
-run identifiers for PN6 and PN8 and rerun the read-only promotion verifier.
+Use the existing OT-001…OT-004 records to assemble only evidence that is
+actually supported by their stored outcomes, add one heterogeneous task if a
+required metric is still missing, and rerun the read-only promotion verifier.
 Only then reconsider PN11 entry.

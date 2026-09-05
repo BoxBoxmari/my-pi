@@ -1,12 +1,13 @@
 # Replacing candidate evidence with observed evidence
 
-The PN6, PN8, PN9, and PN12 documents in `evidence/` are candidate
-qualification records. They are intentionally not promotion evidence: controlled
-fixture labels and a candidate-built daemon do not establish user value or a
-stable bootstrap boundary. PN9 has two explicit execution profiles: the
-candidate-current-build replay remains diagnostic, while
-`scripts/dogfood-stable-bootstrap.mjs` builds and runs a distinct stable N-1
-runtime before producing stable-bootstrap evidence.
+PN6, PN8, and PN12 in `evidence/` remain candidate qualification records and
+are intentionally not promotion evidence: controlled fixture labels and local
+fault scenarios do not establish independent product outcomes. PN9 has two
+execution profiles: the candidate-current-build replay remains diagnostic,
+while `scripts/dogfood-stable-bootstrap.mjs` builds and runs a distinct stable
+N-1 runtime before producing stable-bootstrap evidence. The current PN9 record
+for candidate `0227f5c` is `ACCEPTED` and uses predecessor `fe671ae`; this does
+not make the overall promotion gate pass while PN6/PN8/PN12 remain withheld.
 
 An authorized release review may replace a document only after rerunning the
 same profile against a clean candidate commit. The envelope must then use
