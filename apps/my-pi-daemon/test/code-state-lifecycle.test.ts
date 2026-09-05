@@ -43,6 +43,10 @@ test("PN5 daemon code-state is live, worktree-aware, and policy-authorized", asy
   const samePath = "src/same.ts";
   await mkdir(path.join(worktreeA, "src"));
   await mkdir(path.join(worktreeB, "src"));
+  await mkdir(path.join(worktreeA, ".agent", "nested"), { recursive: true });
+  await mkdir(path.join(worktreeA, ".cursor"), { recursive: true });
+  await Promise.all(Array.from({ length: 120 }, (_, index) => writeFile(path.join(worktreeA, ".cursor", `metadata-${index}.ts`), `export const metadata${index} = ${index};\n`, "utf8")));
+  await writeFile(path.join(worktreeA, ".agent", "nested", "ignored.ts"), "export const ignored = true;\n", "utf8");
   await writeFile(path.join(worktreeA, samePath), "export const source = 'A';\n", "utf8");
   await writeFile(path.join(worktreeB, samePath), "export const source = 'B';\n", "utf8");
   await writeFile(path.join(worktreeA, ".env"), "SECRET=A\n", "utf8");
@@ -58,6 +62,8 @@ test("PN5 daemon code-state is live, worktree-aware, and policy-authorized", asy
     assert.equal(snapshotA.entities.some((entity) => entity.path === samePath && entity.fingerprint?.digest === fingerprintBytes(new TextEncoder().encode("export const source = 'A';\n")).digest), true);
     assert.equal(snapshotB.entities.some((entity) => entity.path === samePath && entity.fingerprint?.digest === fingerprintBytes(new TextEncoder().encode("export const source = 'B';\n")).digest), true);
     assert.equal(snapshotA.entities.some((entity) => entity.path === ".env"), false);
+    assert.equal(snapshotA.entities.some((entity) => entity.path?.includes(".agent/") || entity.path?.includes(".cursor/")), false);
+    assert.equal(snapshotA.entities.some((entity) => entity.path === samePath), true);
     await new Promise((resolve) => setTimeout(resolve, 250));
     assert.equal(deltaCount, 0);
 

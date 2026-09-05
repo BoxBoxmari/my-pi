@@ -8,7 +8,7 @@ const DEFAULT_MAX_WORKTREES = 64;
 const DEFAULT_INITIAL_FILES = 200;
 const DEFAULT_RECONCILE_FILES = 2_000;
 const MAX_SCAN_DEPTH = 32;
-const IGNORED_SEGMENTS = new Set([".git", "node_modules", "dist", "target", ".cache", "coverage"]);
+const IGNORED_SEGMENTS = new Set([".git", "node_modules", "dist", "target", ".cache", "coverage", ".agent", ".agents", ".claude", ".codex", ".cursor", ".idea", ".knowns", ".opencode", ".vscode", ".x-harness"]);
 
 export interface CodeStateManagerOptions {
   maxWorktrees?: number;
