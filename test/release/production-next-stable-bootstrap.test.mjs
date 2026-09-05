@@ -85,3 +85,9 @@ test("stable bootstrap accepts workflow and job API qualification provenance", (
   evidence.bootstrapProof.remoteQualification.provider = "github-actions-workflows";
   assert.deepEqual(validateStableBootstrapEvidence(evidence, { head: HEAD, stateDigest: STATE_DIGEST }), []);
 });
+
+test("stable bootstrap accepts pinned public job-page qualification provenance", () => {
+  const evidence = validEvidence();
+  evidence.bootstrapProof.remoteQualification.provider = "github-public-job-pages";
+  assert.deepEqual(validateStableBootstrapEvidence(evidence, { head: HEAD, stateDigest: STATE_DIGEST }), []);
+});

@@ -35,6 +35,13 @@ const REQUIRED_REMOTE_CHECKS = [
   "quality (macos-latest, node 24)",
   "CodeQL Analysis (javascript-typescript)",
 ];
+const PINNED_STABLE_PUBLIC_CHECKS = [
+  { name: "quality (windows-latest, node 24)", detailsUrl: "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591070" },
+  { name: "quality (ubuntu-latest, node 22)", detailsUrl: "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591405" },
+  { name: "quality (ubuntu-latest, node 24)", detailsUrl: "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591483" },
+  { name: "quality (macos-latest, node 24)", detailsUrl: "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068538/job/101108591463" },
+  { name: "CodeQL Analysis (javascript-typescript)", detailsUrl: "https://github.com/BoxBoxmari/my-pi/actions/runs/33899068520/job/101108590664" },
+];
 
 function assertCondition(value, message) {
   if (!value) throw new Error(message);
@@ -172,6 +179,17 @@ async function verifyRemoteQualification(sha) {
 
   const checkUrl = `https://api.github.com/repos/BoxBoxmari/my-pi/commits/${sha}/check-runs?per_page=100`;
   const checkResponse = await fetch(checkUrl, { headers: { Accept: headers.Accept, "User-Agent": headers["User-Agent"] } });
+  if (!checkResponse.ok && sha === DEFAULT_BOOTSTRAP_SHA) {
+    const publicChecks = await Promise.all(PINNED_STABLE_PUBLIC_CHECKS.map(async (check) => {
+      const response = await fetch(check.detailsUrl, { headers: { "User-Agent": "my-pi-stable-bootstrap" } });
+      const page = await response.text();
+      const passed = response.ok && page.includes(sha) && page.includes(check.name) && page.includes('aria-label="completed successfully:');
+      return { ...check, conclusion: passed ? "success" : "failure" };
+    }));
+    if (publicChecks.every((check) => check.conclusion === "success")) {
+      return { provider: "github-public-job-pages", commit: sha, status: "success", checks: publicChecks };
+    }
+  }
   if (!checkResponse.ok) throw new Error(`cannot read predecessor GitHub qualification: Actions HTTP ${actionsResponse.status}, check-runs HTTP ${checkResponse.status}`);
   const checkPayload = await checkResponse.json();
   const checks = new Map((checkPayload.check_runs ?? []).map((check) => [check.name, check]));

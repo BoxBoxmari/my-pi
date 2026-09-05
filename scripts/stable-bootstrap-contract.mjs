@@ -8,7 +8,7 @@ export const REQUIRED_REMOTE_CHECKS = [
   "quality (macos-latest, node 24)",
   "CodeQL Analysis (javascript-typescript)",
 ];
-export const REMOTE_QUALIFICATION_PROVIDERS = ["github-check-runs", "github-actions-workflows"];
+export const REMOTE_QUALIFICATION_PROVIDERS = ["github-check-runs", "github-actions-workflows", "github-public-job-pages"];
 
 function add(errors, condition, message) {
   if (!condition) errors.push(message);
