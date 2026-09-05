@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-005",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Keep bounded reconciliation active after a healthy native watcher",
+  "problem": "A healthy recursive native watcher returns before starting periodic reconciliation, so a missed native event can leave code-state stale even though watcher events are intended to be invalidation hints.",
+  "plannedTargets": [
+    "packages/code-state/src/watcher.ts",
+    "packages/code-state/test/code-state.test.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "healthy-watcher-reconciliation",
+      "condition": "A successful recursive watcher remains ready and also schedules bounded periodic reconciliation so missed events can be recovered."
+    },
+    {
+      "id": "bounded-stop-restart",
+      "condition": "Reconciliation uses the configured interval, stops without post-stop callbacks, and can be started again without leaking a timer."
+    },
+    {
+      "id": "windows-safety-preserved",
+      "condition": "The qualified Windows path still invokes no native fs.watch backend and retains bounded reconciliation."
+    },
+    {
+      "id": "matrix-regression",
+      "condition": "Windows Node 24, Ubuntu Node 22/24, macOS Node 24, release checks, and installed-package smoke all pass."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Record pre-change Intent, impact entities, stable predecessor receipt, retry lineage, and final WorkItem handoff.",
+    "evaluation": "Bind the first failing lifecycle criterion and the repaired retry to server-verified stable receipts.",
+    "correctness": "Preserve the initial targeted failure, final targeted pass, and remote check-run conclusions."
+  }
+}
