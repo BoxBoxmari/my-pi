@@ -156,11 +156,13 @@ this PN9 record.
 ## 9. Remaining limitations
 
 PN6 and PN8 generated envelopes remain controlled replay, not promotion evidence.
-Six real task records now exist in `dogfood/observed-tasks/`: OT-001 through
-OT-006. They provide traceable commits, CI, impact observations, and three real
+Seven real task records now exist in `dogfood/observed-tasks/`: OT-001 through
+OT-007. They provide traceable commits, CI, impact observations, three real
 stable evaluation reject/retry cycles, but miss/false-positive
 accounting is not repeated across the task set and the observed envelopes have
-not been accepted by the promotion contract. PN9 now has a distinct stable N-1
+not been accepted by the promotion contract. OT-007 additionally records a
+downstream reviewer route without an explicit dependency, but its task-board
+comparison remains counterfactual rather than a paired experiment. PN9 now has a distinct stable N-1
 proof using `fe671ae`; PN12 intentionally leaves disk-full, permission-loss,
 artifact-store disk-full, LSP crash-loop, Git-cancellation,
 enterprise-network-partition, and PostgreSQL-failover faults untested.
@@ -195,7 +197,7 @@ promotion verifier's PN6/PN8 envelope requirements.
 |---|---|
 | Implementation architecture | Implemented locally; additive and opt-in |
 | Local candidate qualification | Targeted `9/9`; full suite inconclusive from two IPC timeouts |
-| PN6 observed evidence | Withheld; OT-001…OT-006 records still lack repeated miss/false-positive accounting and an accepted observed envelope |
+| PN6 observed evidence | Withheld; OT-001…OT-007 include one downstream exact-scope route, but still lack repeated executed baseline comparisons and miss/false-positive accounting |
 | PN8 observed evidence | Withheld; OT-004 through OT-006 have real reject/retry cycles, but the evidence lacks an ordinary-feedback comparison across the task set |
 | PN9 stable N-1 | Accepted by stable-bootstrap verifier using distinct `fe671ae` |
 | PN11 entry | Withheld; PN6/PN8/PN9 prerequisites are not satisfied |
@@ -208,7 +210,7 @@ runtime-generated predecessor and authority proof.
 
 ## 12. Recommended next action
 
-Do not start PN11. Consolidate the six real task records into an approved
+Do not start PN11. Consolidate the seven real task records into an approved
 observed-replay envelope only where the stored outcomes support the required
 metrics, or collect another heterogeneous evaluation-gated task with explicit
 miss/false-positive accounting. Then rerun the read-only evidence and promotion

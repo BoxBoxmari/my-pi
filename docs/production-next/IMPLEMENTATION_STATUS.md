@@ -82,11 +82,12 @@ Reconciliation is fingerprint-aware: unchanged files do not generate repeated
 
 ## Withheld gates
 
-PN6 remains withheld until the six real task records can support repeated
+PN6 remains withheld until the seven real task records can support repeated
 missed-dependency and false-positive accounting with traceable downstream
 correctness/rework. PN8 remains withheld until structured-feedback repair yield
 and regression protection are observed across independent evaluation-gated
-engineering work; OT-004 through OT-006 supply three such reject/retry cycles. PN9 is
+engineering work; OT-004 through OT-006 supply three such reject/retry cycles, and
+OT-007 supplies one downstream exact-scope route. PN9 is
 accepted by the stable-bootstrap verifier for the last evidence-bound candidate
 and predecessor `fe671ae`; rerun it for the current final SHA after any commit.
 
@@ -104,7 +105,7 @@ their required observed envelopes are assembled from those records.
 
 ## Recommended next action
 
-Use the existing OT-001…OT-006 records to assemble only evidence that is
+Use the existing OT-001…OT-007 records to assemble only evidence that is
 actually supported by their stored outcomes, add one heterogeneous task if a
 required metric is still missing, and rerun the read-only promotion verifier.
 Only then reconsider PN11 entry.
