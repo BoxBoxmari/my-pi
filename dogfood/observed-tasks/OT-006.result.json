@@ -1,0 +1,290 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-006",
+  "taskDefinition": "dogfood/observed-tasks/OT-006.json",
+  "taskDefinitionCommit": "1803d2a2ee41f3c01af51c6d25351b172b69e866",
+  "implementationCommit": "5d9c69659b90bd4aeccac79bb34703c340037e23",
+  "status": "RECORDED",
+  "outcome": "accepted_by_stable_retry_targeted_checks_and_remote_ci",
+  "filesChanged": [
+    "apps/my-pi-daemon/src/main.ts",
+    "apps/my-pi-daemon/test/daemon.test.ts"
+  ],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon + stable ChangeRuntime",
+    "processId": 26692,
+    "projectId": "project_57a99d285efc",
+    "workItemId": "work_72995846e847",
+    "evaluationSpecId": "evalspec_f418bdfd2428",
+    "preChangeIntentId": "intent_2d837a0bb100",
+    "initialAttempt": {
+      "receiptId": "receipt_9d6f59902088",
+      "evaluationRunId": "evalrun_430840201090",
+      "feedbackPacketId": "feedback_de4b159f5b84",
+      "decision": "rejected",
+      "retryState": "recommended"
+    },
+    "retryAttempt": {
+      "intentId": "intent_f5576e23d56e",
+      "receiptId": "receipt_d29497038975",
+      "evaluationRunId": "evalrun_74e64e0fa9ab",
+      "decision": "accepted"
+    },
+    "mutationReceiptIds": [
+      "receipt_9d6f59902088",
+      "receipt_d29497038975"
+    ],
+    "desiredReceiptStatus": "APPLIED",
+    "desiredReceiptReadBackVerified": true,
+    "candidateDaemonUsedForMutationOrEvaluation": false,
+    "receiptMode": "stable-runtime-republish_and_readback_of_apply_patch_candidate_state"
+  },
+  "coordination": {
+    "agentSessions": [
+      {
+        "id": "session_fe268216513c",
+        "phase": "initial-evaluation",
+        "receiptId": "receipt_9d6f59902088"
+      },
+      {
+        "id": "session_98f1b5e54f09",
+        "phase": "retry-and-completion",
+        "receiptId": "receipt_d29497038975"
+      }
+    ],
+    "finalWorkItem": {
+      "id": "work_72995846e847",
+      "state": "done",
+      "version": 9,
+      "acceptedEvaluationRunId": "evalrun_74e64e0fa9ab",
+      "assignee": "session_98f1b5e54f09"
+    },
+    "verificationIntentId": "intent_f5576e23d56e",
+    "contextArtifactId": "context_669d3a958e8b",
+    "eventLog": {
+      "count": 580,
+      "lastSequence": "580",
+      "relevantEvents": [
+        {
+          "sequence": "6",
+          "eventType": "IntentDeclared",
+          "id": "intent_2d837a0bb100",
+          "phase": "initial-attempt"
+        },
+        {
+          "sequence": "7",
+          "eventType": "ImpactDetected",
+          "intentId": "intent_2d837a0bb100",
+          "affectedEntities": 0,
+          "affectedAgents": 1,
+          "reasons": [
+            "same_work_item"
+          ]
+        },
+        {
+          "sequence": "8",
+          "eventType": "ChangeApplied",
+          "id": "receipt_9d6f59902088",
+          "status": "APPLIED",
+          "verification": "verified"
+        },
+        {
+          "sequence": "17",
+          "eventType": "EvaluationCompleted",
+          "id": "evalrun_430840201090",
+          "decision": "rejected",
+          "attempt": 1
+        },
+        {
+          "sequence": "19",
+          "eventType": "FeedbackIssued",
+          "id": "feedback_de4b159f5b84",
+          "failedCriteria": [
+            "join-latency-bound"
+          ]
+        },
+        {
+          "sequence": "20",
+          "eventType": "RetryRecommended",
+          "id": "retry_evalrun_430840201090_1",
+          "state": "recommended"
+        },
+        {
+          "sequence": "564",
+          "eventType": "IntentDeclared",
+          "id": "intent_f5576e23d56e",
+          "phase": "bounded-retry"
+        },
+        {
+          "sequence": "565",
+          "eventType": "ImpactDetected",
+          "intentId": "intent_f5576e23d56e",
+          "affectedEntities": 56,
+          "affectedAgents": 1,
+          "reasons": [
+            "same_work_item",
+            "exact_scope_overlap",
+            "graph_edge"
+          ]
+        },
+        {
+          "sequence": "566",
+          "eventType": "ChangeApplied",
+          "id": "receipt_d29497038975",
+          "status": "APPLIED",
+          "verification": "verified",
+          "paths": [
+            "apps/my-pi-daemon/src/main.ts",
+            "apps/my-pi-daemon/test/daemon.test.ts"
+          ]
+        },
+        {
+          "sequence": "575",
+          "eventType": "EvaluationCompleted",
+          "id": "evalrun_74e64e0fa9ab",
+          "decision": "accepted",
+          "attempt": 2
+        },
+        {
+          "sequence": "578",
+          "eventType": "ContextPublished",
+          "id": "context_669d3a958e8b"
+        },
+        {
+          "sequence": "579",
+          "eventType": "WorkItemCompleted",
+          "id": "work_72995846e847",
+          "state": "done"
+        }
+      ]
+    },
+    "interventions": [
+      {
+        "type": "session-lease-expiry",
+        "resolution": "rejoined on the already-registered worktree before the bounded retry"
+      }
+    ]
+  },
+  "impactObservation": {
+    "impactDetected": true,
+    "initialAttempt": {
+      "intentId": "intent_2d837a0bb100",
+      "firstObservedAffectedEntities": 0,
+      "laterIndexedAffectedEntities": 54,
+      "affectedAgents": 1,
+      "reasons": [
+        "same_work_item",
+        "exact_scope_overlap",
+        "graph_edge"
+      ]
+    },
+    "retryAttempt": {
+      "intentId": "intent_f5576e23d56e",
+      "affectedEntities": 56,
+      "affectedAgents": 1,
+      "reasons": [
+        "same_work_item",
+        "exact_scope_overlap",
+        "graph_edge"
+      ]
+    },
+    "missedDependencies": "not assessed",
+    "falsePositives": "not assessed",
+    "downstreamIntegration": "coord_join timeout regression test and remote matrix passed after repair",
+    "promotionVerdict": "one additional real coordination-latency task recorded; same-work-item routing does not establish downstream PN6 product improvement"
+  },
+  "evaluationObservation": {
+    "initial": {
+      "runId": "evalrun_430840201090",
+      "decision": "rejected",
+      "feedbackPacketId": "feedback_de4b159f5b84",
+      "failedCriteria": [
+        "join-latency-bound"
+      ],
+      "priorPassingCriteria": [
+        "eventual-code-state-registration",
+        "failure-containment",
+        "matrix-regression"
+      ],
+      "retryState": "recommended"
+    },
+    "retry": {
+      "runId": "evalrun_74e64e0fa9ab",
+      "attempt": 2,
+      "decision": "accepted",
+      "criteria": {
+        "join-latency-bound": "pass",
+        "eventual-code-state-registration": "pass",
+        "failure-containment": "pass",
+        "matrix-regression": "pass"
+      }
+    },
+    "structuredFeedbackGenerated": true,
+    "retryAttempts": 1,
+    "evaluationFalseAccepts": 0,
+    "humanInterventions": 0
+  },
+  "correctness": {
+    "initialAttempt": {
+      "command": "node --test --test-name-pattern \"coord_join returns before\" apps/my-pi-daemon/test/daemon.test.ts",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "failure": "ERR_DAEMON_UNAVAILABLE coordination IPC request timed out at the 500 ms client bound"
+    },
+    "targetedLocal": {
+      "node": "v26.7.0",
+      "buildCommand": "pnpm build",
+      "buildExitCode": 0,
+      "daemonTestCommand": "node --test apps/my-pi-daemon/test/daemon.test.ts",
+      "daemonTests": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      "codeStateTests": {
+        "total": 9,
+        "passed": 9,
+        "failed": 0
+      }
+    },
+    "fullLocalVerify": {
+      "status": "not_run_for_OT006",
+      "reason": "scoped daemon/code-state suites plus complete remote matrix supplied the correctness evidence"
+    },
+    "remote": {
+      "status": "success",
+      "ciRunId": "33950972082",
+      "ciUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33950972082",
+      "codeqlRunId": "33950972093",
+      "codeqlUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33950972093",
+      "requiredChecks": [
+        "quality (windows-latest, node 24)",
+        "quality (ubuntu-latest, node 22)",
+        "quality (ubuntu-latest, node 24)",
+        "quality (macos-latest, node 24)",
+        "CodeQL Analysis (javascript-typescript)"
+      ],
+      "allRequiredChecksSuccess": true,
+      "additionalRemoteStepsSuccess": [
+        "release checks",
+        "secret scan",
+        "pnpm audit",
+        "cargo audit and deny",
+        "SBOM generation and verification",
+        "benchmark smoke",
+        "runtime boundary evidence",
+        "Production Next candidate qualification"
+      ]
+    }
+  },
+  "acceptanceCriteria": {
+    "join-latency-bound": "pass by the bounded 500 ms client test after asynchronous registration",
+    "eventual-code-state-registration": "pass by polling code_state_snapshot until the joined worktree is indexed",
+    "failure-containment": "pass by tracked background registration rejection handling and clean daemon shutdown",
+    "matrix-regression": "pass by remote CI 33950972082 and CodeQL 33950972093"
+  },
+  "observedEvidenceBoundary": "OT-006 is a real coordination-latency task grounded in observed session-expiry behavior, with a genuine initial timeout, stable FeedbackPacket, bounded repair, accepted retry, and remote CI. The stable runtime re-published apply_patch-prepared candidate bytes for receipt/readback verification; it does not claim to have authored the source diff. This adds one real evaluation repair cycle, but PN6/PN8 promotion remains withheld because downstream routing baselines, ordinary-feedback comparison, and repeated missed/false-positive accounting are still absent."
+}
