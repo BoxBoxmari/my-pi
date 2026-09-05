@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-003",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Keep agent metadata out of bounded code-state discovery",
+  "problem": "The daemon's bounded file discovery can spend its initial scan on local agent/editor metadata directories, producing event churn and delaying authoritative source files needed for impact routing.",
+  "plannedTargets": [
+    "apps/my-pi-daemon/src/code-state-manager.ts",
+    "apps/my-pi-daemon/test/code-state-lifecycle.test.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "metadata-excluded",
+      "condition": "Known local agent/editor metadata directories are excluded at every depth without excluding ordinary source directories."
+    },
+    {
+      "id": "source-discovered",
+      "condition": "A source file remains discoverable within the bounded initial/reconciliation scan when metadata directories contain many files."
+    },
+    {
+      "id": "quiet-reconciliation",
+      "condition": "Ignored metadata and unchanged source do not create synthetic CodeGraphUpdated churn."
+    },
+    {
+      "id": "matrix-regression",
+      "condition": "Windows Node 24, Ubuntu Node 22/24, and macOS Node 24 pass the code-state lifecycle and full CI matrix."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Record a pre-change Intent, routed code entities, stable N-1 mutation receipt, and final WorkItem handoff before runtime cleanup.",
+    "correctness": "Bind the exact source/test commit and GitHub check-run conclusions to this task.",
+    "performance": "Record bounded scan/event counts and whether metadata starvation was removed."
+  }
+}
