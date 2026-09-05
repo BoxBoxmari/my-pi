@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-010",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Paired downstream integration review of change and MCP boundaries",
+  "problem": "ChangeRuntime, WorkspaceRuntime, and the MCP adapter share security and publication boundaries; a separate integration reviewer should validate those real package tests under the same measured routing protocol.",
+  "plannedTargets": [
+    "packages/change-runtime/src/runtime.ts",
+    "packages/workspace-runtime/src/workspace-runtime.ts",
+    "packages/mcp-adapter/src/capabilities.ts",
+    "apps/my-pi-mcp/src/main.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "executed-baseline",
+      "condition": "The independent integration reviewer has an executed no-route baseline captured before its overlapping verification intent."
+    },
+    {
+      "id": "intent-aware-route",
+      "condition": "The integration reviewer receives an explainable ImpactDetected route from its overlapping intent without a task-board dependency."
+    },
+    {
+      "id": "replay-and-observer-control",
+      "condition": "Two bounded replays are identical and the unrelated observer receives no routed context."
+    },
+    {
+      "id": "integration-correctness",
+      "condition": "An independent reviewer workspace runs the real ChangeRuntime, MCP-adapter, and WorkspaceRuntime tests and records exact counts."
+    },
+    {
+      "id": "stable-authority",
+      "condition": "Coordination is controlled by a distinct, remotely qualified stable predecessor and the candidate daemon is not started."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Persist the paired route arms, intent reasons, replay, observer result, WorkItem completion, and stable predecessor authority.",
+    "evaluation": "Do not label a passing integration review as a feedback repair cycle; preserve only what was actually observed.",
+    "correctness": "Bind the real integration test command/output and current candidate check-runs to this task result."
+  },
+  "observedEvidenceBoundary": "OT-010 is a real downstream integration review over my-pi package boundaries. It adds heterogeneous observed evidence but does not by itself satisfy PN6/PN8 promotion criteria."
+}

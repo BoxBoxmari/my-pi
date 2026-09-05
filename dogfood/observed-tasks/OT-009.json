@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-009",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Paired downstream contract review of coordination and evaluation runtimes",
+  "problem": "The coordination, impact, context-routing, and evaluation contracts form one consumer-facing path; a real contract reviewer should be measured with an executed no-route baseline and an intent-aware route.",
+  "plannedTargets": [
+    "packages/coordination-runtime/src/runtime.ts",
+    "packages/impact-engine/src/engine.ts",
+    "packages/context-router/src/router.ts",
+    "packages/evaluation-runtime/src/runtime.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "executed-baseline",
+      "condition": "The reviewer baseline is synchronized after setup but before its verification intent, and its delivered route items are persisted exactly."
+    },
+    {
+      "id": "intent-aware-contract-route",
+      "condition": "An overlapping verification intent receives a persisted ImpactDetected route without an explicit dependency edge."
+    },
+    {
+      "id": "replay-and-isolation",
+      "condition": "The bounded route replays deterministically and an unrelated observer receives no route."
+    },
+    {
+      "id": "downstream-contract-correctness",
+      "condition": "An independent reviewer workspace runs the real coordination and evaluation runtime tests and records the exact result."
+    },
+    {
+      "id": "stable-authority",
+      "condition": "A distinct remotely qualified stable predecessor controls the coordination workflow; candidate daemon authority is not used."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Persist WorkItems, sessions, intents, executed baseline and intent-aware cursors, route reasons, replay keys, observer isolation, and completion events.",
+    "evaluation": "Record the downstream contract test outcome without manufacturing evaluator feedback or repair iterations.",
+    "correctness": "Bind reviewer workspace HEAD, test output, candidate SHA, predecessor SHA, and remote required check-runs."
+  },
+  "observedEvidenceBoundary": "OT-009 is a real contract review of committed my-pi runtime code. It contributes observed routing and correctness evidence, but it cannot claim a rework reduction unless downstream rework is measured against the executed baseline."
+}

@@ -38,6 +38,11 @@ const TEST_PROFILES = {
     "packages/coordination-runtime/test/runtime.test.ts",
     "packages/evaluation-runtime/test/evaluation.test.ts",
   ],
+  integration: [
+    "packages/change-runtime/test/change-runtime.test.ts",
+    "packages/mcp-adapter/test/mcp-integration.test.ts",
+    "packages/workspace-runtime/test/workspace-runtime.test.ts",
+  ],
 };
 
 function assertCondition(value, message) {
