@@ -197,10 +197,9 @@ async function listAllEvents(client, projectId) {
   throw new Error("observed review event pagination exceeded its bounded page limit");
 }
 
-async function waitForCodeState(client, projectId, worktreeId, agentSessionId) {
+async function waitForCodeState(client, projectId, worktreeId) {
   const started = Date.now();
   for (;;) {
-    await client.call("coord_sync", { projectId, agentSessionId, sinceSequence: "0", maxEvents: 1, maxBytes: 4 * 1024 });
     const snapshot = await client.call("code_state_snapshot", { projectId, worktreeId });
     if (Array.isArray(snapshot?.entities) && snapshot.entities.length > 0) {
       return { entities: snapshot.entities.length, edges: Array.isArray(snapshot.edges) ? snapshot.edges.length : 0 };
@@ -236,6 +235,14 @@ async function runReviewTests(worktreeRoot, testProfile) {
   }
 }
 
+function startHeartbeat(client, projectId, agentSessionId) {
+  const timer = setInterval(() => {
+    client.call("coord_sync", { projectId, agentSessionId, sinceSequence: "0", maxEvents: 1, maxBytes: 4 * 1024 }).catch(() => undefined);
+  }, 5_000);
+  timer.unref?.();
+  return () => clearInterval(timer);
+}
+
 const options = parseArgs(process.argv);
 const candidateSha = candidateCommit().toLowerCase();
 const candidateSourceStateDigest = await candidateStateDigest();
@@ -259,6 +266,7 @@ let candidateAdded = false;
 let reviewerAdded = false;
 let observerAdded = false;
 let daemon;
+const heartbeatStops = [];
 
 try {
   await addWorktree(stableRoot, options.bootstrapSha);
@@ -286,12 +294,17 @@ try {
   const metadata = await waitForReady(runtimeDir, daemon);
   const stableClient = new CoordinationClient({ endpoint: metadata.endpoint, maxAttempts: 2 });
   const projectId = metadata.projectId;
-  const joined = {
-    implementation: await join(stableClient, projectId, candidateRoot, "implementation", candidateSha),
-    reviewer: await join(stableClient, projectId, reviewerRoot, "reviewer", candidateSha),
-    observer: await join(stableClient, projectId, observerRoot, "observer", candidateSha),
-  };
-  const codeStateReadyEntries = await Promise.all(Object.entries(joined).map(async ([role, value]) => [role, await waitForCodeState(stableClient, projectId, value.worktreeId, value.agentSessionId)]));
+  const joinedEntries = await Promise.all([
+    ["implementation", candidateRoot],
+    ["reviewer", reviewerRoot],
+    ["observer", observerRoot],
+  ].map(async ([role, root]) => {
+    const value = await join(stableClient, projectId, root, role, candidateSha);
+    heartbeatStops.push(startHeartbeat(stableClient, projectId, value.agentSessionId));
+    return [role, value];
+  }));
+  const joined = Object.fromEntries(joinedEntries);
+  const codeStateReadyEntries = await Promise.all(Object.entries(joined).map(async ([role, value]) => [role, await waitForCodeState(stableClient, projectId, value.worktreeId)]));
   const codeStateReady = Object.fromEntries(codeStateReadyEntries);
 
   const sourceItem = await stableClient.call("coord_create_work_item", {
@@ -442,6 +455,7 @@ try {
   if (options.evidenceOutput) await writeFile(options.evidenceOutput, serialized, "utf8");
   else process.stdout.write(serialized);
 } finally {
+  for (const stopHeartbeat of heartbeatStops) stopHeartbeat();
   await stopProcess(daemon);
   for (const [root, added] of [[observerRoot, observerAdded], [reviewerRoot, reviewerAdded], [candidateRoot, candidateAdded], [stableRoot, stableAdded]]) {
     if (added) await removeWorktree(root).catch(() => undefined);
