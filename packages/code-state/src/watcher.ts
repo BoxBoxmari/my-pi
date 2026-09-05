@@ -70,6 +70,9 @@ export class CodeStateWatcher {
     try {
       attach(factory(this.root, { recursive: true }, onEvent));
       this.state = "ready";
+      // Native events are optimization hints; keep bounded reconciliation
+      // active so a missed event cannot leave the graph stale.
+      this.startReconciliation();
       return;
     } catch (recursiveError) {
       this.notifyError(recursiveError);

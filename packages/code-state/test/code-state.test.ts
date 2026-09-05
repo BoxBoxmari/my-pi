@@ -209,6 +209,45 @@ test("PN5 watcher uses degraded reconciliation when recursive watching is unavai
   }
 });
 
+test("PN5 healthy recursive watcher keeps bounded reconciliation active", async () => {
+  const { dir, store } = await setup();
+  let overflowCount = 0;
+  let closeCount = 0;
+  const watcher = new CodeStateWatcher(dir, {
+    platform: "linux",
+    debounceMs: 5,
+    reconcileMs: 5,
+    watchFactory: () => {
+      const backend = new EventEmitter() as EventEmitter & { close: () => void };
+      backend.close = () => { closeCount++; };
+      return backend as unknown as FSWatcher;
+    },
+    onPaths: () => undefined,
+    onOverflow: () => { overflowCount++; },
+  });
+  try {
+    watcher.start();
+    assert.equal(watcher.status, "ready");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    assert.ok(overflowCount > 0);
+    watcher.stop();
+    assert.equal(closeCount, 1);
+    const afterStop = overflowCount;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    assert.equal(overflowCount, afterStop);
+    watcher.start();
+    assert.equal(watcher.status, "ready");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    assert.ok(overflowCount > afterStop);
+    watcher.stop();
+    assert.equal(closeCount, 2);
+  } finally {
+    watcher.stop();
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("PN5 watcher contains startup failure and can be stopped and restarted", async () => {
   const { dir, store } = await setup();
   const errors: unknown[] = [];
