@@ -128,26 +128,40 @@ async function sha256Text(value) {
 async function verifyRemoteQualification(sha) {
   const headers = { Accept: "application/vnd.github+json", "User-Agent": "my-pi-observed-paired-review" };
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  const url = `https://api.github.com/repos/BoxBoxmari/my-pi/commits/${sha}/check-runs?per_page=100`;
-  let response = await fetch(url, { headers });
-  const authenticatedStatus = response.status;
-  if (!response.ok && process.env.GITHUB_TOKEN && (response.status === 401 || response.status === 403)) {
-    // Public check data can be read without auth when an Actions token cannot
-    // read historical runs despite its declared repository permissions.
-    response = await fetch(url, { headers: { Accept: headers.Accept, "User-Agent": headers["User-Agent"] } });
+  const actionsUrl = `https://api.github.com/repos/BoxBoxmari/my-pi/actions/runs?head_sha=${sha}&per_page=100`;
+  const actionsResponse = await fetch(actionsUrl, { headers });
+  if (actionsResponse.ok) {
+    const actionsPayload = await actionsResponse.json();
+    const successfulRun = (name) => (actionsPayload.workflow_runs ?? [])
+      .filter((run) => run.head_sha?.toLowerCase() === sha.toLowerCase() && run.name === name && run.status === "completed" && run.conclusion === "success")
+      .sort((left, right) => String(right.created_at).localeCompare(String(left.created_at)))[0];
+    const ciRun = successfulRun("My-Pi Multi-Platform CI");
+    const codeqlRun = successfulRun("CodeQL Security Analysis");
+    if (ciRun && codeqlRun) {
+      const jobsResponse = await fetch(`${ciRun.url}/jobs?per_page=100`, { headers });
+      assertCondition(jobsResponse.ok, `cannot read candidate workflow jobs: HTTP ${jobsResponse.status}`);
+      const jobsPayload = await jobsResponse.json();
+      const jobs = new Map((jobsPayload.jobs ?? []).map((job) => [job.name, job]));
+      const missing = REQUIRED_REMOTE_CHECKS.slice(0, 4).filter((name) => !jobs.has(name));
+      const failed = REQUIRED_REMOTE_CHECKS.slice(0, 4).filter((name) => jobs.get(name)?.conclusion !== "success");
+      assertCondition(missing.length === 0 && failed.length === 0, `remote qualification is incomplete; missing=${missing.join(",")} failed=${failed.join(",")}`);
+      return {
+        provider: "github-actions-workflows",
+        commit: sha,
+        status: "success",
+        checks: [...REQUIRED_REMOTE_CHECKS.slice(0, 4).map((name) => ({ name, conclusion: jobs.get(name).conclusion, detailsUrl: jobs.get(name).html_url })), { name: REQUIRED_REMOTE_CHECKS[4], conclusion: codeqlRun.conclusion, detailsUrl: codeqlRun.html_url }],
+      };
+    }
   }
-  if (!response.ok) throw new Error(`cannot read GitHub checks for ${sha}: authenticated HTTP ${authenticatedStatus}, public HTTP ${response.status}`);
-  const payload = await response.json();
-  const checks = new Map((payload.check_runs ?? []).map((check) => [check.name, check]));
+  const checkUrl = `https://api.github.com/repos/BoxBoxmari/my-pi/commits/${sha}/check-runs?per_page=100`;
+  const checkResponse = await fetch(checkUrl, { headers: { Accept: headers.Accept, "User-Agent": headers["User-Agent"] } });
+  assertCondition(checkResponse.ok, `cannot read GitHub qualification for ${sha}: Actions HTTP ${actionsResponse.status}, check-runs HTTP ${checkResponse.status}`);
+  const checkPayload = await checkResponse.json();
+  const checks = new Map((checkPayload.check_runs ?? []).map((check) => [check.name, check]));
   const missing = REQUIRED_REMOTE_CHECKS.filter((name) => !checks.has(name));
   const failed = REQUIRED_REMOTE_CHECKS.filter((name) => checks.get(name)?.conclusion !== "success");
   assertCondition(missing.length === 0 && failed.length === 0, `remote qualification is incomplete; missing=${missing.join(",")} failed=${failed.join(",")}`);
-  return {
-    provider: "github-check-runs",
-    commit: sha,
-    status: "success",
-    checks: REQUIRED_REMOTE_CHECKS.map((name) => ({ name, conclusion: checks.get(name).conclusion, detailsUrl: checks.get(name).details_url ?? checks.get(name).html_url })),
-  };
+  return { provider: "github-check-runs", commit: sha, status: "success", checks: REQUIRED_REMOTE_CHECKS.map((name) => ({ name, conclusion: checks.get(name).conclusion, detailsUrl: checks.get(name).details_url ?? checks.get(name).html_url })) };
 }
 
 async function addWorktree(worktreeRoot, sha) {
