@@ -42,7 +42,7 @@ ls-remote` check and the candidate-bound GitHub Actions runs below.
 | 12 | `PARTIAL` collapsed into rejection | `CONFIRMED` | Receipts carry resource-level outcomes and `ChangePartiallyApplied` is preserved as a distinct event/projection path. |
 | 13 | Strict verifier required baseline equal to HEAD | `CONFIRMED` | Readiness now checks baseline ancestry; tests cover equality, descendant, unrelated, dirty, and wrong-evidence cases. |
 | 14 | Stale implementation/provenance documentation | `CONFIRMED` | Production Next status, observed-evidence guidance, security, contracts, architecture, release wording, and this report were refreshed. |
-| 15 | Final multi-platform qualification | `PASS` | The OT-005 implementation at `c3ab863` passed the blocking CI matrix in [run 33949661538](https://github.com/BoxBoxmari/my-pi/actions/runs/33949661538) and CodeQL in [run 33949661512](https://github.com/BoxBoxmari/my-pi/actions/runs/33949661512): Windows Node 24, Ubuntu Node 22/24, macOS Node 24, release checks, supply-chain checks, runtime boundary evidence, and Production Next candidate qualification all completed successfully. Later result/document commits are evidence-only successors and require their own candidate-bound CI. |
+| 15 | Final multi-platform qualification | `PASS` | The OT-006 implementation at `5d9c696` passed the blocking CI matrix in [run 33950972082](https://github.com/BoxBoxmari/my-pi/actions/runs/33950972082) and CodeQL in [run 33950972093](https://github.com/BoxBoxmari/my-pi/actions/runs/33950972093): Windows Node 24, Ubuntu Node 22/24, macOS Node 24, release checks, supply-chain checks, runtime boundary evidence, and Production Next candidate qualification all completed successfully. Later result/document commits are evidence-only successors and require their own candidate-bound CI. |
 
 ## 3. Implementation summary
 
@@ -131,13 +131,14 @@ or a clean rejection.
 ## 8. Tests and benchmark results
 
 The targeted local qualification for the current implementation passed with
-`pnpm build` and the watcher/daemon tests at `10/10` after OT-005. The full local `pnpm verify`
+`pnpm build` and the watcher/daemon tests at `10/10` after OT-005. OT-006 then
+passed its daemon suite `8/8` and code-state suite `9/9`. The full local `pnpm verify`
 run reached 206 tests with `203` passed, `2` daemon IPC timeouts, and `1`
 platform-specific skip; the two failures were recorded as local resource
 saturation in `dogfood/observed-tasks/OT-004.result.json`, not silently ignored.
 
-The OT-005 remote workflow [33949661538](https://github.com/BoxBoxmari/my-pi/actions/runs/33949661538)
-and CodeQL workflow [33949661512](https://github.com/BoxBoxmari/my-pi/actions/runs/33949661512)
+The OT-006 remote workflow [33950972082](https://github.com/BoxBoxmari/my-pi/actions/runs/33950972082)
+and CodeQL workflow [33950972093](https://github.com/BoxBoxmari/my-pi/actions/runs/33950972093)
 both completed successfully. The remote job also passed release verification,
 SBOM generation, benchmark smoke, runtime boundary evidence, and the stable
 Production Next qualification step.
@@ -155,8 +156,8 @@ this PN9 record.
 ## 9. Remaining limitations
 
 PN6 and PN8 generated envelopes remain controlled replay, not promotion evidence.
-Five real task records now exist in `dogfood/observed-tasks/`: OT-001 through
-OT-005. They provide traceable commits, CI, impact observations, and two real
+Six real task records now exist in `dogfood/observed-tasks/`: OT-001 through
+OT-006. They provide traceable commits, CI, impact observations, and three real
 stable evaluation reject/retry cycles, but miss/false-positive
 accounting is not repeated across the task set and the observed envelopes have
 not been accepted by the promotion contract. PN9 now has a distinct stable N-1
@@ -169,7 +170,7 @@ bounded and local, not a complete cross-host distributed state service. The
 Local strict release verification still depends on generated legacy artifacts
 being rebound to the exact candidate SHA. Remote candidate qualification is
 green and is the authoritative cross-platform result for the latest code commit
-`c3ab863` (result-only successors require their own check runs).
+`5d9c696` (result-only successors require their own check runs).
 
 The public GitHub PR and issue history exposes no independent product-work PRs,
 but the local observed-task records preserve stable WorkItem, Intent,
@@ -181,7 +182,7 @@ promotion verifier's PN6/PN8 envelope requirements.
 
 | Gate | Status | Decision |
 |---|---|---|
-| Gate A: platform and CI correctness | Pass on `c3ab863` remote matrix | Windows native watcher assertion is removed by reconciliation-only mode; the final blocking matrix and CodeQL runs are green. |
+| Gate A: platform and CI correctness | Pass on `5d9c696` remote matrix | Windows native watcher assertion is removed by reconciliation-only mode; the final blocking matrix and CodeQL runs are green. |
 | Gate B: trust and authority | Local pass | Raw mutation and evaluator provenance boundaries are enforced. |
 | Gate C: live code state | Local pass | Daemon-managed, worktree-aware, policy-authorized lifecycle is exercised. |
 | Gate D: coordination scalability | Local pass | Materialized impact, projection-only heartbeat, and indexed evaluation paths are exercised. |
@@ -194,8 +195,8 @@ promotion verifier's PN6/PN8 envelope requirements.
 |---|---|
 | Implementation architecture | Implemented locally; additive and opt-in |
 | Local candidate qualification | Targeted `9/9`; full suite inconclusive from two IPC timeouts |
-| PN6 observed evidence | Withheld; OT-001…OT-005 records still lack repeated miss/false-positive accounting and an accepted observed envelope |
-| PN8 observed evidence | Withheld; OT-004 and OT-005 have real reject/retry cycles, but the evidence lacks an ordinary-feedback comparison across the task set |
+| PN6 observed evidence | Withheld; OT-001…OT-006 records still lack repeated miss/false-positive accounting and an accepted observed envelope |
+| PN8 observed evidence | Withheld; OT-004 through OT-006 have real reject/retry cycles, but the evidence lacks an ordinary-feedback comparison across the task set |
 | PN9 stable N-1 | Accepted by stable-bootstrap verifier using distinct `fe671ae` |
 | PN11 entry | Withheld; PN6/PN8/PN9 prerequisites are not satisfied |
 | PN13 promotion | Withheld by the read-only promotion verifier |
@@ -207,7 +208,7 @@ runtime-generated predecessor and authority proof.
 
 ## 12. Recommended next action
 
-Do not start PN11. Consolidate the five real task records into an approved
+Do not start PN11. Consolidate the six real task records into an approved
 observed-replay envelope only where the stored outcomes support the required
 metrics, or collect another heterogeneous evaluation-gated task with explicit
 miss/false-positive accounting. Then rerun the read-only evidence and promotion

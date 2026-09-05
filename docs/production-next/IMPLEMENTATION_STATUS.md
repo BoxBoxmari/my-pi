@@ -50,9 +50,10 @@ evidence:
 - `pnpm verify` covers build, architecture, public-boundary, unit/integration,
   release, gate-evidence, and installed-artifact smoke checks.
 - Latest targeted local run: `pnpm build` plus watcher/daemon tests, `10/10`
-  passed after OT-005. The full `pnpm verify` reached 206 tests with `203` passed, two
+  passed after OT-005. OT-006 then passed its daemon suite `8/8` and code-state
+  suite `9/9`. The full `pnpm verify` reached 206 tests with `203` passed, two
   daemon IPC timeouts, and one platform-specific skip; the boundary is recorded
-  in `OT-004.result.json`; OT-005 has its own scoped result record.
+  in `OT-004.result.json`; OT-005 and OT-006 have their own scoped result records.
 - `node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json`
   builds a clean candidate using distinct stable predecessor `fe671ae`, opens
   it through the stable MCP runtime, and proves stable ChangeRuntime/evaluation
@@ -81,11 +82,11 @@ Reconciliation is fingerprint-aware: unchanged files do not generate repeated
 
 ## Withheld gates
 
-PN6 remains withheld until the five real task records can support repeated
+PN6 remains withheld until the six real task records can support repeated
 missed-dependency and false-positive accounting with traceable downstream
 correctness/rework. PN8 remains withheld until structured-feedback repair yield
 and regression protection are observed across independent evaluation-gated
-engineering work; OT-004 and OT-005 supply two such reject/retry cycles. PN9 is
+engineering work; OT-004 through OT-006 supply three such reject/retry cycles. PN9 is
 accepted by the stable-bootstrap verifier for the last evidence-bound candidate
 and predecessor `fe671ae`; rerun it for the current final SHA after any commit.
 
@@ -103,7 +104,7 @@ their required observed envelopes are assembled from those records.
 
 ## Recommended next action
 
-Use the existing OT-001…OT-005 records to assemble only evidence that is
+Use the existing OT-001…OT-006 records to assemble only evidence that is
 actually supported by their stored outcomes, add one heterogeneous task if a
 required metric is still missing, and rerun the read-only promotion verifier.
 Only then reconsider PN11 entry.
