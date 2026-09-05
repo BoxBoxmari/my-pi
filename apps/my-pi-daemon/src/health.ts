@@ -19,5 +19,8 @@ export interface DaemonHealth {
     activeWorktrees: number;
     readyWorktrees: number;
     degradedWorktrees: number;
+    lastScanFiles: number;
+    lastReconcileMs: number;
+    lastReconcileAt: string | null;
   };
 }

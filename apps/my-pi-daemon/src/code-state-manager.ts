@@ -15,6 +15,7 @@ export interface CodeStateManagerOptions {
   initialFileLimit?: number;
   reconcileFileLimit?: number;
   reconcileMs?: number;
+  watchPlatform?: NodeJS.Platform;
   onDelta?: (context: IndexContext, delta: CodeGraphDelta) => void | Promise<void>;
   onReady?: (context: IndexContext) => void | Promise<void>;
   onError?: (context: IndexContext, error: unknown) => void | Promise<void>;
@@ -24,6 +25,9 @@ export interface CodeStateManagerHealth {
   activeWorktrees: number;
   readyWorktrees: number;
   degradedWorktrees: number;
+  lastScanFiles: number;
+  lastReconcileMs: number;
+  lastReconcileAt: string | null;
 }
 
 interface ManagedWorktree {
@@ -40,6 +44,9 @@ export class CodeStateManager {
   private readonly maxWorktrees: number;
   private readonly initialFileLimit: number;
   private readonly reconcileFileLimit: number;
+  private lastScanFiles = 0;
+  private lastReconcileMs = 0;
+  private lastReconcileAt: string | null = null;
 
   constructor(private readonly store: Pick<CoordinationStore, "applyCodeStateDelta" | "getCodeState">, private readonly options: CodeStateManagerOptions = {}) {
     this.maxWorktrees = boundedOption(options.maxWorktrees ?? DEFAULT_MAX_WORKTREES, 1, DEFAULT_MAX_WORKTREES, "maxWorktrees");
@@ -69,6 +76,7 @@ export class CodeStateManager {
       onOverflow: () => this.enqueue(managed, () => this.reconcile(managed, this.reconcileFileLimit)),
       onError: (error) => this.markError(managed, error),
       reconcileMs: this.options.reconcileMs,
+      platform: this.options.watchPlatform,
     });
     this.worktrees.set(key, managed);
     try {
@@ -98,7 +106,7 @@ export class CodeStateManager {
       if (managed.state === "ready") readyWorktrees++;
       if (managed.state === "degraded") degradedWorktrees++;
     }
-    return { activeWorktrees: this.worktrees.size, readyWorktrees, degradedWorktrees };
+    return { activeWorktrees: this.worktrees.size, readyWorktrees, degradedWorktrees, lastScanFiles: this.lastScanFiles, lastReconcileMs: this.lastReconcileMs, lastReconcileAt: this.lastReconcileAt };
   }
 
   async stop(): Promise<void> {
@@ -116,15 +124,24 @@ export class CodeStateManager {
   }
 
   private async reconcile(managed: ManagedWorktree, limit: number, notify = true): Promise<void> {
-    const paths = await discoverFiles(managed.context, limit);
-    const current = new Set(paths);
-    const removed = [...managed.knownPaths].filter((knownPath) => !current.has(knownPath));
-    if (removed.length > 0) {
-      const deltas = await managed.indexer.invalidate(managed.context, removed);
-      if (notify) for (const delta of deltas) await this.emitDelta(managed.context, delta);
+    const startedAt = performance.now();
+    let scannedFiles = 0;
+    try {
+      const paths = await discoverFiles(managed.context, limit);
+      scannedFiles = paths.length;
+      const current = new Set(paths);
+      const removed = [...managed.knownPaths].filter((knownPath) => !current.has(knownPath));
+      if (removed.length > 0) {
+        const deltas = await managed.indexer.invalidate(managed.context, removed);
+        if (notify) for (const delta of deltas) await this.emitDelta(managed.context, delta);
+      }
+      await this.applyPaths(managed, paths, notify);
+      managed.knownPaths = current;
+    } finally {
+      this.lastScanFiles = scannedFiles;
+      this.lastReconcileMs = Math.max(0, Math.round(performance.now() - startedAt));
+      this.lastReconcileAt = new Date().toISOString();
     }
-    await this.applyPaths(managed, paths, notify);
-    managed.knownPaths = current;
   }
 
   private async applyPaths(managed: ManagedWorktree, paths: string[], notify = true): Promise<void> {

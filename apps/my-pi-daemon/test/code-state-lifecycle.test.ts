@@ -53,10 +53,18 @@ test("PN5 daemon code-state is live, worktree-aware, and policy-authorized", asy
   const store = new SqliteCoordinationStore(path.join(root, "coordination.sqlite"));
   await store.init();
   let deltaCount = 0;
-  const manager = new CodeStateManager(store, { initialFileLimit: 100, reconcileFileLimit: 100, reconcileMs: 10, onDelta: () => { deltaCount++; } });
+  const manager = new CodeStateManager(store, { initialFileLimit: 100, reconcileFileLimit: 100, reconcileMs: 10, watchPlatform: "win32", onDelta: () => { deltaCount++; } });
   try {
     await manager.register(contextA);
     await manager.register(contextB);
+    const initialHealth = manager.health();
+    assert.ok(initialHealth.lastScanFiles > 0);
+    assert.ok(initialHealth.lastReconcileMs >= 0);
+    assert.ok(initialHealth.lastReconcileAt);
+    await waitFor(async () => manager.health().lastReconcileAt !== initialHealth.lastReconcileAt);
+    const refreshedHealth = manager.health();
+    assert.ok(refreshedHealth.lastScanFiles > 0);
+    assert.ok(refreshedHealth.lastReconcileMs >= 0);
     const snapshotA = await manager.snapshot(projectId, contextA.worktreeId);
     const snapshotB = await manager.snapshot(projectId, contextB.worktreeId);
     assert.equal(snapshotA.entities.some((entity) => entity.path === samePath && entity.fingerprint?.digest === fingerprintBytes(new TextEncoder().encode("export const source = 'A';\n")).digest), true);
