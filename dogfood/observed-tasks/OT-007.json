@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1",
+  "taskId": "OT-007",
+  "status": "PLANNED",
+  "createdAt": "2026-09-05",
+  "title": "Downstream review of asynchronously registered code-state joins",
+  "problem": "The async coord_join repair changes the handoff between daemon coordination and code-state registration, so an independent downstream reviewer must receive the exact impact and validate the consumer-facing behavior.",
+  "plannedTargets": [
+    "apps/my-pi-daemon/src/main.ts",
+    "apps/my-pi-daemon/test/daemon.test.ts",
+    "packages/coordination-client/src/client.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "downstream-impact-route",
+      "condition": "A reviewer with an active overlapping verification intent receives an explainable ImpactDetected route without an explicit WorkItem dependency."
+    },
+    {
+      "id": "reviewer-correctness",
+      "condition": "The independent reviewer runs the daemon join-latency and code-state suites and records their exact pass/fail result."
+    },
+    {
+      "id": "replay-determinism",
+      "condition": "The reviewer can replay bounded sync and receives the same routed event keys without duplicate downstream work."
+    },
+    {
+      "id": "matrix-regression",
+      "condition": "The reviewed implementation remains covered by green Windows Node 24, Ubuntu Node 22/24, macOS Node 24, and CodeQL checks."
+    }
+  ],
+  "evidencePlan": {
+    "coordination": "Persist implementation/reviewer WorkItems, sessions, overlapping intents, ImpactDetected reasons, sync replay, and reviewer completion.",
+    "evaluation": "Use a server-registered review spec bound to a stable receipt; do not treat reviewer declarations as evaluator authority.",
+    "correctness": "Bind reviewer test output and the implementation commit's remote check runs to the final review record."
+  }
+}
