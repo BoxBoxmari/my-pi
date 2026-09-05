@@ -1,0 +1,278 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-engineering-task",
+  "taskId": "OT-005",
+  "taskDefinition": "dogfood/observed-tasks/OT-005.json",
+  "taskDefinitionCommit": "e5297d3872b7ca7c019e153c451bc08f42cf183e",
+  "implementationCommit": "c3ab8638c7fc039e703fb0fce72fb423a9ba1d4d",
+  "status": "RECORDED",
+  "outcome": "accepted_by_stable_retry_targeted_checks_and_remote_ci",
+  "filesChanged": [
+    "packages/code-state/src/watcher.ts",
+    "packages/code-state/test/code-state.test.ts"
+  ],
+  "stableAuthority": {
+    "bootstrapSha": "fe671aec2b31c8d71e7a95e7e15a37073e0c4d39",
+    "runtime": "stable predecessor daemon + stable ChangeRuntime",
+    "processId": 26200,
+    "projectId": "project_57a99d285efc",
+    "workItemId": "work_0977a57c1fd7",
+    "evaluationSpecId": "evalspec_02bd9f1a8dc5",
+    "preChangeIntentId": "intent_1b7c313a9dad",
+    "initialAttempt": {
+      "receiptId": "receipt_ab1892f43ff6",
+      "evaluationRunId": "evalrun_238b75f9db19",
+      "feedbackPacketId": "feedback_3a639ea00ba7",
+      "decision": "rejected",
+      "retryState": "recommended"
+    },
+    "retryAttempt": {
+      "intentId": "intent_f4f70770cdd0",
+      "receiptId": "receipt_c864317e0916",
+      "evaluationRunId": "evalrun_5ab82c6140b9",
+      "decision": "accepted"
+    },
+    "mutationReceiptIds": [
+      "receipt_ab1892f43ff6",
+      "receipt_c864317e0916"
+    ],
+    "desiredReceiptStatus": "APPLIED",
+    "desiredReceiptReadBackVerified": true,
+    "candidateDaemonUsedForMutationOrEvaluation": false,
+    "receiptMode": "stable-runtime-republish_and_readback_of_apply_patch_candidate_state"
+  },
+  "coordination": {
+    "agentSessions": [
+      {
+        "id": "session_5d32a1ab1a0d",
+        "phase": "initial-evaluation",
+        "receiptId": "receipt_ab1892f43ff6"
+      },
+      {
+        "id": "session_6cd13cc99cff",
+        "phase": "retry-and-completion",
+        "receiptId": "receipt_c864317e0916"
+      }
+    ],
+    "finalWorkItem": {
+      "id": "work_0977a57c1fd7",
+      "state": "done",
+      "version": 9,
+      "acceptedEvaluationRunId": "evalrun_5ab82c6140b9",
+      "assignee": "session_6cd13cc99cff"
+    },
+    "verificationIntentId": "intent_f4f70770cdd0",
+    "contextArtifactId": "context_b5794a1ec31a",
+    "eventLog": {
+      "count": 533,
+      "lastSequence": "533",
+      "relevantEvents": [
+        {
+          "sequence": "6",
+          "eventType": "IntentDeclared",
+          "id": "intent_1b7c313a9dad",
+          "phase": "initial-attempt"
+        },
+        {
+          "sequence": "7",
+          "eventType": "ImpactDetected",
+          "intentId": "intent_1b7c313a9dad",
+          "affectedEntities": 0,
+          "affectedAgents": 1,
+          "reasons": [
+            "same_work_item"
+          ]
+        },
+        {
+          "sequence": "8",
+          "eventType": "ChangeApplied",
+          "id": "receipt_ab1892f43ff6",
+          "status": "APPLIED",
+          "verification": "verified"
+        },
+        {
+          "sequence": "17",
+          "eventType": "EvaluationCompleted",
+          "id": "evalrun_238b75f9db19",
+          "decision": "rejected"
+        },
+        {
+          "sequence": "19",
+          "eventType": "FeedbackIssued",
+          "id": "feedback_3a639ea00ba7",
+          "failedCriteria": [
+            "healthy-watcher-reconciliation"
+          ]
+        },
+        {
+          "sequence": "20",
+          "eventType": "RetryRecommended",
+          "id": "retry_evalrun_238b75f9db19_1",
+          "state": "recommended"
+        },
+        {
+          "sequence": "517",
+          "eventType": "IntentDeclared",
+          "id": "intent_f4f70770cdd0",
+          "phase": "bounded-retry"
+        },
+        {
+          "sequence": "518",
+          "eventType": "ImpactDetected",
+          "intentId": "intent_f4f70770cdd0",
+          "affectedEntities": 20,
+          "affectedAgents": 1,
+          "reasons": [
+            "same_work_item",
+            "exact_scope_overlap",
+            "graph_edge"
+          ]
+        },
+        {
+          "sequence": "519",
+          "eventType": "ChangeApplied",
+          "id": "receipt_c864317e0916",
+          "status": "APPLIED",
+          "verification": "verified",
+          "paths": [
+            "packages/code-state/src/watcher.ts",
+            "packages/code-state/test/code-state.test.ts"
+          ]
+        },
+        {
+          "sequence": "528",
+          "eventType": "EvaluationCompleted",
+          "id": "evalrun_5ab82c6140b9",
+          "decision": "accepted",
+          "attempt": 2
+        },
+        {
+          "sequence": "531",
+          "eventType": "ContextPublished",
+          "id": "context_b5794a1ec31a"
+        },
+        {
+          "sequence": "532",
+          "eventType": "WorkItemCompleted",
+          "id": "work_0977a57c1fd7",
+          "state": "done"
+        }
+      ]
+    },
+    "interventions": [
+      {
+        "type": "session-lease-expiry",
+        "resolution": "rejoined on the already-registered worktree before the bounded retry"
+      }
+    ]
+  },
+  "impactObservation": {
+    "impactDetected": true,
+    "initialAttempt": {
+      "intentId": "intent_1b7c313a9dad",
+      "firstObservedAffectedEntities": 0,
+      "firstObservedAffectedAgents": 1,
+      "reason": "same_work_item",
+      "laterIndexedScopeOverlapObserved": true
+    },
+    "retryAttempt": {
+      "intentId": "intent_f4f70770cdd0",
+      "affectedEntities": 20,
+      "affectedAgents": 1,
+      "reasons": [
+        "same_work_item",
+        "exact_scope_overlap",
+        "graph_edge"
+      ]
+    },
+    "missedDependencies": "not assessed",
+    "falsePositives": "not assessed",
+    "downstreamIntegration": "targeted lifecycle test and remote matrix passed after repair",
+    "promotionVerdict": "one additional real platform-correctness task recorded; PN6 remains withheld until missed-dependency and false-positive accounting is repeated across heterogeneous work"
+  },
+  "evaluationObservation": {
+    "initial": {
+      "runId": "evalrun_238b75f9db19",
+      "decision": "rejected",
+      "feedbackPacketId": "feedback_3a639ea00ba7",
+      "failedCriteria": [
+        "healthy-watcher-reconciliation"
+      ],
+      "priorPassingCriteria": [
+        "bounded-stop-restart",
+        "windows-safety-preserved",
+        "regression-guard"
+      ],
+      "retryState": "recommended"
+    },
+    "retry": {
+      "runId": "evalrun_5ab82c6140b9",
+      "attempt": 2,
+      "decision": "accepted",
+      "criteria": {
+        "healthy-watcher-reconciliation": "pass",
+        "bounded-stop-restart": "pass",
+        "windows-safety-preserved": "pass",
+        "regression-guard": "pass"
+      }
+    },
+    "structuredFeedbackGenerated": true,
+    "retryAttempts": 1,
+    "evaluationFalseAccepts": 0,
+    "humanInterventions": 0
+  },
+  "correctness": {
+    "initialAttempt": {
+      "command": "node --test packages/code-state/test/code-state.test.ts",
+      "total": 9,
+      "passed": 8,
+      "failed": 1,
+      "failure": "assert.ok(overflowCount > 0)"
+    },
+    "targetedLocal": {
+      "node": "v26.7.0",
+      "buildCommand": "pnpm build",
+      "buildExitCode": 0,
+      "testCommand": "node --test packages/code-state/test/code-state.test.ts apps/my-pi-daemon/test/code-state-lifecycle.test.ts",
+      "total": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    "fullLocalVerify": {
+      "status": "not_run_for_OT005",
+      "reason": "scoped targeted qualification plus complete remote matrix supplied the correctness evidence"
+    },
+    "remote": {
+      "status": "success",
+      "ciRunId": "33949661538",
+      "ciUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33949661538",
+      "codeqlRunId": "33949661512",
+      "codeqlUrl": "https://github.com/BoxBoxmari/my-pi/actions/runs/33949661512",
+      "requiredChecks": [
+        "quality (windows-latest, node 24)",
+        "quality (ubuntu-latest, node 22)",
+        "quality (ubuntu-latest, node 24)",
+        "quality (macos-latest, node 24)",
+        "CodeQL Analysis (javascript-typescript)"
+      ],
+      "allRequiredChecksSuccess": true,
+      "additionalRemoteStepsSuccess": [
+        "release checks",
+        "secret scan",
+        "pnpm audit",
+        "cargo audit and deny",
+        "SBOM generation and verification",
+        "benchmark smoke",
+        "runtime boundary evidence",
+        "Production Next candidate qualification"
+      ]
+    }
+  },
+  "acceptanceCriteria": {
+    "healthy-watcher-reconciliation": "pass by the new healthy-recursive-watcher lifecycle test and stable retry",
+    "bounded-stop-restart": "pass by the same test's close-count and post-stop callback assertions",
+    "windows-safety-preserved": "pass by existing Windows no-native-backend coverage and remote Windows Node 24",
+    "matrix-regression": "pass by remote CI 33949661538 and CodeQL 33949661512"
+  },
+  "observedEvidenceBoundary": "OT-005 is a real platform-correctness task with a genuine initial test failure, stable FeedbackPacket, bounded repair, accepted retry, and remote CI. The stable runtime re-published apply_patch-prepared candidate bytes for receipt/readback verification; it does not claim to have authored the source diff. This task adds one real PN8 repair cycle, but PN6/PN8 promotion remains withheld because real-task routing baselines, ordinary-feedback comparison, and repeated miss/false-positive accounting are not yet established."
+}
