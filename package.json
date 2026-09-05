@@ -41,6 +41,7 @@
   "dogfood:self-host": "node scripts/dogfood-self-host.mjs",
     "verify:production-next": "node scripts/verify-production-next.mjs",
     "dogfood:stable": "node scripts/dogfood-stable-bootstrap.mjs",
+    "dogfood:observed-review": "node scripts/dogfood-observed-paired-review.mjs",
   "verify:production-next-evidence": "node scripts/verify-production-next-evidence.mjs",
   "verify:production-next-promotion": "node scripts/verify-production-next-promotion.mjs",
   "release:production-next-manifest": "node scripts/create-production-next-manifest.mjs",
