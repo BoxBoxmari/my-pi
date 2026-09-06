@@ -1,6 +1,6 @@
 {
   "id": "R0",
-  "commit": "8d65be28eb1593e9145e33b426789dd0c06c4d5b",
+  "commit": "3ef9b236c40677d3032a0a02b51825bf1f169724",
   "status": "PASS",
   "environment": {
     "os": "win32",
@@ -106,7 +106,7 @@
       "id": "runtime-boundary-performance",
       "status": "PASS",
       "evidence": [
-        "runtime-boundaries.json: spawned MCP server PID RSS, large fs_read byte bound, streamed vcs_diff spill, and cancellation outcome"
+        "benchmarks/runtime-boundaries.mjs: spawned MCP server PID RSS, large fs_read byte bound, streamed vcs_diff spill, and cancellation outcome (CI: Runtime boundary evidence step; output benchmarks/results/runtime-boundaries.json is gitignored)"
       ]
     }
   ]
