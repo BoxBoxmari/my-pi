@@ -46,17 +46,25 @@ function segmentToRegex(segment: string): string {
 /**
  * Match a path (POSIX-style, relative) against a single pattern.
  * Supports '*', '?', '**' (recursive directory), and exact segment names.
+ *
+ * Matching is case-insensitive (secret names like `.ENV`, `.AWS/config`,
+ * `CREDENTIALS`, `Secrets/foo` must not bypass the deny list on
+ * case-sensitive filesystems). Both path and pattern are lowercased before
+ * matching; exact-match semantics for `.env`, `.env.*`, `*.pem/key/p12/pfx`,
+ * `.aws/**`, `.ssh/**`, `credentials*`, `secrets*` are preserved.
  */
 export function matchesSensitivePattern(path: string, pattern: string): boolean {
-  if (!pattern.includes("/") && !pattern.includes("**")) {
-    const re = new RegExp(`^${segmentToRegex(pattern)}$`);
-    for (const seg of path.split("/")) {
+  const normPath = path.toLowerCase();
+  const normPattern = pattern.toLowerCase();
+  if (!normPattern.includes("/") && !normPattern.includes("**")) {
+    const re = new RegExp(`^${segmentToRegex(normPattern)}$`);
+    for (const seg of normPath.split("/")) {
       if (re.test(seg)) return true;
     }
     return false;
   }
-  const re = new RegExp(`^${globToRegex(pattern)}$`);
-  return re.test(path);
+  const re = new RegExp(`^${globToRegex(normPattern)}$`);
+  return re.test(normPath);
 }
 
 function globToRegex(pattern: string): string {

@@ -32,7 +32,8 @@
 **my-pi** is a deterministic coding capability runtime exposed through the official **Model Context Protocol (MCP)**. It gives coding agents a controlled interface to local workspaces through explicit workspace authority, bounded reads, content-preconditioned writes, structural search, language-server integration, and Git operations.
 
 > **Release channel:** Alpha · `0.1.0-alpha.1`<br>
-> The public package is intended for evaluation and controlled local development. Review the [security model](docs/SECURITY_MODEL.md) before enabling the trusted profile.
+> The public package is intended for evaluation and controlled local development. Review the [security model](docs/SECURITY_MODEL.md) before enabling the trusted profile.<br>
+> **Alpha distribution:** registry publication is manual — the release workflow qualifies and uploads a candidate tarball only (see [`docs/release/DISTRIBUTION.md:6`](docs/release/DISTRIBUTION.md)). The npm badges above track the candidate tarball name; until publication lands, a global install may 404 — prefer clone+build below.
 
 Rather than granting unrestricted shell access or relying on fragile line-based edits, **my-pi** enforces content preconditions, per-file atomic publication, pre-read credential protection, Tree-Sitter AST structural search, and multi-language Language Server Protocol (LSP) intelligence directly over a local stdio transport.
 
@@ -148,7 +149,7 @@ Candidate qualification commands are `pnpm bench:impact-arms`, `pnpm bench:evalu
 ### Prerequisites
 - **Node.js**: `v22.6.0+` or `v24 LTS`
 - **pnpm**: `v11.2.2+`
-- **Rust**: `stable` (optional, for native acceleration)
+- **Rust**: `stable` (optional, scaffold-only until G0 spike — see `Cargo.toml` and `crates/my-pi-native/Cargo.toml`)
 
 ### 1. Clone & Build
 ```bash
@@ -163,9 +164,16 @@ pnpm build
 ```
 
 ### 2. Start MCP Server Locally
+
+> **Alpha:** registry publication is manual — the global install below may 404
+> until the candidate is published. Prefer clone+build (§1), or install the
+> qualified candidate TGZ from the release workflow artifacts. See
+> [`docs/release/DISTRIBUTION.md:6`](docs/release/DISTRIBUTION.md).
+
 ```bash
 # Install and run the published alpha package for a target workspace
 # https://www.npmjs.com/package/@koonwang03/my-pi
+# Alpha: manual publication — may 404; prefer clone+build (§1) per DISTRIBUTION.md:6
 pnpm add --global @koonwang03/my-pi@0.1.0-alpha.1
 my-pi-mcp --workspace /path/to/your/project
 
@@ -266,7 +274,7 @@ packages/
 ├── vcs/                # Git-backed status and diff engine
 ├── mcp-adapter/        # Official Model Context Protocol stdio server
 ├── host-profiles/      # Configuration renderers for IDE hosts
-├── change-runtime/     # Content preconditions and publication receipts
+├── change-runtime/     # Content preconditions and publication receipts (stable)
 ├── code-state/         # AST, filesystem, LSP, and VCS code state
 ├── coordination-client/ # Versioned local daemon client
 ├── coordination-runtime/ # Claims, work graph, intents, and sync

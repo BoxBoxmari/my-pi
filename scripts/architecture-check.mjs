@@ -9,6 +9,11 @@
  *
  * Known-allowed imports in mcp-adapter: SDK, contracts, capability packages,
  * workspace-runtime (context wiring), zod.
+ *
+ * P1: boundary rules whose root dir does not exist fail OPEN with an explicit
+ * WARN (missing dir listed) instead of silently passing. walk/walkWithRules
+ * log WARN on ENOENT for the same reason: a silently-skipped dir must never
+ * read as a passing boundary check.
  */
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -84,7 +89,8 @@ async function walk(dir) {
   let entries;
   try {
     entries = await readdir(dir, { withFileTypes: true });
-  } catch {
+  } catch (err) {
+    if (err?.code === "ENOENT") console.warn(`WARN: architecture-check: missing dir, skipping (fail-open): ${path.relative(ROOT, dir) || dir}`);
     return;
   }
   for (const e of entries) {
@@ -125,14 +131,27 @@ async function checkFile(file) {
 
 await walk(ADAPTER_SRC);
 for (const rule of FUTURE_BOUNDARY_RULES) {
-  await walkWithRules(path.join(ROOT, rule.root), rule.forbidden);
+  const dir = path.join(ROOT, rule.root);
+  let missing = false;
+  try {
+    await readdir(dir);
+  } catch (err) {
+    if (err?.code === "ENOENT") {
+      // Fail-open with explicit WARN: rule kept so fixtures/real dirs still
+      // enforce it, but a nonexistent dir must not silently read as PASS.
+      console.warn(`WARN: architecture-check: boundary root missing, rule not enforced (fail-open): ${rule.root}`);
+      missing = true;
+    }
+  }
+  if (!missing) await walkWithRules(dir, rule.forbidden);
 }
 
 async function walkWithRules(dir, rules) {
   let entries;
   try {
     entries = await readdir(dir, { withFileTypes: true });
-  } catch {
+  } catch (err) {
+    if (err?.code === "ENOENT") console.warn(`WARN: architecture-check: missing dir, skipping (fail-open): ${path.relative(ROOT, dir) || dir}`);
     return;
   }
   for (const e of entries) {

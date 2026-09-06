@@ -9,6 +9,11 @@
  *
  * Usage:
  *   node benchmarks/traversal-benchmark.mjs [--profile smoke|release] [fixtureDir]
+ *
+ * PERF_GATE note: timing numbers are informational (non-blocking) by default.
+ * The only blocking assertion is the sensitive-path security check (exit 1 on
+ * leak). Set PERF_GATE_STRICT=1 to additionally fail on threshold breach.
+ * Thresholds are documented in PERF_TARGETS below, not faked as PASS.
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -126,12 +131,29 @@ async function runBenchmark() {
     platform: process.platform,
     nodeVersion: process.version,
     timestamp: new Date().toISOString(),
+    // Advisory thresholds (informational unless PERF_GATE_STRICT=1). Security
+    // check above is the only blocking gate; timings must never fake PASS.
+    perfTargets: profile === "release"
+      ? { globMaxMs: 30000, grepMaxMs: 60000 }
+      : { globMaxMs: 5000, grepMaxMs: 10000 },
   };
+  const globBreach = resultData.globDurationMs > resultData.perfTargets.globMaxMs;
+  const grepBreach = resultData.grepDurationMs > resultData.perfTargets.grepMaxMs;
+  resultData.perfGate = globBreach || grepBreach ? "BREACH" : "PASS";
+  resultData.perfGateEnforced = process.env.PERF_GATE_STRICT === "1";
 
   const resultsDir = path.join(repoRoot, "benchmarks", "results");
   await fs.mkdir(resultsDir, { recursive: true });
   await fs.writeFile(path.join(resultsDir, `traversal-${profile}.json`), JSON.stringify(resultData, null, 2), "utf8");
-  console.log(`[benchmark] Traversal benchmark PASS. Results saved to benchmarks/results/traversal-${profile}.json`);
+  if (resultData.perfGate === "BREACH") {
+    const msg = `[benchmark] PERF ADVISORY BREACH (${profile}): glob=${resultData.globDurationMs}ms (max ${resultData.perfTargets.globMaxMs}) grep=${resultData.grepDurationMs}ms (max ${resultData.perfTargets.grepMaxMs})`;
+    if (resultData.perfGateEnforced) {
+      console.error(msg);
+      throw new Error("traversal perf threshold breach (PERF_GATE_STRICT=1)");
+    }
+    console.log(`${msg} -- non-blocking (PERF_GATE note: set PERF_GATE_STRICT=1 to enforce)`);
+  }
+  console.log(`[benchmark] Traversal benchmark done (security PASS; perf ${resultData.perfGate}, non-blocking). Results saved to benchmarks/results/traversal-${profile}.json`);
 }
 
 runBenchmark().catch((err) => {

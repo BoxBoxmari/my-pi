@@ -1,6 +1,6 @@
 {
   "id": "G6",
-  "commit": "fc89a0d2cf1f260f7617a09454f93d5fb75efa31",
+  "commit": "8d65be28eb1593e9145e33b426789dd0c06c4d5b",
   "status": "PASS",
   "environment": {
     "os": "win32",
@@ -11,8 +11,10 @@
       "id": "host-connection",
       "status": "PASS",
       "evidence": [
-        "opencode mcp list: my-pi connected",
-        "claude mcp list: my-pi connected"
+        "scripts/probe-hosts.mjs: live host CLI detection (claude/opencode) + MCP SDK stdio era handshake, run in CI; output docs/protocol-evidence.json",
+        "docs/protocol-evidence.json: negotiated era, transport stdio, host probe versions",
+        "packages/host-profiles/test/host-profiles.test.ts: host profile config rendering (claude-code/opencode/cursor)",
+        "manual (operator-observed, non-blocking): opencode mcp list shows my-pi connected; claude mcp list shows my-pi connected"
       ]
     },
     {

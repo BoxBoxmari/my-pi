@@ -4,6 +4,16 @@
  * The repair model is deliberately explicit: a missed labelled dependency costs
  * one additional repair iteration. It is a qualification signal, not a field
  * observation or a release claim.
+ *
+ * Arm semantics (P1: no two arms may share an implementation):
+ * - worktreesOnly: source work item alone (isolation baseline).
+ * - taskBoardOnly: 1-hop task-board dependency neighbours of the source.
+ * - passiveGraphMemory: work items whose path-targeted intents touch the
+ *   graph-connected entity neighbourhood (memory without coordination).
+ * - coordinationNoImpact: coordination WITHOUT the impact engine = union of
+ *   the task-board 1-hop route and the passive-graph route. Distinct from
+ *   taskBoardOnly (board alone) and from fullImpactRouting (engine-expanded).
+ * - fullImpactRouting: ImpactEngine.compute expansion from the source intent.
  */
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -141,7 +151,12 @@ for (const scenario of scenarios) {
     worktreesOnly: new Set(sourceId ? [sourceId] : []),
     taskBoardOnly: simpleTaskBoardRoute(scenario),
     passiveGraphMemory: passiveGraphRoute(scenario, materialized),
-    coordinationNoImpact: simpleTaskBoardRoute(scenario),
+    // Coordination without impact: board neighbours PLUS graph-memory reach.
+    // Must stay distinct from taskBoardOnly (board alone); see header.
+    coordinationNoImpact: new Set([
+      ...simpleTaskBoardRoute(scenario),
+      ...passiveGraphRoute(scenario, materialized),
+    ]),
     fullImpactRouting: full.route,
   };
   for (const armName of armNames) {

@@ -151,6 +151,28 @@ async function main() {
   console.log(`overhead (D-C):       p50≈${result.mcpOverheadP50Ms}ms`);
   console.log(`Server RSS samples:   pid=${result.serverPid} before=${result.serverRssBeforeBytes ?? "unavailable"} after=${result.serverRssAfterBytes ?? "unavailable"} peak=${result.serverRssPeakBytes ?? "unavailable"} bytes`);
   console.log(`written: ${out}`);
+  // P1 perf gate: enforce declared targets (p50<=5ms, p95<=15ms on MCP stdio D).
+  // Escape hatch: PERF_GATE_STRICT=0 logs the breach and passes (advisory mode).
+  const perfStrict = process.env.PERF_GATE_STRICT !== "0";
+  const p50Breach = result.mcpStdioD.medianMs > result.targets.stdioP50MaxMs;
+  const p95Breach = result.mcpStdioD.p95Ms > result.targets.stdioP95MaxMs;
+  if (p50Breach || p95Breach) {
+    const msg = `PERF GATE BREACH: stdio p50=${result.mcpStdioD.medianMs}ms (max ${result.targets.stdioP50MaxMs}) p95=${result.mcpStdioD.p95Ms}ms (max ${result.targets.stdioP95MaxMs})`;
+    result.perfGate = "BREACH";
+    await fs.writeFile(out, JSON.stringify(result, null, 2), "utf8");
+    if (!perfStrict) {
+      console.log(`${msg} -- PERF_GATE_STRICT=0, advisory only (exit 0)`);
+    } else {
+      console.error(msg);
+      await client.close();
+      await fs.rm(dir, { recursive: true, force: true });
+      process.exit(1);
+    }
+  } else {
+    result.perfGate = "PASS";
+    await fs.writeFile(out, JSON.stringify(result, null, 2), "utf8");
+    console.log(`perf gate: PASS (p50<=${result.targets.stdioP50MaxMs}ms, p95<=${result.targets.stdioP95MaxMs}ms)`);
+  }
 
   await client.close();
   await fs.rm(dir, { recursive: true, force: true });

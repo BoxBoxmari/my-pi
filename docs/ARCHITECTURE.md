@@ -63,6 +63,11 @@ MCP / CLI adapters
 
 The daemon is one local authority per logical project and uses a Unix socket or Windows named pipe, never public TCP in the local profile. Coordination and evaluation are opt-in; the legacy MCP entry point remains usable without a daemon. The candidate records evidence and bounded retry state but does not spawn replacement agents. PN6, PN8, and PN9 remain empirical gates before enterprise positioning.
 
+> Maturity note: `change-runtime` plays two roles. As a CAS + atomic-publish
+> primitive for `fs_write`/`fs_patch` it is stable core (depended on by `@my-pi/fs`).
+> Its receipt/coordination role (change receipts bound to evaluation in daemon
+> flows) is part of the Production Next candidate above and remains experimental.
+
 The daemon registers canonical worktree roots before indexing them. Code-state
 reads pass through the workspace path and sensitive-path policy. File events are
 invalidation hints; bounded reconciliation keeps fingerprints authoritative when

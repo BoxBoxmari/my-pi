@@ -1,6 +1,7 @@
 {
   "name": "@my-pi/change-runtime",
   "version": "0.1.0",
+  "description": "Stable: content preconditions and publication receipts for hardened filesystem writes.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
