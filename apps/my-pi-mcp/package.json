@@ -25,7 +25,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.txt"
   ],
   "dependencies": {
     "@modelcontextprotocol/core": "2.0.0",
