@@ -8,12 +8,12 @@
     "source": "github",
     "subfolder": "apps/my-pi-mcp"
   },
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@koonwang03/my-pi",
-      "version": "0.1.0-alpha.1",
+      "version": "0.1.0-alpha.2",
       "transport": {
         "type": "stdio"
       }
