@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.BoxBoxmari/my-pi",
+  "title": "my-pi",
+  "description": "Local-first MCP runtime for coding agents with bounded filesystem access, content-preconditioned writes, AST search, LSP navigation, and Git tooling.",
+  "repository": {
+    "url": "https://github.com/BoxBoxmari/my-pi",
+    "source": "github",
+    "subfolder": "apps/my-pi-mcp"
+  },
+  "version": "0.1.0-alpha.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@koonwang03/my-pi",
+      "version": "0.1.0-alpha.1",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
