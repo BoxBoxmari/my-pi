@@ -40,6 +40,25 @@ async function bindEvidence(tmpDir) {
   });
 }
 
+test("server.json: declares an installable local workspace contract", async () => {
+  const manifest = JSON.parse(await fs.readFile(path.join(ROOT, "server.json"), "utf8"));
+  const appPkg = JSON.parse(await fs.readFile(path.join(ROOT, "apps", "my-pi-mcp", "package.json"), "utf8"));
+  const registryPackage = manifest.packages?.find(
+    (pkg) => pkg?.registryType === "npm" && pkg?.identifier === appPkg.name,
+  );
+
+  assert.ok(registryPackage, "server.json must expose the public npm package");
+  assert.equal(registryPackage.runtimeHint, "npx", "npm registry clients should receive an npx runtime hint");
+  assert.equal(registryPackage.transport?.type, "stdio");
+
+  const workspaceArg = registryPackage.packageArguments?.find(
+    (arg) => arg?.type === "named" && arg?.name === "--workspace",
+  );
+  assert.ok(workspaceArg, "Registry execution must declare the required --workspace argument");
+  assert.equal(workspaceArg.isRequired, true, "workspace input must be required because the CLI fails closed without it");
+  assert.equal(workspaceArg.format, "filepath", "workspace input must be presented as a filesystem path");
+});
+
 test("verify-release: accepts a synchronized MCP Registry manifest", async () => {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "my-pi-registry-sync-"));
   try {
