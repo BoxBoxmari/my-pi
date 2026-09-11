@@ -94,8 +94,13 @@ test("verify-release: rejects stale server.json versions", async () => {
 
     const manifestPath = path.join(tmpDir, "server.json");
     const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    const policy = JSON.parse(await fs.readFile(path.join(tmpDir, "release", "release-policy.json"), "utf8"));
+    const registryPackage = manifest.packages?.find(
+      (pkg) => pkg?.registryType === "npm" && pkg?.identifier === policy.packageName,
+    );
+    assert.ok(registryPackage, "fixture must contain the policy npm package");
     manifest.version = "0.0.0-stale";
-    manifest.packages[0].version = "0.0.0-stale";
+    registryPackage.version = "0.0.0-stale";
     await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
     await assert.rejects(
