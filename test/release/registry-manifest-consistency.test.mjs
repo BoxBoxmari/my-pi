@@ -51,6 +51,14 @@ test("server.json: declares an installable local workspace contract", async () =
   assert.equal(registryPackage.runtimeHint, "npx", "npm registry clients should receive an npx runtime hint");
   assert.equal(registryPackage.transport?.type, "stdio");
 
+  const binTargets = new Set(Object.values(appPkg.bin ?? {}));
+  assert.ok(binTargets.size > 0, "public npm package must expose an executable");
+  assert.equal(
+    binTargets.size,
+    1,
+    "all npm bin aliases must resolve to one executable so npx can infer the command deterministically",
+  );
+
   const workspaceArg = registryPackage.packageArguments?.find(
     (arg) => arg?.type === "named" && arg?.name === "--workspace",
   );
