@@ -17,6 +17,7 @@ async function copyReleaseFixture(tmpDir) {
   await fs.cp(path.join(ROOT, "release"), path.join(tmpDir, "release"), { recursive: true });
   await fs.cp(path.join(ROOT, "evidence"), path.join(tmpDir, "evidence"), { recursive: true });
   await fs.copyFile(path.join(ROOT, "package.json"), path.join(tmpDir, "package.json"));
+  await fs.copyFile(path.join(ROOT, "server.json"), path.join(tmpDir, "server.json"));
   await fs.mkdir(path.join(tmpDir, "apps", "my-pi-mcp"), { recursive: true });
   await fs.copyFile(path.join(ROOT, "apps", "my-pi-mcp", "package.json"), path.join(tmpDir, "apps", "my-pi-mcp", "package.json"));
   await fs.mkdir(path.join(tmpDir, "scripts"), { recursive: true });
@@ -340,7 +341,7 @@ test("verify-release: strict mode rejects an undersized release benchmark", asyn
       path.join(resultDir, "traversal-release.json"),
       JSON.stringify({
         profile: "release",
-        releaseVersion: "0.1.0-alpha.1",
+        releaseVersion: "0.1.0-alpha.2",
         commit: RELEASE_COMMIT,
         targetFileCount: 100000,
         observedFileCount: 5000,

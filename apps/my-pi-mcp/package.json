@@ -1,6 +1,6 @@
 {
   "name": "@koonwang03/my-pi",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "type": "module",
   "description": "Local-first MCP runtime for coding agents with bounded filesystem access, safe writes, AST search, LSP navigation, and Git tooling",
   "license": "MIT",
@@ -30,6 +30,9 @@
   ],
   "engines": {
     "node": ">=22.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "main": "./dist/main.js",
   "bin": {

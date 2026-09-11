@@ -2,8 +2,8 @@
 
 **Package Name:** `@koonwang03/my-pi`
 **CLI Binaries:** `my-pi-mcp` (primary), `ccr-mcp` (deprecated 1-major alias)  
-**Intended Registry:** npm / GitHub Packages
-**Current workflow state:** the release workflow qualifies and uploads a candidate; registry publication is a separate controlled step and is not performed by this workflow.
+**Intended Registries:** npm and Official MCP Registry  
+**Publishing model:** release qualification is mandatory; publication is an explicit `workflow_dispatch` action on `main` with `publish=true`. npm and MCP Registry publication use GitHub OIDC after one-time trust configuration.  
 **Supported Node Engine:** `>=22.6.0` (Node 22 and Node 24 qualification lanes are configured; candidate run evidence is retained by the release workflow)
 
 ---
@@ -44,6 +44,8 @@ manifest records the exact TGZ and SBOM digests plus the candidate commit.
 
 ## 2. Installation & Execution
 
+Use an unpinned install to receive the currently published npm version:
+
 ```bash
 # Global installation
 npm install -g @koonwang03/my-pi
@@ -55,5 +57,38 @@ my-pi-mcp --workspace /path/to/project
 my-pi-mcp --workspace /path/to/project --security-profile trusted
 
 # Direct execution via npx
-npx --yes --package @koonwang03/my-pi@0.1.0-alpha.1 my-pi-mcp --workspace /path/to/project
+npx --yes --package @koonwang03/my-pi my-pi-mcp --workspace /path/to/project
 ```
+
+For release validation, pin the candidate version explicitly; see `POST_RELEASE_VALIDATION.md`.
+
+---
+
+## 3. Controlled Publication
+
+The publication job runs only when all of the following are true:
+
+1. The workflow is started manually with `publish=true`.
+2. The workflow runs from `main`.
+3. `prepare`, multi-platform `qualify`, and strict `admit` jobs all pass.
+4. The npm package metadata, `release/release-policy.json`, and `server.json` agree on package identity and version.
+
+The publication job then:
+
+1. Publishes the already-qualified npm artifact through npm Trusted Publishing / GitHub OIDC if that version is absent.
+2. Verifies the published npm version and `mcpName`.
+3. Validates and publishes `server.json` through the Official MCP Registry using GitHub OIDC if that server version is absent.
+4. Verifies the Registry record.
+5. Creates the matching Git tag and GitHub prerelease if absent.
+
+Publication steps are designed to be idempotent so a failed downstream Registry operation can be retried without republishing an existing npm version.
+
+### One-time trust prerequisite
+
+Before the first OIDC publication, the npm package owner must configure `@koonwang03/my-pi` to trust:
+
+- GitHub organization/user: `BoxBoxmari`
+- Repository: `my-pi`
+- Workflow filename: `release.yml`
+
+This account-level trust configuration cannot be inferred from repository source and is intentionally not stored as a long-lived repository secret.

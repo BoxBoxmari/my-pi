@@ -20,6 +20,7 @@ const POLICY_FILE = path.join(ROOT, "release", "release-policy.json");
 const EVIDENCE_DIR = path.join(ROOT, "evidence");
 const ROOT_PACKAGE = path.join(ROOT, "package.json");
 const APP_PACKAGE = path.join(ROOT, "apps", "my-pi-mcp", "package.json");
+const SERVER_MANIFEST = path.join(ROOT, "server.json");
 
 function isMainModule(metaUrl) {
   const invokedPath = process.argv[1];
@@ -273,11 +274,13 @@ export async function run() {
 
   let rootPkg;
   let appPkg;
+  let serverManifest;
   try {
     rootPkg = JSON.parse(await readFile(ROOT_PACKAGE, "utf8"));
     appPkg = JSON.parse(await readFile(APP_PACKAGE, "utf8"));
+    serverManifest = JSON.parse(await readFile(SERVER_MANIFEST, "utf8"));
   } catch (err) {
-    throw new Error(`Failed to read package manifests: ${err.message}`);
+    throw new Error(`Failed to read release/package manifests: ${err.message}`);
   }
 
   if (rootPkg.version !== policy.version) {
@@ -287,11 +290,48 @@ export async function run() {
     console.log(`  ✓ Root package version matches policy: ${rootPkg.version}`);
   }
 
+  if (appPkg.name !== policy.packageName) {
+    console.error(`  ✗ App package name (${appPkg.name}) does not match policy package name (${policy.packageName})`);
+    failures++;
+  } else {
+    console.log(`  ✓ App package name matches policy: ${appPkg.name}`);
+  }
+
   if (appPkg.version !== policy.version) {
     console.error(`  ✗ App package version (${appPkg.version}) does not match policy version (${policy.version})`);
     failures++;
   } else {
     console.log(`  ✓ App package version matches policy: ${appPkg.version}`);
+  }
+
+  if (typeof appPkg.mcpName !== "string" || appPkg.mcpName.trim() === "") {
+    console.error("  ✗ App package is missing mcpName required for Official MCP Registry ownership verification");
+    failures++;
+  } else if (serverManifest.name !== appPkg.mcpName) {
+    console.error(`  ✗ MCP Registry name (${serverManifest.name}) does not match npm mcpName (${appPkg.mcpName})`);
+    failures++;
+  } else {
+    console.log(`  ✓ MCP Registry name matches npm mcpName: ${serverManifest.name}`);
+  }
+
+  if (serverManifest.version !== policy.version) {
+    console.error(`  ✗ MCP Registry manifest version (${serverManifest.version}) does not match policy version (${policy.version})`);
+    failures++;
+  } else {
+    console.log(`  ✓ MCP Registry manifest version matches policy: ${serverManifest.version}`);
+  }
+
+  const registryPackages = Array.isArray(serverManifest.packages)
+    ? serverManifest.packages.filter((pkg) => pkg?.registryType === "npm" && pkg?.identifier === policy.packageName)
+    : [];
+  if (registryPackages.length !== 1) {
+    console.error(`  ✗ MCP Registry manifest must contain exactly one npm package for ${policy.packageName}; found ${registryPackages.length}`);
+    failures++;
+  } else if (registryPackages[0].version !== policy.version) {
+    console.error(`  ✗ MCP Registry npm package version (${registryPackages[0].version}) does not match policy version (${policy.version})`);
+    failures++;
+  } else {
+    console.log(`  ✓ MCP Registry npm package version matches policy: ${registryPackages[0].version}`);
   }
 
   const tagEnv = process.env.RELEASE_TAG || (process.env.GITHUB_REF_NAME?.startsWith("v") ? process.env.GITHUB_REF_NAME : null);
@@ -388,7 +428,8 @@ export async function run() {
     }
   }
 
-  console.log(`\n========================================`);
+  console.log(`\
+========================================`);
   const resultSummary = {
     release: policy.version,
     channel: policy.releaseChannel,
@@ -403,12 +444,14 @@ export async function run() {
   console.log(`========================================`);
 
   if (failures > 0) {
-    console.error(`\n[RELEASE VERIFIER] ADMISSION WITHHELD: ${failures} check(s) failed.`);
+    console.error(`\
+[RELEASE VERIFIER] ADMISSION WITHHELD: ${failures} check(s) failed.`);
     process.exitCode = 1;
     return false;
   }
 
-  console.log(`\n[RELEASE VERIFIER] ADMISSION ADMITTED: All ${passedCount} criteria and release contracts verified successfully.`);
+  console.log(`\
+[RELEASE VERIFIER] ADMISSION ADMITTED: All ${passedCount} criteria and release contracts verified successfully.`);
   return true;
 }
 

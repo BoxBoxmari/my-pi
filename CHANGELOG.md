@@ -6,11 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.2] - 2026-09-11
+
 ### Security and runtime hardening
 - Made the default workspace profile read-only; writes and LSP processes require an explicit trusted profile.
 - Added byte-correct LSP framing, workspace-bound navigation, sanitized LSP environments, and shell-free process spawning.
 - Added byte-bounded streaming reads, streamed VCS diff spillover, sensitive-path filtering for Git diffs, and private expiring artifact storage.
 - Added incremental search traversal, nested `.gitignore` handling, explicit AST query failures, resource limits, secret scanning, and immutable CI action references.
+- Hardened sensitive-path case handling and added adversarial symlink/CAS coverage following the alpha.1 audit.
+
+### MCP discovery and distribution
+- Added Official MCP Registry metadata with `mcpName: io.github.BoxBoxmari/my-pi`.
+- Added the root `server.json` manifest and release-admission checks that keep Registry and npm versions synchronized.
+- Expanded npm discovery metadata and simplified the public install/quickstart path.
+
+### Experimental Production Next
+- Added the opt-in local coordination daemon, code-state, change-receipt, evaluation, feedback, and impact-routing candidate surfaces.
+- Added deterministic benchmarks, dogfood workloads, and promotion evidence for the experimental coordination path.
+- Production Next remains experimental and is not part of the stable 13-tool MCP claim for this alpha.
 
 ## [0.1.0-alpha.1] - 2026-09-02
 

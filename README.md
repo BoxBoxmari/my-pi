@@ -30,7 +30,7 @@ It is aimed at developers who want agentic coding tools to understand and modify
 - **Git-aware context:** bounded status and diff operations with secret filtering and large-diff spillover.
 - **No secondary paid LLM dependency:** the core runtime executes locally and does not select models or spawn agents.
 
-> **Release channel:** Alpha · `0.1.0-alpha.1`. Suitable for evaluation and controlled local development. Review the [security model](docs/SECURITY_MODEL.md) before enabling the trusted profile.
+> **Release channel:** Alpha. The npm badge above is authoritative for the currently published package version. This repository may contain a newer release candidate before publication completes. Suitable for evaluation and controlled local development; review the [security model](docs/SECURITY_MODEL.md) before enabling the trusted profile.
 
 ## Install in under a minute
 
