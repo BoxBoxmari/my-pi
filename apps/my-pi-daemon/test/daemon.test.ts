@@ -143,11 +143,14 @@ test("PN3: partial project lock records are retried and never deleted as stale",
   const lockPath = path.join(dir, "daemon.lock");
   const handle = await open(lockPath, "wx");
   try {
-    const contender = acquireProjectLock(lockPath);
+    const contenderRejection = assert.rejects(
+      acquireProjectLock(lockPath),
+      (error: unknown) => error instanceof ProjectAlreadyRunningError,
+    );
     await new Promise((resolve) => setTimeout(resolve, 10));
     await handle.writeFile(JSON.stringify({ token: "owner-token", pid: process.pid, startedAt: new Date().toISOString() }), "utf8");
     await handle.close();
-    await assert.rejects(contender, (error: unknown) => error instanceof ProjectAlreadyRunningError);
+    await contenderRejection;
     assert.equal(JSON.parse(await readFile(lockPath, "utf8")).token, "owner-token");
   } finally {
     await handle.close().catch(() => undefined);
