@@ -10,6 +10,11 @@ on:
         description: "Release channel (alpha, beta, rc, stable)"
         required: true
         default: "alpha"
+      publish:
+        description: "Publish admitted candidate to npm and Official MCP Registry"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -277,3 +282,160 @@ jobs:
             evidence/*.json
             docs/release/*
           if-no-files-found: error
+
+  publish:
+    name: publish-npm-registry-and-github-release
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main' }}
+    needs: [prepare, qualify, admit]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      RELEASE_COMMIT: ${{ github.sha }}
+      MCP_PUBLISHER_VERSION: "1.8.1"
+      MCP_PUBLISHER_LINUX_AMD64_SHA256: "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.2.2
+          run_install: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build exact publish source
+        run: pnpm build
+
+      - name: Re-bind and verify release contracts before publication
+        run: |
+          node scripts/bind-release-evidence.mjs
+          node scripts/verify-gates.mjs --strict
+          node scripts/verify-release.mjs
+
+      - name: Download admitted release artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-artifacts
+          path: admitted-release
+
+      - name: Resolve and verify release identity
+        id: identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./release/release-policy.json').version")"
+          PACKAGE_NAME="$(node -p "require('./release/release-policy.json').packageName")"
+          SERVER_NAME="$(node -p "require('./server.json').name")"
+          EXPECTED_TGZ="$(find admitted-release -type f -name '*.tgz' -printf '%p\n')"
+          test -n "$EXPECTED_TGZ"
+          test "$(printf '%s\n' "$EXPECTED_TGZ" | wc -l)" -eq 1
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "server_name=$SERVER_NAME" >> "$GITHUB_OUTPUT"
+          echo "tgz=$EXPECTED_TGZ" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Upgrade npm CLI for trusted publishing
+        run: npm install --global npm@11.19.1
+
+      - name: Publish npm package with GitHub OIDC when absent
+        shell: bash
+        env:
+          VERSION: ${{ steps.identity.outputs.version }}
+          PACKAGE_NAME: ${{ steps.identity.outputs.package_name }}
+          TGZ: ${{ steps.identity.outputs.tgz }}
+        run: |
+          set -euo pipefail
+          if npm view "$PACKAGE_NAME@$VERSION" version --json >/tmp/npm-version.json 2>/dev/null; then
+            observed="$(node -p "JSON.parse(require('fs').readFileSync('/tmp/npm-version.json','utf8'))")"
+            test "$observed" = "$VERSION"
+            observed_mcp_name="$(npm view "$PACKAGE_NAME@$VERSION" mcpName --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(String(JSON.parse(s))))")"
+            test "$observed_mcp_name" = "io.github.BoxBoxmari/my-pi"
+            echo "npm $PACKAGE_NAME@$VERSION already exists with expected mcpName; skipping duplicate publish."
+          else
+            npm publish "$TGZ" --access public
+          fi
+
+      - name: Verify npm package metadata after publication
+        shell: bash
+        env:
+          VERSION: ${{ steps.identity.outputs.version }}
+          PACKAGE_NAME: ${{ steps.identity.outputs.package_name }}
+        run: |
+          set -euo pipefail
+          test "$(npm view "$PACKAGE_NAME@$VERSION" version)" = "$VERSION"
+          test "$(npm view "$PACKAGE_NAME@$VERSION" mcpName)" = "io.github.BoxBoxmari/my-pi"
+
+      - name: Install pinned MCP publisher
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="mcp-publisher_linux_amd64.tar.gz"
+          url="https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/${archive}"
+          curl --fail --location --silent --show-error "$url" --output "$archive"
+          echo "${MCP_PUBLISHER_LINUX_AMD64_SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" mcp-publisher
+          ./mcp-publisher --help >/dev/null
+
+      - name: Validate Official MCP Registry manifest
+        run: ./mcp-publisher validate server.json
+
+      - name: Publish Official MCP Registry entry with GitHub OIDC when absent
+        shell: bash
+        env:
+          VERSION: ${{ steps.identity.outputs.version }}
+          SERVER_NAME: ${{ steps.identity.outputs.server_name }}
+        run: |
+          set -euo pipefail
+          encoded_name="${SERVER_NAME//\//%2F}"
+          registry_url="https://registry.modelcontextprotocol.io/v0.1/servers/${encoded_name}/versions/${VERSION}"
+          if curl --fail --silent --show-error "$registry_url" >/tmp/registry-entry.json 2>/dev/null; then
+            echo "Official MCP Registry already contains $SERVER_NAME@$VERSION; skipping duplicate publish."
+          else
+            ./mcp-publisher login github-oidc
+            ./mcp-publisher publish server.json
+          fi
+          curl --fail --silent --show-error "$registry_url" >/tmp/registry-entry.json
+          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/registry-entry.json','utf8')); const s=d.server || d; if(s.name !== process.env.SERVER_NAME || s.version !== process.env.VERSION) throw new Error('Registry verification mismatch'); console.log('Verified registry entry:', s.name, s.version)"
+
+      - name: Create release tag and GitHub Release when absent
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.identity.outputs.tag }}
+          VERSION: ${{ steps.identity.outputs.version }}
+          TGZ: ${{ steps.identity.outputs.tgz }}
+        run: |
+          set -euo pipefail
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            tag_commit="$(git rev-list -n 1 "$TAG")"
+            test "$tag_commit" = "$GITHUB_SHA"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" "$GITHUB_SHA" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "GitHub Release $TAG already exists; skipping duplicate creation."
+          else
+            gh release create "$TAG" "$TGZ" \
+              admitted-release/dist-release/SHA256SUMS.txt \
+              admitted-release/dist-release/release-manifest.json \
+              --title "my-pi $TAG" \
+              --generate-notes \
+              --prerelease
+          fi
