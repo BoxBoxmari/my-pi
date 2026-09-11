@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "releaseChannel": "alpha",
   "packageName": "@koonwang03/my-pi",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "evidenceFreshness": {
     "mode": "current-release-commit"
   },
