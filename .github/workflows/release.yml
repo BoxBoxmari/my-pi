@@ -401,7 +401,7 @@ jobs:
             ./mcp-publisher publish server.json
           fi
           curl --fail --silent --show-error "$registry_url" >/tmp/registry-entry.json
-          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/registry-entry.json','utf8')); const s=d.server || d; if(s.name !== process.env.SERVER_NAME || s.version !== process.env.VERSION) throw new Error('Registry verification mismatch'); console.log('Verified registry entry:', s.name, s.version)"
+          node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('/tmp/registry-entry.json','utf8')); const s=d.server || d; const expected=JSON.parse(fs.readFileSync('server.json','utf8')); const packages=Array.isArray(s.packages)?s.packages.filter(p=>p?.registryType==='npm'):[]; const expectedPackage=expected.packages?.find(p=>p?.registryType==='npm'); if(s.name !== process.env.SERVER_NAME || s.version !== process.env.VERSION || packages.length !== 1 || !expectedPackage || packages[0].identifier !== expectedPackage.identifier || packages[0].version !== expectedPackage.version) throw new Error('Registry verification mismatch'); console.log('Verified registry entry:', s.name, s.version, packages[0].identifier, packages[0].version)"
 
       - name: Create release tag and GitHub prerelease when absent
         shell: bash
