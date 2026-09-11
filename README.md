@@ -1,298 +1,206 @@
 # my-pi
 
 <p align="center">
-  <strong>Security-first local MCP runtime for coding agents and IDEs</strong><br>
-  <sub>Bounded filesystem, structural search, LSP, and Git capabilities over controlled stdio.</sub>
+  <strong>Local-first MCP runtime for coding agents — safer workspace access without an unrestricted shell</strong><br>
+  <sub>Bounded filesystem · content-preconditioned writes · Tree-Sitter AST search · LSP navigation · Git tooling</sub>
 </p>
 
 <p align="center">
   <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/BoxBoxmari/my-pi/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI status" /></a>
-  <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/BoxBoxmari/my-pi/release.yml?label=release%20qualification&logo=github&style=flat-square" alt="Release qualification status" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/codeql.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/BoxBoxmari/my-pi/codeql.yml?branch=main&label=CodeQL&logo=github&style=flat-square" alt="CodeQL status" /></a>
-  <img src="https://img.shields.io/badge/status-alpha-orange?style=flat-square" alt="Alpha release status" />
-  <a href="https://github.com/BoxBoxmari/my-pi/releases/tag/v0.1.0-alpha.1"><img src="https://img.shields.io/github/v/tag/BoxBoxmari/my-pi?sort=semver&label=release&style=flat-square" alt="Latest release tag" /></a>
-</p>
-
-<p align="center">
   <a href="https://www.npmjs.com/package/@koonwang03/my-pi"><img src="https://img.shields.io/npm/v/%40koonwang03%2Fmy-pi?label=npm&logo=npm&style=flat-square" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/@koonwang03/my-pi"><img src="https://img.shields.io/npm/dm/%40koonwang03%2Fmy-pi?label=downloads&logo=npm&style=flat-square" alt="npm downloads" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/stargazers"><img src="https://img.shields.io/github/stars/BoxBoxmari/my-pi?logo=github&style=flat-square" alt="GitHub stars" /></a>
-  <a href="https://github.com/BoxBoxmari/my-pi/issues"><img src="https://img.shields.io/github/issues/BoxBoxmari/my-pi?logo=github&style=flat-square" alt="Open issues" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/BoxBoxmari/my-pi?style=flat-square" alt="MIT license" /></a>
-  <img src="https://img.shields.io/badge/Node.js-%3E%3D22.6.0%20%7C%2024%20LTS-339933?logo=nodedotjs&logoColor=white&style=flat-square" alt="Node.js support" />
-  <img src="https://img.shields.io/badge/pnpm-11.2.2-F69220?logo=pnpm&logoColor=white&style=flat-square" alt="pnpm version" />
-  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP%20SDK-2.0.0-6366f1?style=flat-square" alt="Model Context Protocol SDK" /></a>
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat-square" alt="Supported platforms" />
+  <img src="https://img.shields.io/badge/status-alpha-orange?style=flat-square" alt="Alpha status" />
 </p>
 
----
+## What is my-pi?
 
-## Product overview
+**my-pi** is a deterministic local coding capability runtime exposed through the official **Model Context Protocol (MCP)**. It gives MCP-capable coding agents controlled access to a real workspace through explicit workspace authority, bounded reads, guarded writes, structural search, language-server intelligence, and Git operations.
 
-**my-pi** is a deterministic coding capability runtime exposed through the official **Model Context Protocol (MCP)**. It gives coding agents a controlled interface to local workspaces through explicit workspace authority, bounded reads, content-preconditioned writes, structural search, language-server integration, and Git operations.
+It is aimed at developers who want agentic coding tools to understand and modify code **without handing the agent a general-purpose shell or silently granting the current working directory**.
 
-> **Release channel:** Alpha · `0.1.0-alpha.1`<br>
-> The public package is intended for evaluation and controlled local development. Review the [security model](docs/SECURITY_MODEL.md) before enabling the trusted profile.<br>
-> **Alpha distribution:** registry publication is manual — the release workflow qualifies and uploads a candidate tarball only (see [`docs/release/DISTRIBUTION.md:6`](docs/release/DISTRIBUTION.md)). The npm badges above track the candidate tarball name; until publication lands, a global install may 404 — prefer clone+build below.
+### Why use it?
 
-Rather than granting unrestricted shell access or relying on fragile line-based edits, **my-pi** enforces content preconditions, per-file atomic publication, pre-read credential protection, Tree-Sitter AST structural search, and multi-language Language Server Protocol (LSP) intelligence directly over a local stdio transport.
+- **Local-first:** source code and detailed workspace state remain on the host.
+- **Read-only by default:** writes and language-server process startup require explicit `trusted` elevation.
+- **Safer mutation:** writes can require SHA-256 content preconditions instead of blind overwrite semantics.
+- **Code-aware search:** Tree-Sitter structural search across TypeScript, JavaScript, Python, Rust, and Go.
+- **Semantic navigation:** LSP symbols, definitions, references, hover, and diagnostics for supported host language servers.
+- **Git-aware context:** bounded status and diff operations with secret filtering and large-diff spillover.
+- **No secondary paid LLM dependency:** the core runtime executes locally and does not select models or spawn agents.
 
----
+> **Release channel:** Alpha · `0.1.0-alpha.1`. Suitable for evaluation and controlled local development. Review the [security model](docs/SECURITY_MODEL.md) before enabling the trusted profile.
 
-## Product status
+## Install in under a minute
 
-The badges above link to the live GitHub Actions, npm, release, and repository views. The table below records the product metadata shipped by this checkout.
-
-| Signal | Current state |
-| :--- | :--- |
-| Public package | [`@koonwang03/my-pi@0.1.0-alpha.1`](https://www.npmjs.com/package/@koonwang03/my-pi) |
-| Release channel | Alpha; suitable for evaluation and controlled local development |
-| Runtime | Node.js `>=22.6.0` |
-| Package manager | pnpm `11.2.2` |
-| MCP integration | Official MCP SDK `2.0.0` over stdio |
-| Supported hosts | Windows, macOS, and Linux |
-| License | [MIT](LICENSE) |
-| CI entry point | GitHub Actions on pushes and pull requests targeting `main` |
-
-The npm download badge is maintained by npm and reflects its rolling download count. GitHub stars, issues, workflow results, and release tags are read directly from their linked GitHub views.
-
----
-
-## Production Next (experimental)
-
-The checkout also contains an opt-in local coordination candidate. Start one daemon for a logical project with `my-pi-daemon --workspace /path/to/your/project`, then connect an agent host with `my-pi-mcp --workspace /path/to/your/project --coordination`. Add `--evaluation` only when the evaluation plane is required. Evaluation targets must be bound to a server-verified change receipt in a production daemon.
-
-The stable public claim remains the 13-tool MCP capability surface. Coordination, code-state, change-receipt, evaluation, and feedback behavior are experimental and remain subject to PN6/PN8/PN9 benchmark and promotion gates. The candidate keeps source and detailed code state local, does not select models or spawn agents, and does not require a hosted control plane.
-
-Candidate qualification commands are `pnpm bench:impact-arms`, `pnpm bench:evaluation-feedback-arms`, `pnpm dogfood:self-host`, `pnpm bench:local-reliability`, and `pnpm verify:production-next`. These commands report candidate evidence; they do not admit a release.
-
----
-
-## Key features
-
-| Feature | Description | Guarantee |
-| :--- | :--- | :--- |
-| **Content-preconditioned mutation** | File updates verify raw SHA-256 byte fingerprints before per-file publication | Rejects stale or unguarded overwrites |
-| **Pre-read security policy** | Denies sensitive paths (`.env*`, `.aws/`, `.ssh/`, `*.key`) prior to descriptor allocation | Sensitive files stay outside model context |
-| **Explicit security profiles** | Read-only is the default; writes and LSP require `--security-profile trusted` | Workspace authority is never silently inherited from CWD |
-| **Deterministic AST search** | Structural syntax tree queries via Tree-Sitter for 5 core languages | Accurate AST node filtering across large codebases |
-| **Multi-language LSP engine** | Integrated lifecycle for TypeScript, Python, Rust, and Go when compatible host servers are available | Hover, definition, references, and diagnostics |
-| **Large diff spillover** | Massive VCS diffs stream into a private, expiring local artifact store | Token context conservation without full-diff buffering |
-| **No paid API dependency** | Local-first core with no secondary LLM or paid API dependency | Core execution stays on the host |
-
----
-
-## System architecture
-
-```
-                            AI CLIENT HOSTS
-       Claude Code  ·  OpenCode  ·  Cursor  ·  Google Antigravity
-                                 │
-                         MCP STDIO TRANSPORT
-                        (Official SDK v2 Edge)
-                                 │
-                                 ▼
-                     ┌───────────────────────┐
-                     │   my-pi MCP Adapter   │
-                     └───────────┬───────────┘
-                                 │
-                                 ▼
-                     ┌───────────────────────┐
-                     │  Capability Contracts │
-                     └───────────┬───────────┘
-                                 │
-                                 ▼
-     ┌───────────────────────────────────────────────────────────┐
-     │                    CAPABILITY RUNTIME                     │
-     │  Workspace Manager │  Policy Engine  │  Artifact Spill    │
-     │  FS Subsystem      │  Search Engine  │  AST (Tree-Sitter) │
-     │  LSP Lifecycle     │  VCS Manager    │  Cancellation Bus  │
-     └───────────────────────────┬───────────────────────────────┘
-                                 │
-                 ┌───────────────┴───────────────┐
-                 ▼                               ▼
-        Native backend boundary          Pure Node.js Fallback
-            (deferred)                 (authoritative for alpha)
-```
-
----
-
-## 13-tool MCP surface
-
-**my-pi** exposes a 13-tool catalog over standard MCP stdio; clean-install qualification exercises the representative core capabilities. The catalog remains stable while the default read-only profile disables workspace mutation and LSP process startup until explicitly elevated.
-
-### 1. Filesystem & Mutation
-- **`fs_read`**: Byte-bounded window streaming with SHA-256 fingerprinting, byte-offset pagination, and automatic UTF-8 / UTF-16 / BOM / CRLF decoding.
-- **`fs_write`**: Safe file creation with strict no-clobber semantics or content-preconditioned overwrites (`expected_hash`).
-- **`fs_patch`**: Hunk-based anchored patching with stale detection; fails closed if anchor lines diverge.
-- **`fs_stat`**: Comprehensive file metadata, size, timestamps, POSIX mode bits, and binary classification.
-
-### 2. Search & Exploration
-- **`search`**: Incremental grep and glob traversal with exact total count pagination, nested `.gitignore` handling, and pre-read sensitive path policy blocking.
-- **`workspace_info`**: Authoritative workspace root canonicalization, active revision tracking, and capability manifest discovery.
-
-### 3. Structural AST & Semantic Navigation
-- **`ast_search`**: Structural AST query engine powered by Tree-Sitter across **TypeScript, JavaScript, Python, Rust, and Go**.
-- **`lsp_status`**: Language server health monitoring, registered server state, and capability inspection.
-- **`lsp_symbols`**: Document and workspace symbol search (classes, methods, interfaces, functions).
-- **`lsp_navigate`**: Precise definition jumping, reference discovery, and hover documentation.
-- **`lsp_diagnostics`**: Real-time compiler diagnostics and lint errors from active language servers.
-
-### 4. Version Control System (VCS)
-- **`vcs_status`**: Real-time git status isolating repository boundaries and modified/untracked files.
-- **`vcs_diff`**: Secret-filtered, streaming Git diff generation with automatic spillover when exceeding inline budgets.
-
----
-
-## Quickstart
-
-### Prerequisites
-- **Node.js**: `v22.6.0+` or `v24 LTS`
-- **pnpm**: `v11.2.2+`
-- **Rust**: `stable` (optional, scaffold-only until G0 spike — see `Cargo.toml` and `crates/my-pi-native/Cargo.toml`)
-
-### 1. Clone & Build
-```bash
-git clone https://github.com/BoxBoxmari/my-pi.git
-cd my-pi
-
-# Install dependencies (frozen lockfile)
-pnpm install --frozen-lockfile
-
-# Compile all TypeScript packages
-pnpm build
-```
-
-### 2. Start MCP Server Locally
-
-> **Alpha:** registry publication is manual — the global install below may 404
-> until the candidate is published. Prefer clone+build (§1), or install the
-> qualified candidate TGZ from the release workflow artifacts. See
-> [`docs/release/DISTRIBUTION.md:6`](docs/release/DISTRIBUTION.md).
+Requires Node.js `>=22.6.0`.
 
 ```bash
-# Install and run the published alpha package for a target workspace
-# https://www.npmjs.com/package/@koonwang03/my-pi
-# Alpha: manual publication — may 404; prefer clone+build (§1) per DISTRIBUTION.md:6
-pnpm add --global @koonwang03/my-pi@0.1.0-alpha.1
+npm install -g @koonwang03/my-pi
 my-pi-mcp --workspace /path/to/your/project
+```
 
-# Optional elevated profile for writes and language-server processes
+The server starts read-only. For a workspace you explicitly trust:
+
+```bash
 my-pi-mcp --workspace /path/to/your/project --security-profile trusted
 ```
 
-The default security profile is read-only. `--security-profile trusted` is an
-explicit opt-in for workspace writes and LSP processes. If the workspace is not
-provided, startup fails; use `--allow-cwd` only when granting the current
-directory is intentional.
-
-### 3. Generate Host IDE Configurations
-`my-pi` includes built-in profile generators for all major coding hosts:
+Or inspect a host configuration without a global install:
 
 ```bash
-# Generate configuration snippet for Claude Code
+npx --yes --package @koonwang03/my-pi my-pi-mcp host-config cursor-local
+```
+
+Generate host-specific configuration snippets:
+
+```bash
 my-pi-mcp host-config claude-code-local
-
-# Generate configuration snippet for Cursor
 my-pi-mcp host-config cursor-local
-
-# Generate configuration snippet for OpenCode
 my-pi-mcp host-config opencode-current-local
 ```
 
----
+Starting without `--workspace` or `MY_PI_WORKSPACE_ROOT` fails closed. Use `--allow-cwd` only when granting the current directory is intentional.
 
-## Reliability and security guarantees
+## 13-tool MCP surface
 
-- **Atomic Mode Bit & Encoding Fidelity**: File replacements preserve POSIX executable bits (`0o755`), UTF-8 BOM, UTF-16 LE/BE, and CRLF line endings byte-for-byte.
-- **Fail-Closed Locking**: Windows NTFS sharing violations and locked handles trigger typed `ERR_FILE_BUSY` exceptions rather than corrupting file buffers.
-- **Clean Subprocess Eviction**: Cancellation signals (`AbortSignal`) instantly terminate long-running git commands, searches, and spawned language server processes.
+| Area | Tools | Purpose |
+| :--- | :--- | :--- |
+| Filesystem | `fs_read`, `fs_write`, `fs_patch`, `fs_stat` | Bounded reads, guarded writes/patches, metadata |
+| Search & workspace | `search`, `workspace_info` | Repository exploration and authoritative workspace state |
+| AST & LSP | `ast_search`, `lsp_status`, `lsp_symbols`, `lsp_navigate`, `lsp_diagnostics` | Structural and semantic code intelligence |
+| Git | `vcs_status`, `vcs_diff` | Repository status and bounded/filtered diffs |
 
----
+### Key guarantees
 
-## Benchmarks and performance
+| Capability | Behavior |
+| :--- | :--- |
+| Content-preconditioned mutation | File updates verify raw SHA-256 fingerprints and reject stale guarded overwrites |
+| Pre-read sensitive-path policy | Sensitive paths such as `.env*`, `.aws/`, `.ssh/`, and `*.key` are denied before content is allocated to model context |
+| Explicit security profiles | Default is read-only; mutation and LSP process startup require explicit elevation |
+| Encoding/mode fidelity | File replacement preserves relevant encoding, line endings, BOM, and POSIX executable mode behavior |
+| Cancellation | Long-running Git/search/LSP subprocess work supports cancellation and cleanup |
 
-Deterministic synthetic benchmarks run automatically across generated repository structures:
+## Architecture
 
-- **MCP Stdio Latency**: The benchmark records observed overhead per run; thresholds are not release-blocking until runner variance is qualified.
-- **Glob and Grep Throughput**: Smoke and release profiles record candidate-bound timings for the pure Node.js fallback.
-- **Server Memory**: The stdio benchmark samples the RSS of the spawned MCP server process, not the benchmark parent. Missing platform samples are reported as unavailable.
-- **Release Scalability**: A 100,000-file result is release-qualified only when its commit, SBOM, and artifact match the strict release verifier.
-
----
-
-## Verification and CI matrix
-
-Every commit and pull request is checked by the configured multi-platform GitHub Actions workflows:
-
-```bash
-# Run local code, test, evidence, and smoke verification
-pnpm verify
-
-# Run the full unit and integration test suite
-pnpm test
-
-# Verify all 50 gate evidence criteria
-pnpm bind:evidence
-node scripts/verify-gates.mjs
-
-# Validate the candidate SBOM
-pnpm verify:sbom
-
-# Release admission (binds evidence to the exact candidate first)
-pnpm bind:evidence
-pnpm verify:release
-
-# Execute PR smoke test in isolated sandbox
-node scripts/pr-smoke.mjs
+```text
+MCP-capable coding host
+        │
+        │ stdio
+        ▼
+┌─────────────────────┐
+│   my-pi MCP edge    │
+└──────────┬──────────┘
+           ▼
+┌─────────────────────┐
+│ capability contracts│
+└──────────┬──────────┘
+           ▼
+┌─────────────────────────────────────────────────────────┐
+│ workspace │ policy │ filesystem │ search │ AST │ LSP │ Git │
+└─────────────────────────────────────────────────────────┘
+           │
+           └── local host workspace
 ```
 
-| OS platform | Node 22 LTS | Node 24 LTS | CI configuration |
-| :--- | :---: | :---: | :---: |
-| **Ubuntu Linux** (`ubuntu-latest`) | Configured | Configured | See the live CI badge |
-| **Microsoft Windows** (`windows-latest`) | — | Configured | See the live CI badge |
-| **Apple macOS** (`macos-latest`) | — | Configured | See the live CI badge |
+The stable public claim is the 13-tool MCP capability surface. The repository also contains an opt-in **Production Next** coordination/evaluation candidate; those coordination, code-state, change-receipt, evaluation, and feedback features remain experimental and subject to their promotion gates.
 
----
+## Build from source
+
+```bash
+git clone https://github.com/BoxBoxmari/my-pi.git
+cd my-pi
+pnpm install --frozen-lockfile
+pnpm build
+```
+
+Prerequisites for repository development:
+
+- Node.js `v22.6.0+` or `v24 LTS`
+- pnpm `v11.2.2+`
+- Rust stable is optional and currently relevant only to the deferred native-backend scaffold
+
+## Verification
+
+```bash
+# Local code, architecture, boundary, build, tests, gates and smoke verification
+pnpm verify
+
+# Unit/integration suite
+pnpm test
+
+# SBOM validation
+pnpm verify:sbom
+
+# Release admission checks
+pnpm bind:evidence
+pnpm verify:release
+```
+
+The configured CI matrix covers Ubuntu, Windows, and macOS lanes. See the live workflow badges above for current status rather than relying on static claims in this document.
+
+## Benchmarks
+
+The repository contains deterministic synthetic benchmarks for MCP stdio overhead, search/traversal throughput, memory sampling, runtime boundaries, coordination behavior, impact routing, evaluation feedback, and local reliability. Benchmark outputs are candidate evidence; performance claims should be interpreted alongside their qualification criteria and runner variance.
+
+## Production Next (experimental)
+
+Start the local coordination candidate for a logical project:
+
+```bash
+my-pi-daemon --workspace /path/to/your/project
+my-pi-mcp --workspace /path/to/your/project --coordination
+```
+
+Add `--evaluation` only when the evaluation plane is required. The candidate keeps source and detailed code state local, does not select models or spawn agents, and does not require a hosted control plane.
+
+Relevant qualification commands include:
+
+```bash
+pnpm bench:impact-arms
+pnpm bench:evaluation-feedback-arms
+pnpm dogfood:self-host
+pnpm bench:local-reliability
+pnpm verify:production-next
+```
 
 ## Package topology
 
 ```text
 packages/
-├── contracts/          # Core interfaces, error codes, and fingerprinting
-├── workspace-runtime/  # Path normalization, atomic replacement, mutex
-├── policy/             # Pre-read sensitive path protection engine
-├── artifact-store/     # Disk-backed artifact spillover management
-├── observability/      # OpenTelemetry-compatible tracing and metrics
-├── native-ports/       # Hardware/native backend interfaces
-├── native-loader/      # Safe fallback platform loader
-├── fs/                 # Hardened filesystem operations
-├── search/             # High-throughput grep & glob search
-├── hashline/           # Hashline-anchored patch engine
-├── ast/                # Tree-Sitter 5-language structural search
-├── lsp/                # Multi-language LSP client and process pool
-├── vcs/                # Git-backed status and diff engine
-├── mcp-adapter/        # Official Model Context Protocol stdio server
-├── host-profiles/      # Configuration renderers for IDE hosts
-├── change-runtime/     # Content preconditions and publication receipts (stable)
-├── code-state/         # AST, filesystem, LSP, and VCS code state
-├── coordination-client/ # Versioned local daemon client
-├── coordination-runtime/ # Claims, work graph, intents, and sync
-├── coordination-store/ # SQLite event and projection store
-├── evaluation-runtime/ # Evaluation, feedback, and acceptance flow
-└── impact-engine/      # Bounded impact and routing decisions
+├── contracts/             # Core interfaces, error codes, fingerprinting
+├── workspace-runtime/     # Workspace/path normalization and mutation coordination
+├── policy/                # Sensitive-path protection
+├── artifact-store/        # Disk-backed spillover artifacts
+├── observability/         # Tracing and metrics contracts
+├── fs/                    # Hardened filesystem capabilities
+├── search/                # Grep/glob traversal
+├── hashline/              # Hashline-anchored patch engine
+├── ast/                   # Tree-Sitter structural search
+├── lsp/                   # Multi-language LSP lifecycle/client
+├── vcs/                   # Git-backed status and diff
+├── mcp-adapter/           # MCP stdio server adapter
+├── host-profiles/         # Host configuration renderers
+├── change-runtime/        # Content preconditions and change receipts
+├── code-state/            # Filesystem/AST/LSP/VCS code state
+├── coordination-client/   # Local daemon client
+├── coordination-runtime/  # Work graph, claims, intents, sync
+├── coordination-store/    # SQLite event/projection store
+├── evaluation-runtime/    # Evaluation and feedback flow
+└── impact-engine/         # Bounded impact/routing decisions
 ```
 
-OpenCode examples live under `host-configs/`; the repository root intentionally
-does not contain an auto-loaded `opencode.json`. Generate a host configuration
-with `my-pi-mcp host-config <profile>` when needed.
+Search-ignore behavior is documented in [`docs/SEARCH_IGNORE.md`](docs/SEARCH_IGNORE.md). It is a traversal optimization, not a substitute for sensitive-path policy.
 
-Search ignore behavior is documented in [`docs/SEARCH_IGNORE.md`](docs/SEARCH_IGNORE.md);
-it is a traversal optimization, not a substitute for sensitive-path policy.
+## Security
 
----
+Before using trusted mode, read [`docs/SECURITY_MODEL.md`](docs/SECURITY_MODEL.md). Security findings are welcome through the repository's documented reporting process.
+
+## Contributing
+
+Issues, reproducible bug reports, benchmark counterexamples, integration feedback, and focused pull requests are welcome. If you are evaluating my-pi in a real coding host, include the host, OS, Node version, security profile, and a minimal reproduction where possible.
 
 ## License
 
-This project is open-source software licensed under the [MIT License](LICENSE).
-
+MIT — see [LICENSE](LICENSE).
