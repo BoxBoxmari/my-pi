@@ -62,6 +62,8 @@ test("release workflow: packs once and qualifies/uploads the same artifact", asy
   assert.match(releaseWorkflow, /artifact_sha256/);
   assert.match(releaseWorkflow, /Generate and validate release manifest/);
   assert.match(releaseWorkflow, /dist-release\/release-manifest\.json/);
+  assert.match(releaseWorkflow, /RELEASE_CHANNEL: \$\{\{ inputs\.release_channel \|\| 'alpha' \}\}/);
+  assert.match(releaseWorkflow, /npm publish "\$TGZ" --access public --tag "\$RELEASE_CHANNEL"/);
   assert.ok(releaseWorkflow.indexOf("Generate and validate candidate SBOM") < releaseWorkflow.indexOf("Bind and verify candidate evidence"));
   assert.ok(releaseWorkflow.indexOf("Bind and verify candidate evidence") < releaseWorkflow.indexOf("Checksum the exact tested artifact"));
   assert.ok(releaseWorkflow.indexOf("Checksum the exact tested artifact") < releaseWorkflow.indexOf("Upload exact artifact and qualification evidence"));

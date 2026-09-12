@@ -292,6 +292,7 @@ jobs:
       contents: write
       id-token: write
     env:
+      RELEASE_CHANNEL: ${{ inputs.release_channel || 'alpha' }}
       MCP_PUBLISHER_VERSION: "1.8.1"
       MCP_PUBLISHER_LINUX_AMD64_SHA256: "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc"
     steps:
@@ -376,7 +377,7 @@ jobs:
             test "$observed_mcp_name" = "io.github.BoxBoxmari/my-pi"
             echo "npm $PACKAGE_NAME@$VERSION already exists with expected MCP identity; skipping duplicate publish."
           else
-            npm publish "$TGZ" --access public
+            npm publish "$TGZ" --access public --tag "$RELEASE_CHANNEL"
           fi
 
       - name: Verify npm package metadata after publication
