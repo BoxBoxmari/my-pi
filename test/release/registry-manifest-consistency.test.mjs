@@ -47,6 +47,11 @@ test("server.json: declares an installable local workspace contract", async () =
     (pkg) => pkg?.registryType === "npm" && pkg?.identifier === appPkg.name,
   );
 
+  assert.equal(typeof manifest.description, "string", "server.json must provide a Registry description");
+  assert.ok(
+    manifest.description.length <= 100,
+    `Official MCP Registry description must be <= 100 characters; got ${manifest.description.length}`,
+  );
   assert.ok(registryPackage, "server.json must expose the public npm package");
   assert.equal(registryPackage.runtimeHint, "npx", "npm registry clients should receive an npx runtime hint");
   assert.equal(registryPackage.transport?.type, "stdio");
