@@ -332,6 +332,10 @@ jobs:
           actual_sha="$(sha256sum "$TGZ" | awk '{print $1}')"
           test "$actual_sha" = "$expected_sha"
           node -e "const p=require('./release/release-policy.json'); const s=require('./server.json'); const a=require('./apps/my-pi-mcp/package.json'); if(p.version!==s.version||p.version!==a.version||p.packageName!==a.name||s.name!==a.mcpName) throw new Error('Release identity mismatch before publication')"
+          node scripts/verify-publish-artifact.mjs \
+            --artifact "$TGZ" \
+            --checksums "$CHECKSUMS" \
+            --manifest "$RELEASE_MANIFEST"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
           echo "server_name=$SERVER_NAME" >> "$GITHUB_OUTPUT"
