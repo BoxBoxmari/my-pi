@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { resolveReleaseCommit } from "./release-identity.mjs";
 
 const ROOT = process.cwd();
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
@@ -74,19 +75,13 @@ export async function verifyPublishArtifact({ artifactPath, checksumsPath, manif
   return { artifactFile: path.basename(artifactPath), artifactSha256, manifest, packageMetadata };
 }
 
-function readPackageMetadataFromTarball(artifactPath) {
+export function readPackageMetadataFromTarball(artifactPath) {
   const text = execFileSync("tar", ["-xOf", artifactPath, "package/package.json"], {
     cwd: ROOT,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
   return JSON.parse(text);
-}
-
-function resolvePublishCommit() {
-  const candidate = process.env.RELEASE_COMMIT || process.env.GITHUB_SHA;
-  if (candidate) return candidate;
-  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 }
 
 export async function main() {
@@ -103,7 +98,7 @@ export async function main() {
     policy,
     server,
     packageMetadata,
-    releaseCommit: resolvePublishCommit(),
+    releaseCommit: resolveReleaseCommit({ cwd: ROOT }),
   });
   console.log(`Verified admitted publish artifact: ${result.artifactFile}`);
   console.log(`  sha256: ${result.artifactSha256}`);
