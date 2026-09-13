@@ -67,6 +67,21 @@ async function call(client, name, args) {
   return unwrap(await client.callTool({ name, arguments: args }));
 }
 
+async function writeJsonWithCas(client, relativePath, value) {
+  const content = JSON.stringify(value, null, 2) + "\n";
+  let expectedHash;
+  try {
+    expectedHash = (await call(client, "fs_read", { path: relativePath })).content_hash;
+  } catch {
+    expectedHash = undefined;
+  }
+  return call(client, "fs_write", {
+    path: relativePath,
+    content,
+    ...(expectedHash ? { expected_hash: expectedHash } : {}),
+  });
+}
+
 function runDogfood(taskPath, manifestPath, rawResultPath) {
   return execFileSync(process.execPath, [
     path.join(ROOT, "scripts", "dogfood-observed-paired-v2.mjs"),
@@ -147,7 +162,7 @@ export async function main(argv = process.argv.slice(2)) {
     const validation = validateObservedPair(task, result);
     if (!validation.ok) throw new Error("final observed pair failed validation: " + validation.errors.join("; "));
     myPi = await connectMyPi();
-    const resultWrite = await call(myPi, "fs_write", { path: "dogfood/observed-tasks/" + task.taskId + ".result.json", content: JSON.stringify(result, null, 2) + "\n" });
+    const resultWrite = await writeJsonWithCas(myPi, "dogfood/observed-tasks/" + task.taskId + ".result.json", result);
     const resultRead = await call(myPi, "fs_read", { path: "dogfood/observed-tasks/" + task.taskId + ".result.json", start_line: 1, end_line: 200_000 });
     const evidence = {
       schemaVersion: "my-pi/track-a-real-pn6-evidence/v1",
@@ -167,7 +182,7 @@ export async function main(argv = process.argv.slice(2)) {
       interpretation: "This is a real source-change workload with one declared impact-routing variable; qualification is separate from promotion.",
     };
     const evidencePath = "evidence/track-a-real-pn6-" + task.taskId + ".json";
-    await call(myPi, "fs_write", { path: evidencePath, content: JSON.stringify(evidence, null, 2) + "\n" });
+    await writeJsonWithCas(myPi, evidencePath, evidence);
     const evidenceRead = await call(myPi, "fs_read", { path: evidencePath, start_line: 1, end_line: 200_000 });
     console.log(JSON.stringify({ ok: true, taskId: task.taskId, resultHash: resultRead.content_hash, evidencePath, evidenceHash: evidenceRead.content_hash, evaluatorRunId, reports }, null, 2));
     return 0;
