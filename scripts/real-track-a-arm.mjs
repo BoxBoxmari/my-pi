@@ -66,11 +66,13 @@ export async function main(argv = process.argv.slice(2)) {
   const client = await connectMyPi();
   try {
     const snapshot = await call(client, "fs_read", { path: workload.targetPath, start_line: 1, end_line: 200_000 });
-    const patched = await call(client, "fs_patch", {
-      path: workload.targetPath,
-      expected_hash: snapshot.content_hash,
-      patch: { hunks: [{ old: workload.patch.old, new: workload.patch.new }] },
-    });
+    const patched = args.arm === "treatment"
+      ? await call(client, "fs_patch", {
+        path: workload.targetPath,
+        expected_hash: snapshot.content_hash,
+        patch: { hunks: [{ old: workload.patch.old, new: workload.patch.new }] },
+      })
+      : snapshot;
     const route = args.arm === "treatment" ? workload.treatmentRoute : workload.controlRoute;
     if (!Array.isArray(route) || route.length === 0) throw new Error("workload route is empty");
     const markerPath = ".my-pi/track-a/" + task.taskId + "/arm-" + args.arm + ".json";
@@ -84,7 +86,7 @@ export async function main(argv = process.argv.slice(2)) {
       groundTruth: workload.groundTruth,
       sourceBefore: snapshot.content_hash,
       sourceAfter: patched.content_hash,
-      mutationAuthority: "official my-pi fs_patch with CAS expected_hash",
+      mutationAuthority: args.arm === "treatment" ? "official my-pi fs_patch with CAS expected_hash" : "official my-pi fs_read control baseline (no mutation)",
     });
     console.log(JSON.stringify({ ok: true, taskId: task.taskId, arm: args.arm, targetPath: workload.targetPath, sourceAfter: patched.content_hash, route }, null, 2));
     return 0;

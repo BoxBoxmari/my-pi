@@ -98,8 +98,10 @@ async function evaluate(task, marker) {
     throw new Error("no independent evaluator for " + task.taskId);
   }
   const metrics = { ...routeMetrics(marker.route, marker.groundTruth), downstream_pass: assertion.passed ? 1 : 0, repair_iterations: assertion.passed ? 1 : 2 };
-  const accepted = assertion.passed && marker.taskId === task.taskId && marker.sourceAfter !== marker.sourceBefore;
-  return { schemaVersion: "my-pi/track-a-evaluator/v1", taskId: task.taskId, arm: marker.arm, accepted, evaluator: "independent node process", groundTruth: marker.groundTruth, selected: marker.route, metrics, assertion };
+  const sourceChangeExpected = marker.arm === "treatment";
+  const sourceChangeObserved = marker.sourceAfter !== marker.sourceBefore;
+  const accepted = assertion.passed && marker.taskId === task.taskId && sourceChangeObserved === sourceChangeExpected;
+  return { schemaVersion: "my-pi/track-a-evaluator/v1", taskId: task.taskId, arm: marker.arm, accepted, evaluator: "independent node process", sourceChangeExpected, sourceChangeObserved, groundTruth: marker.groundTruth, selected: marker.route, metrics, assertion };
 }
 
 export async function main(argv = process.argv.slice(2)) {
