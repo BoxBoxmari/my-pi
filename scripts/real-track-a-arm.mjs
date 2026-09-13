@@ -53,7 +53,7 @@ async function call(client, name, args) {
 }
 
 async function writeJson(client, relativePath, value) {
-  return call(client, "fs_write", { path: relativePath, content: JSON.stringify(value, null, 2) + "\\n" });
+  return call(client, "fs_write", { path: relativePath, content: JSON.stringify(value, null, 2) + "\n" });
 }
 
 export async function main(argv = process.argv.slice(2)) {
