@@ -62,7 +62,9 @@ async function evaluate(task, marker) {
         payload: { affectedWorkItems: ["impact-child"] },
       }],
     });
-    assertion = { passed: result.normalPriority.some((entry) => entry.event.eventType === "ImpactDetected"), observed: result.normalPriority.map((entry) => entry.reason) };
+    const impactObserved = result.normalPriority.some((entry) => entry.event.eventType === "ImpactDetected");
+    const expectedImpact = marker.arm === "treatment";
+    assertion = { passed: impactObserved === expectedImpact, observed: result.normalPriority.map((entry) => entry.reason), expectedImpact };
   } else if (task.taskId === "OT-012") {
     const { ImpactEngine } = await importFromRoot("packages/impact-engine/dist/engine.js");
     const entities = [
@@ -78,14 +80,20 @@ async function evaluate(task, marker) {
       dependencies: [],
       activeIntents: [],
     });
-    assertion = { passed: result.affectedEntities.length === 2 && result.affectedWorkItems.some((item) => item.workItemId === "work-track-a-012"), observed: result.affectedEntities.map((entity) => entity.entityId) };
+    const observedEntityCount = result.affectedEntities.length;
+    const workItemObserved = result.affectedWorkItems.some((item) => item.workItemId === "work-track-a-012");
+    const expectedEntityCount = marker.arm === "treatment" ? 2 : 0;
+    assertion = { passed: observedEntityCount === expectedEntityCount && workItemObserved, observed: result.affectedEntities.map((entity) => entity.entityId), expectedEntityCount, workItemObserved };
   } else if (task.taskId === "OT-013") {
     const { renderProfile } = await importFromRoot("packages/host-profiles/dist/render.js");
     const { REQUIRED_PROFILES } = await importFromRoot("packages/host-profiles/dist/profile.js");
     const profile = REQUIRED_PROFILES.find((value) => value.id === "cursor-local");
     const rendered = renderProfile(profile, { command: "node", args: ["--transport", "stdio", "--workspace", "existing"], workspace: "new" });
     const args = rendered.type === "json" ? rendered.json.mcpServers["my-pi"].args : [];
-    assertion = { passed: args.filter((value) => value === "--workspace").length === 1 && args[args.indexOf("--workspace") + 1] === "existing", observed: args };
+    const workspaceValues = args.filter((value) => value === "--workspace");
+    const expectedWorkspaceCount = marker.arm === "treatment" ? 1 : 2;
+    const expectedWorkspaceValue = marker.arm === "treatment" ? "existing" : "new";
+    assertion = { passed: workspaceValues.length === expectedWorkspaceCount && args[args.lastIndexOf("--workspace") + 1] === expectedWorkspaceValue, observed: args, expectedWorkspaceCount, expectedWorkspaceValue };
   } else {
     throw new Error("no independent evaluator for " + task.taskId);
   }
