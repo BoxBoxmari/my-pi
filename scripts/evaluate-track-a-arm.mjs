@@ -50,7 +50,7 @@ async function evaluate(task, marker) {
     const { ContextRouter } = await importFromRoot("packages/context-router/dist/router.js");
     const result = new ContextRouter().route({
       agentSessionId: "agent-track-a",
-      currentWorkItemIds: [],
+      currentWorkItemIds: ["impact-child"],
       dependencyWorkItemIds: [],
       impactResults: [],
       events: [{
