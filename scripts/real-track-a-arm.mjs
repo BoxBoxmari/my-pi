@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -74,6 +74,7 @@ export async function main(argv = process.argv.slice(2)) {
     const route = args.arm === "treatment" ? workload.treatmentRoute : workload.controlRoute;
     if (!Array.isArray(route) || route.length === 0) throw new Error("workload route is empty");
     const markerPath = ".my-pi/track-a/" + task.taskId + "/arm-" + args.arm + ".json";
+    await mkdir(path.resolve(ROOT, path.dirname(markerPath)), { recursive: true });
     await writeJson(client, markerPath, {
       schemaVersion: "my-pi/track-a-arm/v1",
       taskId: task.taskId,
