@@ -3,12 +3,12 @@
   "recordType": "observed-task-v2",
   "taskId": "OT-012",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-012.json",
-  "taskDefinitionCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+  "taskDefinitionCommit": "ebf37d6573c61e95343178c1fcae1c785153d51e",
   "registeredAt": "2026-09-13T00:00:00.000Z",
   "title": "ImpactEngine treats repository-root package scope as a bounded root scope",
   "taskClass": "PN6",
   "primaryHypothesis": "PN6",
-  "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+  "baseCommit": "ebf37d6573c61e95343178c1fcae1c785153d51e",
   "targetScope": {
     "include": [
       "packages/impact-engine/src/engine.ts",
@@ -38,7 +38,7 @@
     "control": {
       "profileId": "my-pi-control-impact-off",
       "description": "Stable my-pi environment with impact-aware routing disabled.",
-      "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+      "baseCommit": "ebf37d6573c61e95343178c1fcae1c785153d51e",
       "worktreeKey": "OT-012-control",
       "sessionKey": "OT-012-control",
       "freshWorktree": true,
@@ -77,7 +77,7 @@
     "treatment": {
       "profileId": "my-pi-treatment-impact-on",
       "description": "Same stable my-pi environment with impact-aware routing enabled.",
-      "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+      "baseCommit": "ebf37d6573c61e95343178c1fcae1c785153d51e",
       "worktreeKey": "OT-012-treatment",
       "sessionKey": "OT-012-treatment",
       "freshWorktree": true,
@@ -184,8 +184,8 @@
   "workload": {
     "targetPath": "packages/impact-engine/src/engine.ts",
     "patch": {
-      "old": "    case \"package\":\n      return entityPath === normalizePath(scope.value) || entityPath.startsWith(`${normalizePath(scope.value)}/`);",
-      "new": "    case \"package\": {\n      const packagePath = scope.value === \".\" ? \"\" : normalizePath(scope.value);\n      return packagePath === \"\" || entityPath === packagePath || entityPath.startsWith(`${packagePath}/`);\n    }"
+      "old": "      return entityPath === normalizePath(scope.value) || entityPath.startsWith(`${normalizePath(scope.value)}/`);",
+      "new": "      return scope.value === \".\" || entityPath === normalizePath(scope.value) || entityPath.startsWith(`${normalizePath(scope.value)}/`);"
     },
     "groundTruth": [
       "work-track-a-012",
