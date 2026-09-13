@@ -9,9 +9,17 @@
   <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/BoxBoxmari/my-pi/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI status" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/codeql.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/BoxBoxmari/my-pi/codeql.yml?branch=main&label=CodeQL&logo=github&style=flat-square" alt="CodeQL status" /></a>
   <a href="https://www.npmjs.com/package/@koonwang03/my-pi"><img src="https://img.shields.io/npm/v/%40koonwang03%2Fmy-pi?label=npm&logo=npm&style=flat-square" alt="npm version" /></a>
+  <a href="https://mcpservers.org/servers/boxboxmari/my-pi"><img src="https://mcpservers.org/badge.svg" alt="Listed on mcpservers.org" /></a>
+  <a href="https://glama.ai/mcp/servers/BoxBoxmari/my-pi"><img src="https://glama.ai/mcp/servers/BoxBoxmari/my-pi/badges/score.svg" alt="my-pi MCP server – quality and maintenance score on Glama" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/stargazers"><img src="https://img.shields.io/github/stars/BoxBoxmari/my-pi?logo=github&style=flat-square" alt="GitHub stars" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/BoxBoxmari/my-pi?style=flat-square" alt="MIT license" /></a>
   <img src="https://img.shields.io/badge/status-alpha-orange?style=flat-square" alt="Alpha status" />
+</p>
+
+<p align="center">
+  <a href="https://glama.ai/mcp/servers/BoxBoxmari/my-pi">
+    <img src="https://glama.ai/mcp/servers/BoxBoxmari/my-pi/badges/card.svg" alt="my-pi MCP server – quality and maintenance score on Glama" />
+  </a>
 </p>
 
 ## What is my-pi?

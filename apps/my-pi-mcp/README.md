@@ -3,6 +3,8 @@
 <p>
   <a href="https://www.npmjs.com/package/@koonwang03/my-pi"><img src="https://img.shields.io/npm/v/%40koonwang03%2Fmy-pi?label=npm&logo=npm" alt="npm version" /></a>
   <a href="https://www.npmjs.com/package/@koonwang03/my-pi"><img src="https://img.shields.io/npm/dm/%40koonwang03%2Fmy-pi?label=downloads&logo=npm" alt="npm downloads" /></a>
+  <a href="https://mcpservers.org/servers/boxboxmari/my-pi"><img src="https://mcpservers.org/badge.svg" alt="Listed on mcpservers.org" /></a>
+  <a href="https://glama.ai/mcp/servers/BoxBoxmari/my-pi"><img src="https://glama.ai/mcp/servers/BoxBoxmari/my-pi/badges/score.svg" alt="my-pi MCP server – quality and maintenance score on Glama" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://github.com/BoxBoxmari/my-pi/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
   <a href="https://github.com/BoxBoxmari/my-pi/blob/main/LICENSE"><img src="https://img.shields.io/github/license/BoxBoxmari/my-pi" alt="License" /></a>
 </p>
