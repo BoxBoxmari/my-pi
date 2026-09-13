@@ -3,12 +3,12 @@
   "recordType": "observed-task-v2",
   "taskId": "OT-011",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-011.json",
-  "taskDefinitionCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+  "taskDefinitionCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
   "registeredAt": "2026-09-13T00:00:00.000Z",
   "title": "ContextRouter accepts string impact work-item identifiers without dropping routed context",
   "taskClass": "PN6",
   "primaryHypothesis": "PN6",
-  "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+  "baseCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
   "targetScope": {
     "include": [
       "packages/context-router/src/router.ts",
@@ -38,7 +38,7 @@
     "control": {
       "profileId": "my-pi-control-impact-off",
       "description": "Stable my-pi environment with impact-aware routing disabled.",
-      "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+      "baseCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
       "worktreeKey": "OT-011-control",
       "sessionKey": "OT-011-control",
       "freshWorktree": true,
@@ -77,7 +77,7 @@
     "treatment": {
       "profileId": "my-pi-treatment-impact-on",
       "description": "Same stable my-pi environment with impact-aware routing enabled.",
-      "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+      "baseCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
       "worktreeKey": "OT-011-treatment",
       "sessionKey": "OT-011-treatment",
       "freshWorktree": true,
@@ -184,8 +184,8 @@
   "workload": {
     "targetPath": "packages/context-router/src/router.ts",
     "patch": {
-      "old": "  return new Set(values.flatMap((value) => value && typeof value === \"object\" && typeof value.workItemId === \"string\" ? [value.workItemId as string] : []));",
-      "new": "  return new Set(values.flatMap((value) => typeof value === \"string\" ? [value] : value && typeof value === \"object\" && typeof value.workItemId === \"string\" ? [value.workItemId as string] : []));"
+      "old": "  return new Set(values.flatMap((value) => value && typeof value === \"object\" && typeof (value as Record<string, unknown>).workItemId === \"string\" ? [(value as Record<string, unknown>).workItemId as string] : []));",
+      "new": "  return new Set(values.flatMap((value) => typeof value === \"string\" ? [value] : value && typeof value === \"object\" && typeof (value as Record<string, unknown>).workItemId === \"string\" ? [(value as Record<string, unknown>).workItemId as string] : []));"
     },
     "groundTruth": [
       "source-work-item",
