@@ -62,7 +62,7 @@ async function evaluate(task, marker) {
         payload: { affectedWorkItems: ["impact-child"] },
       }],
     });
-    const impactObserved = result.normalPriority.some((entry) => entry.event.eventType === "ImpactDetected");
+    const impactObserved = [...result.highPriority, ...result.normalPriority].some((entry) => entry.event.eventType === "ImpactDetected");
     const expectedImpact = marker.arm === "treatment";
     assertion = { passed: impactObserved === expectedImpact, observed: result.normalPriority.map((entry) => entry.reason), expectedImpact };
   } else if (task.taskId === "OT-012") {
