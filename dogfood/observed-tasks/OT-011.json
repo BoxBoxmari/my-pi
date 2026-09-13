@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-task-v2",
+  "taskId": "OT-011",
+  "taskDefinitionPath": "dogfood/observed-tasks/OT-011.json",
+  "taskDefinitionCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+  "registeredAt": "2026-09-13T00:00:00.000Z",
+  "title": "ContextRouter accepts string impact work-item identifiers without dropping routed context",
+  "taskClass": "PN6",
+  "primaryHypothesis": "PN6",
+  "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+  "targetScope": {
+    "include": [
+      "packages/context-router/src/router.ts",
+      "packages/context-router/test/router.test.ts"
+    ],
+    "exclude": [
+      ".my-pi/**",
+      "node_modules/**"
+    ]
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "implementation",
+      "condition": "A string-valued affected work item is routed as normal-priority impact context."
+    },
+    {
+      "id": "downstream",
+      "condition": "The independent evaluator and predeclared downstream build/test command pass in both isolated arms."
+    }
+  ],
+  "primaryVariable": {
+    "name": "impact-aware routing context",
+    "control": "impact-aware routing disabled; route only current work item",
+    "treatment": "impact-aware routing enabled; route current and impacted dependent work items"
+  },
+  "arms": {
+    "control": {
+      "profileId": "my-pi-control-impact-off",
+      "description": "Stable my-pi environment with impact-aware routing disabled.",
+      "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+      "worktreeKey": "OT-011-control",
+      "sessionKey": "OT-011-control",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-011.json",
+            "--arm",
+            "control"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    },
+    "treatment": {
+      "profileId": "my-pi-treatment-impact-on",
+      "description": "Same stable my-pi environment with impact-aware routing enabled.",
+      "baseCommit": "835232d0b6b205027c4d35ac6203b31dd3ba76d3",
+      "worktreeKey": "OT-011-treatment",
+      "sessionKey": "OT-011-treatment",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-011.json",
+            "--arm",
+            "treatment"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    }
+  },
+  "requiredTests": [
+    {
+      "id": "independent-evaluator",
+      "argv": [
+        "node",
+        "scripts/evaluate-track-a-arm.mjs",
+        "--task",
+        "dogfood/observed-tasks/OT-011.json"
+      ],
+      "timeoutMs": 900000
+    }
+  ],
+  "environment": {
+    "hostFamily": "windows-node",
+    "modelFamily": "single-primary-agent",
+    "sameHostFamily": true,
+    "sameModelFamily": true
+  },
+  "adjudication": {
+    "independent": true,
+    "evaluator": "separate node evaluator process after arm build",
+    "groundTruth": "predeclared acceptance behavior plus evaluator assertions",
+    "requiredEvidence": [
+      "arm command exit codes",
+      "independent evaluator stdout",
+      "source mutation hashes"
+    ]
+  },
+  "metrics": [
+    {
+      "id": "routing_recall",
+      "definition": "Fraction of predeclared relevant work items selected by the arm route.",
+      "role": "primary"
+    },
+    {
+      "id": "routing_precision",
+      "definition": "Fraction of selected work items that are predeclared relevant.",
+      "role": "secondary"
+    },
+    {
+      "id": "selected_items",
+      "definition": "Count of work items in the arm route.",
+      "role": "secondary"
+    },
+    {
+      "id": "downstream_pass",
+      "definition": "Independent evaluator acceptance as 1 or 0.",
+      "role": "secondary"
+    },
+    {
+      "id": "repair_iterations",
+      "definition": "Independent evaluator iterations required for accepted result.",
+      "role": "secondary"
+    }
+  ],
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json"
+    ]
+  },
+  "workload": {
+    "targetPath": "packages/context-router/src/router.ts",
+    "patch": {
+      "old": "  return new Set(values.flatMap((value) => value && typeof value === \"object\" && typeof value.workItemId === \"string\" ? [value.workItemId as string] : []));",
+      "new": "  return new Set(values.flatMap((value) => typeof value === \"string\" ? [value] : value && typeof value === \"object\" && typeof value.workItemId === \"string\" ? [value.workItemId as string] : []));"
+    },
+    "groundTruth": [
+      "source-work-item",
+      "impact-child"
+    ],
+    "controlRoute": [
+      "source-work-item"
+    ],
+    "treatmentRoute": [
+      "source-work-item",
+      "impact-child"
+    ]
+  }
+}

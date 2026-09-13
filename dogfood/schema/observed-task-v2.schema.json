@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://my-pi.local/schema/observed-task-v2.schema.json",
+  "title": "my-pi ObservedTask v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordType",
+    "taskId",
+    "taskDefinitionPath",
+    "taskDefinitionCommit",
+    "registeredAt",
+    "title",
+    "taskClass",
+    "primaryHypothesis",
+    "baseCommit",
+    "targetScope",
+    "acceptanceCriteria",
+    "primaryVariable",
+    "arms",
+    "requiredTests",
+    "environment",
+    "adjudication",
+    "metrics",
+    "contaminationControls"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "2" },
+    "recordType": { "const": "observed-task-v2" },
+    "taskId": { "type": "string", "pattern": "^OT-[0-9]{3,}$" },
+    "taskDefinitionPath": { "type": "string", "minLength": 1 },
+    "taskDefinitionCommit": { "type": "string", "pattern": "^[0-9a-fA-F]{40}$" },
+    "registeredAt": { "type": "string", "format": "date-time" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "taskClass": { "enum": ["PN6", "PN8", "research"] },
+    "primaryHypothesis": { "enum": ["PN6", "PN8", "none"] },
+    "baseCommit": { "type": "string", "pattern": "^[0-9a-fA-F]{40}$" },
+    "targetScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["include", "exclude"],
+      "properties": {
+        "include": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "exclude": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "acceptanceCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "condition"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "condition": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "primaryVariable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "control", "treatment"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "control": { "type": "string", "minLength": 1 },
+        "treatment": { "type": "string", "minLength": 1 }
+      }
+    },
+    "arms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control", "treatment"],
+      "properties": {
+        "control": { "$ref": "#/$defs/arm" },
+        "treatment": { "$ref": "#/$defs/arm" }
+      }
+    },
+    "requiredTests": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/testCommand" }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hostFamily", "modelFamily", "sameHostFamily", "sameModelFamily"],
+      "properties": {
+        "hostFamily": { "type": "string", "minLength": 1 },
+        "modelFamily": { "type": "string", "minLength": 1 },
+        "sameHostFamily": { "type": "boolean" },
+        "sameModelFamily": { "type": "boolean" }
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["independent", "evaluator", "groundTruth", "requiredEvidence"],
+      "properties": {
+        "independent": { "type": "boolean" },
+        "evaluator": { "type": "string", "minLength": 1 },
+        "groundTruth": { "type": "string", "minLength": 1 },
+        "requiredEvidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "definition", "role"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "definition": { "type": "string", "minLength": 1 },
+          "role": { "enum": ["primary", "secondary"] }
+        }
+      }
+    },
+    "contaminationControls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["freshWorktree", "freshSession", "noSharedContext", "noCrossArmArtifacts", "stableAuthorityRequired", "forbiddenPaths"],
+      "properties": {
+        "freshWorktree": { "type": "boolean" },
+        "freshSession": { "type": "boolean" },
+        "noSharedContext": { "type": "boolean" },
+        "noCrossArmArtifacts": { "type": "boolean" },
+        "stableAuthorityRequired": { "type": "boolean" },
+        "forbiddenPaths": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  },
+  "$defs": {
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "description", "baseCommit", "worktreeKey", "sessionKey", "freshWorktree", "freshSession"],
+      "properties": {
+        "profileId": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "baseCommit": { "type": "string", "pattern": "^[0-9a-fA-F]{40}$" },
+        "worktreeKey": { "type": "string", "minLength": 1 },
+        "sessionKey": { "type": "string", "minLength": 1 },
+        "freshWorktree": { "type": "boolean" },
+        "freshSession": { "type": "boolean" },
+        "setupCommands": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/testCommand" }
+        }
+      }
+    },
+    "testCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "argv", "timeoutMs"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "argv": { "type": "array", "minItems": 2, "maxItems": 32, "items": { "type": "string", "minLength": 1 } },
+        "timeoutMs": { "type": "integer", "minimum": 1000, "maximum": 900000 }
+      }
+    }
+  }
+}
