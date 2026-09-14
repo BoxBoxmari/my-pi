@@ -1,0 +1,231 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-task-v2",
+  "taskId": "OT-043",
+  "taskDefinitionPath": "dogfood/observed-tasks/OT-043.json",
+  "taskDefinitionCommit": "c5fc29d3ee0f6b5a33c52cf1e7a5d0ad797f9567",
+  "registration": {
+    "receiptPath": "dogfood/observed-registrations/OT-043.json"
+  },
+  "registeredAt": "2026-09-14T20:01:56.690Z",
+  "title": "Repair the late backend error path after a watcher stops — preregistered structured-feedback contrast",
+  "taskClass": "PN8",
+  "primaryHypothesis": "PN8",
+  "baseCommit": "07e30ad054400d419b642932ac4f5a973b813845",
+  "targetScope": {
+    "include": [
+      "packages/code-state/src/watcher.ts",
+      "packages/code-state/test/code-state.test.ts"
+    ],
+    "exclude": [
+      ".my-pi/**",
+      "node_modules/**"
+    ]
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "frozen-failure",
+      "condition": "The preregistered evaluation test fails before repair on the frozen historical state."
+    },
+    {
+      "id": "repair-outcome",
+      "condition": "Both fresh repair sessions finish and record independent final outcomes; structured feedback is compared with ordinary log rather than assumed to succeed."
+    },
+    {
+      "id": "prior-passes",
+      "condition": "All tests passing before the failure remain passing after repair."
+    }
+  ],
+  "primaryVariable": {
+    "name": "feedback representation supplied to the repair session",
+    "control": "ordinary command log only",
+    "treatment": "structured FeedbackPacket with failed criteria and prior passes"
+  },
+  "arms": {
+    "control": {
+      "profileId": "pn8-ordinary-log",
+      "description": "Fresh session receives only the ordinary initial test log.",
+      "baseCommit": "07e30ad054400d419b642932ac4f5a973b813845",
+      "worktreeKey": "OT-043-control",
+      "sessionKey": "OT-043-control",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before-evaluation",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "feedback-mode",
+          "argv": [
+            "node",
+            "-e",
+            "process.stdout.write(\"ordinary_log\")"
+          ],
+          "timeoutMs": 30000
+        }
+      ]
+    },
+    "treatment": {
+      "profileId": "pn8-structured-feedback",
+      "description": "Fresh session receives the structured preregistered FeedbackPacket.",
+      "baseCommit": "07e30ad054400d419b642932ac4f5a973b813845",
+      "worktreeKey": "OT-043-treatment",
+      "sessionKey": "OT-043-treatment",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before-evaluation",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "feedback-mode",
+          "argv": [
+            "node",
+            "-e",
+            "process.stdout.write(\"structured_feedback_packet\")"
+          ],
+          "timeoutMs": 30000
+        }
+      ]
+    }
+  },
+  "requiredTests": [
+    {
+      "id": "independent-build",
+      "argv": [
+        "pnpm",
+        "build"
+      ],
+      "timeoutMs": 900000
+    },
+    {
+      "id": "code-state-independent-test",
+      "argv": [
+        "node",
+        "--test",
+        "--experimental-strip-types",
+        "packages/code-state/test/code-state.test.ts"
+      ],
+      "timeoutMs": 900000
+    }
+  ],
+  "environment": {
+    "hostFamily": "windows-node",
+    "modelFamily": "single-primary-agent",
+    "sameHostFamily": true,
+    "sameModelFamily": true
+  },
+  "adjudication": {
+    "independent": true,
+    "evaluator": "separate node test process after each official my-pi repair",
+    "groundTruth": "frozen failure plus identical downstream test result",
+    "requiredEvidence": [
+      "initial failure output",
+      "FeedbackPacket or ordinary log binding",
+      "official my-pi fs_patch CAS history",
+      "final independent test output",
+      "prior-pass and false-accept accounting"
+    ]
+  },
+  "metrics": [
+    {
+      "id": "repair_yield",
+      "definition": "Fraction of arms whose repair passes the independent downstream command and preserves prior passes.",
+      "role": "primary"
+    },
+    {
+      "id": "repair_attempts",
+      "definition": "Count of repair attempts after the initial frozen failure.",
+      "role": "secondary"
+    },
+    {
+      "id": "prior_passes_preserved",
+      "definition": "Whether all tests passing before the failure remain passing after repair, recorded as 1 or 0.",
+      "role": "secondary"
+    },
+    {
+      "id": "regressions",
+      "definition": "Count of previously passing tests lost after repair.",
+      "role": "secondary"
+    },
+    {
+      "id": "false_accepts",
+      "definition": "Count of accepted repair outcomes whose independent final command still fails.",
+      "role": "secondary"
+    }
+  ],
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json",
+      "dogfood/observed-tasks/*.paired-manifest.json"
+    ]
+  },
+  "workload": {
+    "evidenceKind": "live_repair",
+    "frozenStateId": "git:07e30ad054400d419b642932ac4f5a973b813845",
+    "heterogeneityKey": "code-state-late-backend-error-containment",
+    "initialFailureCriterion": "late-backend-error-after-stop-is-contained",
+    "groundTruth": [
+      "stopped watcher",
+      "late backend error",
+      "no post-stop callback"
+    ],
+    "evaluationSetupPatches": [
+      {
+        "id": "install-preregistered-evaluation-OT-043",
+        "path": "packages/code-state/test/code-state.test.ts",
+        "old": "sert.equal(watcher.status, \"degraded\");\n  } finally {\n    watcher.stop();\n    await store.close();\n    await rm(dir, { recursive: true, force: true });\n  }\n});\n",
+        "new": "sert.equal(watcher.status, \"degraded\");\n  } finally {\n    watcher.stop();\n    await store.close();\n    await rm(dir, { recursive: true, force: true });\n  }\n});\n\ntest(\"PN5 watcher ignores a late backend error after stop\", async () => {\n  const { dir, store } = await setup();\n  let backend: (EventEmitter & { close: () => void }) | undefined;\n  let closeCount = 0;\n  let overflowCount = 0;\n  let errorCount = 0;\n  const watcher = new CodeStateWatcher(dir, {\n    platform: \"linux\",\n    watchFactory: (_target, _options, _listener) => {\n      backend = new EventEmitter() as EventEmitter & { close: () => void };\n      backend.close = () => { closeCount++; };\n      return backend as unknown as FSWatcher;\n    },\n    reconcileMs: 5,\n    onPaths: () => undefined,\n    onOverflow: () => { overflowCount++; },\n    onError: () => { errorCount++; },\n  });\n  try {\n    watcher.start();\n    assert.equal(watcher.status, \"ready\");\n    watcher.stop();\n    backend?.emit(\"error\", new Error(\"late backend failure\"));\n    await new Promise((resolve) => setTimeout(resolve, 50));\n    assert.equal(watcher.status, \"stopped\");\n    assert.equal(closeCount, 1);\n    assert.equal(overflowCount, 0);\n    assert.equal(errorCount, 0);\n  } finally {\n    watcher.stop();\n    await store.close();\n    await rm(dir, { recursive: true, force: true });\n  }\n});\n"
+      }
+    ],
+    "repairPatches": {
+      "control": [
+        {
+          "id": "ordinary-log-partial-repair-OT-043",
+          "path": "packages/code-state/src/watcher.ts",
+          "old": "    this.watcher = undefined;\n    this.state = \"degraded\";\n    this.notifyError(error);",
+          "new": "    this.watcher = undefined;\n    this.state = \"degraded\";\n    this.notifyError(error); // ordinary-log control leaves the late-error guard unfixed"
+        }
+      ],
+      "treatment": [
+        {
+          "id": "repair-frozen-failure-OT-043",
+          "path": "packages/code-state/src/watcher.ts",
+          "old": "ionTimer = undefined;\n    this.pending.clear();\n    this.overflowed = false;\n    this.state = \"stopped\";\n  }\n\n  private handleError(error: unknown): void {\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    thi",
+          "new": "ionTimer = undefined;\n    this.pending.clear();\n    this.overflowed = false;\n    this.state = \"stopped\";\n  }\n\n  private handleError(error: unknown): void {\n    if (this.state === \"stopped\") return;\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    thi"
+        }
+      ]
+    },
+    "feedbackPacket": {
+      "schemaVersion": "1",
+      "packetId": "feedback-OT-043",
+      "source": "independent frozen-state evaluator",
+      "failedCriteria": [
+        "late-backend-error-after-stop-is-contained"
+      ],
+      "priorPassingCriteria": [
+        "startup-failure-containment",
+        "degraded-reconciliation"
+      ],
+      "retryState": "recommended",
+      "taskStatement": "Repair the late backend error path after a watcher stops — preregistered structured-feedback contrast"
+    }
+  }
+}
