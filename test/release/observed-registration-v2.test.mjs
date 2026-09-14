@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import { promisify } from "node:util";
 import path from "node:path";
-import { verifyObservedRegistration } from "../../scripts/observed-registration-v2.mjs";
+import { verifyObservedPairRegistration, verifyObservedRegistration } from "../../scripts/observed-registration-v2.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -62,6 +62,25 @@ test("Git registration rejects a binding-only task rebind after registration", a
 
     const valid = await verifyObservedRegistration(repo, task, { runStartedAt: "2999-01-01T00:00:00.000Z" });
     assert.equal(valid.ok, true, valid.errors.join("; "));
+    const pair = await verifyObservedPairRegistration(repo, task, {
+      taskDefinition: task.taskDefinitionPath,
+      taskDefinitionCommit: task.taskDefinitionCommit,
+      registrationCommit: valid.registrationCommit,
+      registrationTimestamp: valid.registrationTimestamp,
+      taskDefinitionBlob: valid.taskDefinitionBlob,
+      registrationReceiptBlob: valid.registrationReceiptBlob,
+    });
+    assert.equal(pair.ok, true, pair.errors.join("; "));
+    const forgedProof = await verifyObservedPairRegistration(repo, task, {
+      taskDefinition: task.taskDefinitionPath,
+      taskDefinitionCommit: task.taskDefinitionCommit,
+      registrationCommit: valid.registrationCommit,
+      registrationTimestamp: valid.registrationTimestamp,
+      taskDefinitionBlob: "0".repeat(40),
+      registrationReceiptBlob: valid.registrationReceiptBlob,
+    });
+    assert.equal(forgedProof.ok, false);
+    assert.match(forgedProof.errors.join("\n"), /taskDefinitionBlob/);
 
     const rebound = { ...task, taskDefinitionCommit: await git(repo, ["rev-parse", "HEAD"]) };
     await writeFile(taskPath, JSON.stringify(rebound, null, 2) + "\n", "utf8");

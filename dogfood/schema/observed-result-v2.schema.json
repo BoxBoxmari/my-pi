@@ -10,6 +10,10 @@
     "taskId",
     "taskDefinition",
     "taskDefinitionCommit",
+    "registrationCommit",
+    "registrationTimestamp",
+    "taskDefinitionBlob",
+    "registrationReceiptBlob",
     "runId",
     "status",
     "baseCommit",
@@ -34,6 +38,22 @@
       "minLength": 1
     },
     "taskDefinitionCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{40}$"
+    },
+    "registrationCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{40}$"
+    },
+    "registrationTimestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "taskDefinitionBlob": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{40}$"
+    },
+    "registrationReceiptBlob": {
       "type": "string",
       "pattern": "^[0-9a-fA-F]{40}$"
     },

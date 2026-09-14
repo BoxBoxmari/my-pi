@@ -25,6 +25,7 @@ replaced by a result.
 One arm execution record. It references, but never overwrites, its task definition.
 
 - `taskId`, `runId`, `arm`, and `sessionId` identify the execution.
+- `registrationCommit`, `registrationTimestamp`, `taskDefinitionBlob`, and `registrationReceiptBlob` prove which committed registration was observed before the run; a result without these fields is ineligible.
 - `baseSha`, `candidateSha`, and environment identity bind the source and runtime.
 - `startedAt` and `finishedAt` order the run and support timeout checks.
 - `status` records accepted, failed, partial, contaminated, or invalid outcomes.

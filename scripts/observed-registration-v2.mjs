@@ -55,6 +55,18 @@ async function committedJson(root, commit, relativePath, label) {
   }
 }
 
+async function committedBlob(root, commit, relativePath, label) {
+  const blob = await git(root, ["rev-parse", commit + ":" + relativePath], { allowFailure: true });
+  if (!FULL_SHA.test(blob ?? "")) throw new Error(label + " blob is not present in the registration commit");
+  return blob.toLowerCase();
+}
+
+async function workingTreeBlob(root, relativePath, label) {
+  const blob = await git(root, ["hash-object", "--", relativePath], { allowFailure: true });
+  if (!FULL_SHA.test(blob ?? "")) throw new Error(label + " blob cannot be read from the working tree");
+  return blob.toLowerCase();
+}
+
 /**
  * Verify that the current task is exactly the task recorded by an immutable
  * Git receipt. The receipt is a separate file so the registration identity is
@@ -68,6 +80,8 @@ export async function verifyObservedRegistration(root, task, { runStartedAt } = 
   let registrationCommit;
   let registrationTimestamp;
   let taskDigest;
+  let taskDefinitionBlob;
+  let registrationReceiptBlob;
   let receiptPath;
   try {
     currentCommit = await git(root, ["rev-parse", "HEAD"]);
@@ -105,6 +119,10 @@ export async function verifyObservedRegistration(root, task, { runStartedAt } = 
 
     const committedTask = await committedJson(root, registrationCommit, taskPath, "task definition");
     const committedReceipt = await committedJson(root, registrationCommit, receiptPath, "registration receipt");
+    taskDefinitionBlob = await committedBlob(root, registrationCommit, taskPath, "task definition");
+    registrationReceiptBlob = await committedBlob(root, registrationCommit, receiptPath, "registration receipt");
+    const currentTaskBlob = await workingTreeBlob(root, taskPath, "current task definition");
+    if (currentTaskBlob !== taskDefinitionBlob) errors.push("working task definition blob differs from the registered Git blob");
     taskDigest = digest(committedTask);
     if (stableJson(committedTask) !== stableJson(task)) errors.push("task definition changed after Git registration");
     if (committedReceipt.schemaVersion !== "1" || committedReceipt.recordType !== "observed-task-registration-v1") errors.push("registration receipt schema is invalid");
@@ -115,7 +133,7 @@ export async function verifyObservedRegistration(root, task, { runStartedAt } = 
   } catch (error) {
     errors.push(error instanceof Error ? error.message : String(error));
   }
-  return { ok: errors.length === 0, errors, currentCommit, registrationCommit, registrationTimestamp, receiptPath, taskDigest };
+  return { ok: errors.length === 0, errors, currentCommit, registrationCommit, registrationTimestamp, receiptPath, taskDigest, taskDefinitionBlob, registrationReceiptBlob };
 }
 
 export async function verifyObservedPairRegistration(root, task, result) {
@@ -123,5 +141,9 @@ export async function verifyObservedPairRegistration(root, task, result) {
   const errors = [...registration.errors];
   if (result?.taskDefinitionCommit !== task?.taskDefinitionCommit) errors.push("result.taskDefinitionCommit must match the registered task binding");
   if (result?.taskDefinition !== task?.taskDefinitionPath) errors.push("result.taskDefinition must match the registered task path");
+  if (result?.registrationCommit !== registration.registrationCommit) errors.push("result.registrationCommit must match the Git registration commit observed before the run");
+  if (result?.registrationTimestamp !== registration.registrationTimestamp) errors.push("result.registrationTimestamp must match the Git registration timestamp observed before the run");
+  if (String(result?.taskDefinitionBlob ?? "").toLowerCase() !== registration.taskDefinitionBlob) errors.push("result.taskDefinitionBlob must match the committed task-definition blob");
+  if (String(result?.registrationReceiptBlob ?? "").toLowerCase() !== registration.registrationReceiptBlob) errors.push("result.registrationReceiptBlob must match the committed registration-receipt blob");
   return { ...registration, ok: errors.length === 0, errors };
 }

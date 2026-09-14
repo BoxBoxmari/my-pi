@@ -43,6 +43,10 @@ function result(overrides = {}) {
     taskId: "OT-011",
     taskDefinition: "dogfood/observed-tasks/OT-011.v2.json",
     taskDefinitionCommit: BASE,
+    registrationCommit: BASE,
+    registrationTimestamp: "2026-09-13T00:00:00.000Z",
+    taskDefinitionBlob: "d".repeat(40),
+    registrationReceiptBlob: "e".repeat(40),
     runId: "run-1111111111111111",
     status: "COMPLETED",
     baseCommit: BASE,
@@ -150,7 +154,17 @@ test("paired manifest is deterministic for frozen inputs", () => {
 });
 
 test("executed manifest conversion preserves bounded command evidence", () => {
-  const manifest = buildPairedManifest(task(), { currentCommit: BASE, runAt: "2026-09-13T00:05:00.000Z", execute: true });
+  const manifest = buildPairedManifest(task(), {
+    currentCommit: BASE,
+    runAt: "2026-09-13T00:05:00.000Z",
+    execute: true,
+    registration: {
+      registrationCommit: BASE,
+      registrationTimestamp: "2026-09-13T00:00:00.000Z",
+      taskDefinitionBlob: "d".repeat(40),
+      registrationReceiptBlob: "e".repeat(40),
+    },
+  });
   for (const arm of manifest.arms) {
     for (const command of arm.commands) Object.assign(command, { status: "passed", exitCode: 0, stdoutDigest: DIGEST, stderrDigest: DIGEST });
     arm.sourceStateDigest = DIGEST;

@@ -77,10 +77,10 @@ function declaredCommands(task, armId) {
 async function assertTaskPreRegistered(root, task, runAt) {
   const registration = await verifyObservedRegistration(root, task, { runStartedAt: runAt });
   if (!registration.ok) throw new Error("task registration verification failed: " + registration.errors.join("; "));
-  return registration.currentCommit;
+  return registration;
 }
 
-export function buildPairedManifest(task, { currentCommit = task.taskDefinitionCommit, runAt = "2026-09-13T00:00:00.000Z", execute = false, stableAuthorityCommit } = {}) {
+export function buildPairedManifest(task, { currentCommit = task.taskDefinitionCommit, runAt = "2026-09-13T00:00:00.000Z", execute = false, stableAuthorityCommit, registration } = {}) {
   const validation = validateObservedTask(task);
   if (!validation.ok) throw new Error(`invalid ObservedTask v2: ${validation.errors.join("; ")}`);
   if (Date.parse(runAt) < Date.parse(task.registeredAt)) throw new Error("runAt must not precede task preregistration");
@@ -111,6 +111,14 @@ export function buildPairedManifest(task, { currentCommit = task.taskDefinitionC
     arms,
     independentAdjudication: task.adjudication,
     contaminationControls: task.contaminationControls,
+    ...(registration?.registrationCommit ? {
+      registration: {
+        registrationCommit: registration.registrationCommit,
+        registrationTimestamp: registration.registrationTimestamp,
+        taskDefinitionBlob: registration.taskDefinitionBlob,
+        registrationReceiptBlob: registration.registrationReceiptBlob,
+      },
+    } : {}),
     authority: {
       stableRequired: task.contaminationControls.stableAuthorityRequired === true,
       stableCommit: stableAuthorityCommit ?? null,
@@ -151,6 +159,12 @@ export function buildObservedResult(task, manifest, {
     taskId: task.taskId,
     taskDefinition: task.taskDefinitionPath,
     taskDefinitionCommit: task.taskDefinitionCommit,
+    ...(manifest.registration ? {
+      registrationCommit: manifest.registration.registrationCommit,
+      registrationTimestamp: manifest.registration.registrationTimestamp,
+      taskDefinitionBlob: manifest.registration.taskDefinitionBlob,
+      registrationReceiptBlob: manifest.registration.registrationReceiptBlob,
+    } : {}),
     runId: `run-${sha256(`${task.taskId}\0paired\0${task.baseCommit}\0${manifest.runAt}`).slice(0, 16)}`,
     status: contaminated ? "CONTAMINATED" : commandsPassed ? "COMPLETED" : "FAILED",
     baseCommit: task.baseCommit,
@@ -269,13 +283,14 @@ export async function main(argv = process.argv.slice(2)) {
   const taskPath = path.resolve(root, args.task);
   const task = JSON.parse(await readFile(taskPath, "utf8"));
   const runAt = args.run_at ?? new Date().toISOString();
-  const currentCommit = await assertTaskPreRegistered(root, task, runAt);
+  const registration = await assertTaskPreRegistered(root, task, runAt);
+  const currentCommit = registration.currentCommit;
   if (task.contaminationControls?.stableAuthorityRequired === true) {
     if (!args.stable_authority_sha || !HEX.test(args.stable_authority_sha)) throw new Error("--stable-authority-sha is required when stableAuthorityRequired is true");
     commitExists(root, args.stable_authority_sha, "stable authority commit");
     if (args.stable_authority_sha.toLowerCase() === currentCommit.toLowerCase()) throw new Error("stable authority commit must differ from the current candidate commit");
   }
-  const manifest = buildPairedManifest(task, { currentCommit, runAt, execute: args.execute, stableAuthorityCommit: args.stable_authority_sha });
+  const manifest = buildPairedManifest(task, { currentCommit, runAt, execute: args.execute, stableAuthorityCommit: args.stable_authority_sha, registration });
   if (args.execute) await executeManifest(manifest, task, root, args.keepWorktrees, args.captureOutput);
   const output = path.resolve(root, args.output ?? path.join("dogfood", "observed-tasks", `${task.taskId}.paired-manifest.json`));
   const relative = path.relative(root, output);

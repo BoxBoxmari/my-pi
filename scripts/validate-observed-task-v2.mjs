@@ -404,6 +404,10 @@ export function validateObservedResult(result, task) {
   add(errors, typeof result.taskId === "string" && TASK_ID.test(result.taskId), "taskId must match OT-###");
   string(errors, result.taskDefinition, "taskDefinition");
   hash(errors, result.taskDefinitionCommit, "taskDefinitionCommit");
+  hash(errors, result.registrationCommit, "registrationCommit");
+  date(errors, result.registrationTimestamp, "registrationTimestamp");
+  hash(errors, result.taskDefinitionBlob, "taskDefinitionBlob");
+  hash(errors, result.registrationReceiptBlob, "registrationReceiptBlob");
   add(errors, typeof result.runId === "string" && RUN_ID.test(result.runId), "runId has an invalid format");
   add(errors, ["COMPLETED", "FAILED", "CONTAMINATED", "INCONCLUSIVE"].includes(result.status), "status is invalid");
   hash(errors, result.baseCommit, "baseCommit");
