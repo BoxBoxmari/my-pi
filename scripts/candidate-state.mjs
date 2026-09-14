@@ -11,12 +11,12 @@ function git(args, options = {}) {
 
 function isGeneratedEvidence(relativePath) {
   const normalized = relativePath.replaceAll("\\", "/");
-  return /^evidence\/PN\d+\.json$/i.test(normalized) || /^evidence\/track-a-(?:integrity-gates|xh-verify)-\d{4}-\d{2}-\d{2}\.json$/i.test(normalized) || normalized === "evidence/observed-evidence-v2.aggregate.json" || normalized === "evidence/track-b-host-bypass-2026-09-13.json" || normalized === "evidence/track-c-mcp-apps-2026-09-13.json";
+  return /^evidence\/PN\d+\.json$/i.test(normalized) || /^evidence\/track-a-(?:integrity-gates|xh-verify)-\d{4}-\d{2}-\d{2}\.json$/i.test(normalized) || /^evidence\/track-a-(?:real-pn6|pn8-live-repair)-OT-\d+\.json$/i.test(normalized) || normalized === "evidence/observed-evidence-v2.aggregate.json" || normalized === "evidence/track-b-host-bypass-2026-09-13.json" || normalized === "evidence/track-c-mcp-apps-2026-09-13.json";
 }
 
 export function isGeneratedArtifact(relativePath) {
   const normalized = relativePath.replaceAll("\\", "/");
-  return isGeneratedEvidence(normalized) || /^evidence\/(?:G\d+|R\d+)\.json$/i.test(normalized) || /^benchmarks\/results\/.*\.json$/i.test(normalized) || /^dist-release\/.*$/i.test(normalized) || normalized === "provenance/SBOM.cdx.json" || normalized === "docs/protocol-evidence.json" || normalized === "results.sarif";
+  return isGeneratedEvidence(normalized) || /^evidence\/(?:G\d+|R\d+)\.json$/i.test(normalized) || /^benchmarks\/results\/.*\.json$/i.test(normalized) || /^dogfood\/observed-tasks\/OT-\d+\.(?:paired-manifest|raw-result|result)\.json$/i.test(normalized) || /^dist-release\/.*$/i.test(normalized) || normalized === "provenance/SBOM.cdx.json" || normalized === "docs/protocol-evidence.json" || normalized === "results.sarif";
 }
 
 /** Hash the candidate source state without making generated PN evidence self-referential. */
