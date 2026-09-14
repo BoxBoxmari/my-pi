@@ -3,7 +3,7 @@
   "recordType": "observed-task-v2",
   "taskId": "OT-073",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-073.json",
-  "taskDefinitionCommit": "dc5d40766789efe9b34f01b52eeedeb56d09c904",
+  "taskDefinitionCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
   "registration": {
     "receiptPath": "dogfood/observed-registrations/OT-073.json"
   },
