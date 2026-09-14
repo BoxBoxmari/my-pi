@@ -3,11 +3,11 @@
   "recordType": "observed-task-v2",
   "taskId": "OT-031",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-031.json",
-  "taskDefinitionCommit": "60c06e1e5934f2eccada7a80522d2f14338e19a2",
+  "taskDefinitionCommit": "ce41a547a74ccbc236ceb2dedaede4a5d33dc0ec",
   "registration": {
     "receiptPath": "dogfood/observed-registrations/OT-031.json"
   },
-  "registeredAt": "2026-09-14T12:49:54.430Z",
+  "registeredAt": "2026-09-14T13:00:01.560Z",
   "title": "Repair a healthy recursive watcher that stopped bounded reconciliation",
   "taskClass": "PN8",
   "primaryHypothesis": "PN8",
@@ -100,6 +100,14 @@
     }
   },
   "requiredTests": [
+    {
+      "id": "independent-build",
+      "argv": [
+        "pnpm",
+        "build"
+      ],
+      "timeoutMs": 900000
+    },
     {
       "id": "code-state-independent-test",
       "argv": [
