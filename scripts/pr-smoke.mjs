@@ -34,14 +34,14 @@ function resolveWindowsCommand(command) {
 function quoteWindowsArg(value) {
   const text = String(value);
   if (/[&|<>^()%!`"\r\n]/.test(text)) throw new Error("unsafe Windows command argument");
-  return `"${text}"`;
+  if (text.length === 0) return "\"\"";
+  return /\s/.test(text) ? `"${text}"` : text;
 }
 
 function runShellCommand(command, args, options) {
   const executable = resolveWindowsCommand(command);
   if (process.platform === "win32" && /\.(cmd|bat)$/i.test(executable)) {
-    const quote = String.fromCharCode(34);
-    const commandLine = `${quote}${quote}${executable}${quote}${args.length > 0 ? ` ${args.map(quoteWindowsArg).join(" ")}` : ""}${quote}`;
+    const commandLine = `call ${quoteWindowsArg(executable)}${args.length > 0 ? ` ${args.map(quoteWindowsArg).join(" ")}` : ""}`;
     return execFileSync(process.env.ComSpec ?? process.env.comspec ?? "cmd.exe", ["/d", "/s", "/c", commandLine], {
       ...options,
       shell: false,

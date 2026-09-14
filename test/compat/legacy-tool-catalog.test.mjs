@@ -108,6 +108,21 @@ const EXPECTED_SCHEMAS = {
 function withoutSchemaMeta(schema) {
   const copy = structuredClone(schema);
   delete copy.$schema;
+  // Descriptions/titles are documentation-only (Glama Parameters dimension)
+  // and must not break catalog-compatibility: strip them recursively so the
+  // test asserts structural stability (types, required, limits, enums).
+  const stripDocs = (node) => {
+    if (Array.isArray(node)) {
+      for (const item of node) stripDocs(item);
+      return;
+    }
+    if (node !== null && typeof node === "object") {
+      delete node.description;
+      delete node.title;
+      for (const value of Object.values(node)) stripDocs(value);
+    }
+  };
+  stripDocs(copy);
   return copy;
 }
 

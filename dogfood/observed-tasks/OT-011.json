@@ -3,12 +3,12 @@
   "recordType": "observed-task-v2",
   "taskId": "OT-011",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-011.json",
-  "taskDefinitionCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
+  "taskDefinitionCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
   "registeredAt": "2026-09-13T00:00:00.000Z",
   "title": "ContextRouter accepts string impact work-item identifiers without dropping routed context",
   "taskClass": "PN6",
   "primaryHypothesis": "PN6",
-  "baseCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
+  "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
   "targetScope": {
     "include": [
       "packages/context-router/src/router.ts",
@@ -38,7 +38,7 @@
     "control": {
       "profileId": "my-pi-control-impact-off",
       "description": "Stable my-pi environment with impact-aware routing disabled.",
-      "baseCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
+      "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
       "worktreeKey": "OT-011-control",
       "sessionKey": "OT-011-control",
       "freshWorktree": true,
@@ -77,7 +77,7 @@
     "treatment": {
       "profileId": "my-pi-treatment-impact-on",
       "description": "Same stable my-pi environment with impact-aware routing enabled.",
-      "baseCommit": "a302a95f61a7cb2dce1111494cc5b0f4ac7fcd1b",
+      "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
       "worktreeKey": "OT-011-treatment",
       "sessionKey": "OT-011-treatment",
       "freshWorktree": true,

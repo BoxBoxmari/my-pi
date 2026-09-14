@@ -93,21 +93,40 @@ function assertTaskPreRegistered(root, task) {
   if (relative.startsWith("/") || relative.split("/").includes("..")) throw new Error("taskDefinitionPath must remain inside the repository");
   const committed = runGit(root, ["show", `${task.taskDefinitionCommit}:${relative}`]);
   const committedValue = JSON.parse(committed);
+  const currentBindingValues = [
+    task.taskDefinitionCommit,
+    task.baseCommit,
+    task.arms?.control?.baseCommit,
+    task.arms?.treatment?.baseCommit,
+  ];
+  const committedBindingValues = [
+    committedValue.taskDefinitionCommit,
+    committedValue.baseCommit,
+    committedValue.arms?.control?.baseCommit,
+    committedValue.arms?.treatment?.baseCommit,
+  ];
   const selfBound = task.taskDefinitionCommit.toLowerCase() === current.toLowerCase()
-    && (committedValue.taskDefinitionCommit !== task.taskDefinitionCommit || committedValue.baseCommit !== task.baseCommit);
+    && currentBindingValues.every((value) => value === current)
+    && committedBindingValues.some((value) => value !== task.taskDefinitionCommit);
   if (selfBound) {
-    for (const [label, commit] of [["committed task definition commit", committedValue.taskDefinitionCommit], ["committed base commit", committedValue.baseCommit]]) {
+    for (const [label, commit] of [
+      ["committed task definition commit", committedValue.taskDefinitionCommit],
+      ["committed task base commit", committedValue.baseCommit],
+      ["committed control base commit", committedValue.arms?.control?.baseCommit],
+      ["committed treatment base commit", committedValue.arms?.treatment?.baseCommit],
+    ]) {
       commitExists(root, commit, label);
       const registrationAncestor = runGit(root, ["merge-base", "--is-ancestor", commit, current], { allowFailure: true });
       if (registrationAncestor !== "") throw new Error("self-bound task definition must retain ancestor binding commits");
     }
-    const committedWithoutBinding = { ...committedValue };
-    const taskWithoutBinding = { ...task };
-    delete committedWithoutBinding.taskDefinitionCommit;
-    delete taskWithoutBinding.taskDefinitionCommit;
-    delete committedWithoutBinding.baseCommit;
-    delete taskWithoutBinding.baseCommit;
-    if (stableJson(committedWithoutBinding) !== stableJson(taskWithoutBinding)) throw new Error("task definition changed after preregistration");
+    const withoutBindings = (value) => {
+      const copy = JSON.parse(JSON.stringify(value));
+      delete copy.taskDefinitionCommit;
+      delete copy.baseCommit;
+      for (const armId of ["control", "treatment"]) if (copy.arms?.[armId]) delete copy.arms[armId].baseCommit;
+      return copy;
+    };
+    if (stableJson(withoutBindings(committedValue)) !== stableJson(withoutBindings(task))) throw new Error("task definition changed after preregistration");
   } else if (stableJson(committedValue) !== stableJson(task)) {
     throw new Error("task definition changed after preregistration");
   }

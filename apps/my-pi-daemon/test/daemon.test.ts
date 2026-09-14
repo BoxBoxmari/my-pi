@@ -232,6 +232,47 @@ test("PN4 IPC: join, intent, typed publication, and bounded sync use the daemon 
       worktreeId: "worktree-daemon-test",
     });
     assert.ok(snapshot.entities.some((entity) => entity.path === "README.md"));
+    const codeGraph = await client.graphSnapshot({
+      projectId: metadata.projectId,
+      kind: "code",
+      worktreeId: "worktree-daemon-test",
+      maxNodes: 8,
+      maxEdges: 16,
+    });
+    assert.equal(codeGraph.kind, "code");
+    assert.ok(codeGraph.nodes.some((node) => node.attributes?.path === "README.md"));
+    assert.ok(codeGraph.nodes.length <= 8);
+    const readmeNode = codeGraph.nodes.find((node) => node.attributes?.path === "README.md");
+    assert.ok(readmeNode);
+    const expanded = await client.graphExpand({ projectId: metadata.projectId, kind: "code", worktreeId: "worktree-daemon-test", nodeId: readmeNode.id, depth: 1, maxNodes: 4, maxEdges: 8 });
+    assert.equal(expanded.kind, "code");
+    assert.ok(expanded.nodes.some((node) => node.id === readmeNode.id));
+    assert.ok(expanded.nodes.length <= 4);
+    const trace = await client.graphTrace({ projectId: metadata.projectId, kind: "code", worktreeId: "worktree-daemon-test", fromNodeId: readmeNode.id, toNodeId: readmeNode.id, maxDepth: 1, maxNodes: 4, maxEdges: 8 });
+    assert.equal(trace.schemaVersion, "my-pi/graph-trace/v1");
+    assert.equal(trace.found, true);
+    assert.deepEqual(trace.nodes.map((node) => node.id), [readmeNode.id]);
+    const workGraph = await client.graphSnapshot({ projectId: metadata.projectId, kind: "work", maxNodes: 8, maxEdges: 16 });
+    assert.equal(workGraph.kind, "work");
+    assert.ok(workGraph.nodes.length <= 8);
+    const impactGraph = await client.graphSnapshot({ projectId: metadata.projectId, kind: "impact", subjectId: "missing-impact" });
+    assert.equal(impactGraph.kind, "impact");
+    assert.match(impactGraph.degraded?.reason ?? "", /not found/);
+    const lineageGraph = await client.graphSnapshot({ projectId: metadata.projectId, kind: "lineage", subjectId: "missing-lineage" });
+    assert.equal(lineageGraph.kind, "lineage");
+    assert.match(lineageGraph.degraded?.reason ?? "", /not found/);
+    const provenance = await client.provenanceReport({ projectId: metadata.projectId, worktreeId: "worktree-daemon-test", maxResults: 8 });
+    assert.equal(provenance.schemaVersion, "my-pi/provenance-report/v1");
+    assert.equal(provenance.results.length, 0);
+    assert.equal(provenance.degraded?.provider, "code-state");
+    await assert.rejects(
+      client.provenanceReport({ projectId: metadata.projectId, worktreeId: "worktree-daemon-test", maxResults: 0 }),
+      /maxResults is out of bounds/,
+    );
+    await assert.rejects(
+      client.graphSnapshot({ projectId: metadata.projectId, kind: "code", worktreeId: "worktree-daemon-test", maxNodes: 0 }),
+      /maxNodes is out of bounds/,
+    );
   } finally {
     if (daemon) await stopDaemon(daemon).catch(() => undefined);
     await rm(runtimeDir, { recursive: true, force: true });

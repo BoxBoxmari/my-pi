@@ -25,6 +25,18 @@ function refNameFromPath(ref) {
   return String(raw).replace(/\\/g, "/").replace(/^\.\.\//, "");
 }
 
+async function refPackageName(dir, ref) {
+  const raw = typeof ref === "string" ? ref : ref?.path ?? "";
+  try {
+    const referencedPackage = JSON.parse(await readFile(path.join(dir, raw, "package.json"), "utf8"));
+    const name = typeof referencedPackage.name === "string" ? referencedPackage.name : "";
+    if (name.startsWith("@ccr/") || name.startsWith("@my-pi/")) return name.replace(/^@(?:ccr|my-pi)\//, "");
+  } catch {
+    // Fall back to the path name for references without a package manifest.
+  }
+  return refNameFromPath(ref).split("/").filter(Boolean).pop();
+}
+
 async function checkOne(dir) {
   const pkgPath = path.join(dir, "package.json");
   const tsPath = path.join(dir, "tsconfig.json");
@@ -50,10 +62,10 @@ async function checkOne(dir) {
   );
   if (workspaceDeps.length === 0) return;
 
-  const refs = (tsconfig.references ?? []).map(refNameFromPath).filter(Boolean);
-  // Normalize: "../fs" -> "fs", "packages/fs" -> "fs"
+  // Prefer the referenced package manifest so app directories such as
+  // my-pi-ui can still provide the workspace package identity ui.
   const refNames = new Set(
-    refs.map((r) => r.split("/").filter(Boolean).pop()),
+    (await Promise.all((tsconfig.references ?? []).map((ref) => refPackageName(dir, ref)))).filter(Boolean),
   );
 
   for (const dep of workspaceDeps) {

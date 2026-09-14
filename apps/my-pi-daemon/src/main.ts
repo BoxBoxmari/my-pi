@@ -14,7 +14,7 @@ import {
   type PublishInput,
   type CoordinationSyncRequest,
 } from "@my-pi/coordination-runtime";
-import { CodeStateIndexer, type IndexContext } from "@my-pi/code-state";
+import { CodeStateIndexer, ProvenanceReconciler, type IndexContext, type ProvenanceReport } from "@my-pi/code-state";
 import { verifyReceipt } from "@my-pi/change-runtime";
 import { DeterministicProvider, EvaluationRuntime } from "@my-pi/evaluation-runtime";
 import {
@@ -30,6 +30,21 @@ import { IpcServer } from "./ipc-server.js";
 import { acquireProjectLock, ProjectAlreadyRunningError } from "./project-lock.js";
 import { CodeStateManager } from "./code-state-manager.js";
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
+import {
+  GRAPH_KINDS,
+  normalizeGraphSnapshot,
+  traceGraphSnapshot,
+  type GraphBounds,
+  type GraphKind,
+  type GraphSnapshot,
+} from "@my-pi/graph-model";
+import {
+  projectCodeGraph,
+  projectImpactGraph,
+  projectLineageGraph,
+  projectWorkGraph,
+} from "@my-pi/graph-projection";
+import type { ImpactResult } from "@my-pi/impact-engine";
 
 interface CliOptions {
   workspaceRoot?: string;
@@ -125,6 +140,149 @@ function assertProject(params: Record<string, unknown>, expectedProjectId: Proje
   if (projectId !== expectedProjectId) throw Object.assign(new Error("request project does not match this daemon"), { code: "ERR_PROJECT_NOT_FOUND" });
 }
 
+function graphKindParam(params: Record<string, unknown>): GraphKind {
+  const value = requiredString(params, "kind");
+  if (!GRAPH_KINDS.includes(value as GraphKind)) throw err.invalidArgument("graph kind is invalid");
+  return value as GraphKind;
+}
+
+function graphBoundsParam(params: Record<string, unknown>): Partial<GraphBounds> {
+  const bounds: Partial<GraphBounds> = {};
+  for (const [name, maximum] of [["maxNodes", 10_000], ["maxEdges", 50_000], ["maxAttributeBytes", 65_536]] as const) {
+    const value = params[name];
+    if (value === undefined) continue;
+    if (!Number.isSafeInteger(value) || (value as number) < 1 || (value as number) > maximum) throw err.invalidArgument(`${name} is out of bounds`);
+    bounds[name] = value as number;
+  }
+  return bounds;
+}
+
+function graphDepthParam(params: Record<string, unknown>): number {
+  const value = params.depth ?? 1;
+  if (!Number.isSafeInteger(value) || (value as number) < 1 || (value as number) > 8) throw err.invalidArgument("depth is out of bounds");
+  return value as number;
+}
+
+function degradedGraph(kind: GraphKind, bounds: Partial<GraphBounds>, reason: string): GraphSnapshot {
+  return normalizeGraphSnapshot({
+    graphVersion: `${kind}:v1`,
+    kind,
+    nodes: [],
+    edges: [],
+    bounds,
+    degraded: { provider: "coordination-store", reason },
+  });
+}
+
+async function projectionValues<T>(store: SqliteCoordinationStore, kind: string, projectId: ProjectId): Promise<T[]> {
+  return (await store.listProjections<T>(kind, projectId)).map((record) => record.value);
+}
+
+async function lineageSnapshot(store: SqliteCoordinationStore, projectId: ProjectId, subjectId: string, bounds: Partial<GraphBounds>): Promise<GraphSnapshot> {
+  let proposal = await store.getProjection<import("@my-pi/contracts").ChangeProposal>("change_proposal", subjectId);
+  let receipt = await store.getProjection<ChangeReceipt>("change_receipt", subjectId);
+  let evaluationRun = await store.getProjection<import("@my-pi/contracts").EvaluationRun>("evaluation_run", subjectId);
+  if (!proposal && receipt) proposal = await store.getProjection<import("@my-pi/contracts").ChangeProposal>("change_proposal", String(receipt.proposalId));
+  if (!receipt && proposal) {
+    receipt = (await projectionValues<ChangeReceipt>(store, "change_receipt", projectId)).find((candidate) => String(candidate.proposalId) === String(proposal?.id));
+  }
+  if (!evaluationRun && receipt) {
+    evaluationRun = (await projectionValues<import("@my-pi/contracts").EvaluationRun>(store, "evaluation_run", projectId)).find((candidate) => candidate.changeReceiptId === receipt?.id);
+  }
+  if (!evaluationRun && proposal?.intentId) {
+    evaluationRun = (await projectionValues<import("@my-pi/contracts").EvaluationRun>(store, "evaluation_run", projectId)).find((candidate) => candidate.intentId === proposal?.intentId);
+  }
+  const feedbackPacket = evaluationRun ? await store.getFeedbackPacket<import("@my-pi/contracts").FeedbackPacket>(projectId, String(evaluationRun.id)) : undefined;
+  const retryCycle = evaluationRun ? await store.getRetryCycle<import("@my-pi/contracts").RetryCycle>(projectId, String(evaluationRun.id)) : undefined;
+  const acceptance = evaluationRun ? await store.getEvaluationDecision<import("@my-pi/contracts").AcceptanceDecision>(projectId, String(evaluationRun.id)) : undefined;
+  const snapshot = projectLineageGraph({ proposal, receipt, evaluationRun, feedbackPacket, retryCycle, acceptance, bounds });
+  return proposal || receipt || evaluationRun
+    ? snapshot
+    : { ...snapshot, degraded: { provider: "coordination-store", reason: "lineage subject was not found" } };
+}
+
+async function buildGraphSnapshot(store: SqliteCoordinationStore, projectId: ProjectId, kind: GraphKind, params: Record<string, unknown>, bounds: Partial<GraphBounds>): Promise<GraphSnapshot> {
+  if (kind === "code") {
+    const state = await store.getCodeState(projectId, requiredString(params, "worktreeId"));
+    return projectCodeGraph({ entities: state.entities, edges: state.edges, bounds });
+  }
+  if (kind === "work") {
+    const [workItems, dependencies, intents, sessions] = await Promise.all([
+      projectionValues<import("@my-pi/contracts").WorkItem>(store, "work_item", projectId),
+      projectionValues<WorkDependency>(store, "work_dependency", projectId),
+      projectionValues<import("@my-pi/contracts").Intent>(store, "intent", projectId),
+      projectionValues<AgentSession>(store, "agent_session", projectId),
+    ]);
+    return projectWorkGraph({ workItems, dependencies, intents, sessions, bounds });
+  }
+  if (kind === "impact") {
+    const subjectId = optionalString(params, "subjectId");
+    if (!subjectId) return degradedGraph(kind, bounds, "impact graph requires subjectId");
+    const result = await store.getProjection<ImpactResult>("impact_result", subjectId);
+    if (!result) return degradedGraph(kind, bounds, "impact result was not found");
+    const intent = await store.getProjection<import("@my-pi/contracts").Intent>("intent", subjectId);
+    const session = intent ? await store.getProjection<AgentSession>("agent_session", String(intent.agentSessionId)) : undefined;
+    const codeState = session?.worktreeId ? await store.getCodeState(projectId, String(session.worktreeId)) : undefined;
+    const [workItems, sessions] = await Promise.all([
+      projectionValues<import("@my-pi/contracts").WorkItem>(store, "work_item", projectId),
+      projectionValues<AgentSession>(store, "agent_session", projectId),
+    ]);
+    return projectImpactGraph({ result, intent, entities: codeState?.entities, workItems, sessions, bounds });
+  }
+  return lineageSnapshot(store, projectId, requiredString(params, "subjectId"), bounds);
+}
+
+function expandGraphSnapshot(snapshot: GraphSnapshot, nodeId: string, depth: number, bounds: Partial<GraphBounds>): GraphSnapshot {
+  const nodeIds = new Set(snapshot.nodes.map((node) => node.id));
+  if (!nodeIds.has(nodeId)) return degradedGraph(snapshot.kind, bounds, "graph expansion node was not found in the bounded snapshot");
+  const adjacent = new Map<string, string[]>();
+  for (const edge of snapshot.edges) {
+    adjacent.set(edge.source, [...(adjacent.get(edge.source) ?? []), edge.target]);
+    adjacent.set(edge.target, [...(adjacent.get(edge.target) ?? []), edge.source]);
+  }
+  const selected = new Set([nodeId]);
+  let frontier = [nodeId];
+  for (let level = 0; level < depth; level++) {
+    const next: string[] = [];
+    for (const current of frontier) {
+      for (const candidate of [...(adjacent.get(current) ?? [])].sort()) {
+        if (!selected.has(candidate)) {
+          selected.add(candidate);
+          next.push(candidate);
+        }
+      }
+    }
+    frontier = next;
+    if (frontier.length === 0) break;
+  }
+  const nodes = snapshot.nodes.filter((node) => selected.has(node.id));
+  const edges = snapshot.edges.filter((edge) => selected.has(edge.source) && selected.has(edge.target));
+  return normalizeGraphSnapshot({
+    graphVersion: snapshot.graphVersion,
+    kind: snapshot.kind,
+    nodes,
+    edges,
+    bounds,
+    truncated: snapshot.truncated || nodes.length !== snapshot.nodes.length || edges.length !== snapshot.edges.length,
+    degraded: snapshot.degraded,
+  });
+}
+
+async function buildGraphTrace(store: SqliteCoordinationStore, projectId: ProjectId, kind: GraphKind, params: Record<string, unknown>, bounds: Partial<GraphBounds>) {
+  const snapshot = await buildGraphSnapshot(store, projectId, kind, params, {
+    maxNodes: 10_000,
+    maxEdges: 50_000,
+    maxAttributeBytes: bounds.maxAttributeBytes,
+  });
+  return traceGraphSnapshot({
+    snapshot,
+    fromNodeId: requiredString(params, "fromNodeId"),
+    toNodeId: requiredString(params, "toNodeId"),
+    maxDepth: graphDepthParam(params),
+    bounds,
+  });
+}
+
 function jsonEvent(event: { sequence: bigint; [key: string]: unknown }): Record<string, unknown> {
   return { ...event, sequence: event.sequence.toString() };
 }
@@ -203,7 +361,7 @@ async function writeMetadata(config: DaemonConfig, health: DaemonHealth): Promis
   }
 }
 
-async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], scheduleCodeStateRegistration?: ScheduleCodeStateRegistration): Promise<unknown> {
+async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], scheduleCodeStateRegistration?: ScheduleCodeStateRegistration, registerProvenanceReceipt?: (receipt: ChangeReceipt) => void, provenanceReport?: (input: { projectId: ProjectId; worktreeId: string; path?: string; maxResults?: number }) => ProvenanceReport): Promise<unknown> {
   const params = recordParams(request);
   switch (request.method) {
     case "health":
@@ -301,7 +459,9 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
     case "change_record": {
       const receipt = objectParam(params, "receipt") as unknown as ChangeReceipt;
       await verifyReceiptState(receipt, store, expectedProjectId);
-      return runtime.recordChangeReceipt(receipt);
+      const recorded = await runtime.recordChangeReceipt(receipt);
+      registerProvenanceReceipt?.(recorded);
+      return recorded;
     }
     case "code_state_index": {
       requireTestMode(request.method, testMode);
@@ -335,6 +495,30 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
     case "code_state_snapshot": {
       assertProject(params, expectedProjectId);
       return store.getCodeState(expectedProjectId, requiredString(params, "worktreeId"));
+    }
+    case "graph_snapshot": {
+      assertProject(params, expectedProjectId);
+      const kind = graphKindParam(params);
+      const bounds = graphBoundsParam(params);
+      return buildGraphSnapshot(store, expectedProjectId, kind, params, bounds);
+    }
+    case "graph_expand": {
+      assertProject(params, expectedProjectId);
+      const kind = graphKindParam(params);
+      const bounds = graphBoundsParam(params);
+      const snapshot = await buildGraphSnapshot(store, expectedProjectId, kind, params, { maxNodes: 10_000, maxEdges: 50_000, maxAttributeBytes: bounds.maxAttributeBytes });
+      return expandGraphSnapshot(snapshot, requiredString(params, "nodeId"), graphDepthParam(params), bounds);
+    }
+    case "graph_trace": {
+      assertProject(params, expectedProjectId);
+      return buildGraphTrace(store, expectedProjectId, graphKindParam(params), params, graphBoundsParam(params));
+    }
+    case "provenance_report": {
+      assertProject(params, expectedProjectId);
+      const maxResults = params.maxResults === undefined ? undefined : requiredNumber(params, "maxResults");
+      if (maxResults !== undefined && (!Number.isSafeInteger(maxResults) || maxResults < 1 || maxResults > 2_048)) throw err.invalidArgument("maxResults is out of bounds");
+      const result = provenanceReport?.({ projectId: expectedProjectId, worktreeId: requiredString(params, "worktreeId"), path: optionalString(params, "path"), maxResults });
+      return result ?? { schemaVersion: "my-pi/provenance-report/v1", projectId: expectedProjectId, worktreeId: requiredString(params, "worktreeId"), results: [], truncated: false, degraded: { provider: "code-state", reason: "provenance reporting is unavailable" } };
     }
     case "eval_register_spec":
       return evaluation.registerSpec({ name: requiredString(params, "name"), criteria: arrayParam(params, "criteria") as never, acceptancePolicy: params.acceptancePolicy as Partial<AcceptancePolicy> | undefined });
@@ -426,9 +610,9 @@ async function recordAudit(store: SqliteCoordinationStore, request: IpcRequest, 
   await store.appendAudit(record).catch(() => undefined);
 }
 
-async function handleRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], scheduleCodeStateRegistration?: ScheduleCodeStateRegistration): Promise<unknown> {
+async function handleRequest(request: IpcRequest, runtime: CoordinationRuntime, evaluation: EvaluationRuntime, store: SqliteCoordinationStore, health: () => DaemonHealth, expectedProjectId: ProjectId, testMode = false, daemonProject?: DaemonConfig["project"], scheduleCodeStateRegistration?: ScheduleCodeStateRegistration, registerProvenanceReceipt?: (receipt: ChangeReceipt) => void, provenanceReport?: (input: { projectId: ProjectId; worktreeId: string; path?: string; maxResults?: number }) => ProvenanceReport): Promise<unknown> {
   try {
-    const result = await dispatchRequest(request, runtime, evaluation, store, health, expectedProjectId, testMode, daemonProject, scheduleCodeStateRegistration);
+    const result = await dispatchRequest(request, runtime, evaluation, store, health, expectedProjectId, testMode, daemonProject, scheduleCodeStateRegistration, registerProvenanceReceipt, provenanceReport);
     await recordAudit(store, request, expectedProjectId, "OK");
     return result;
   } catch (error) {
@@ -451,6 +635,7 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
   const startedAt = new Date().toISOString();
   const store = new SqliteCoordinationStore(config.databasePath);
   const coordination = new CoordinationRuntime(store, config.projectId);
+  const provenance = new ProvenanceReconciler({ verifyReceipt });
   const codeStateManager = new CodeStateManager(store, {
     onReady: async (context) => {
       await coordination.refreshImpactsForWorktree(context.worktreeId);
@@ -462,7 +647,20 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
         actor: { kind: "system", name: "code-state-manager" },
         payload: { projectId: context.projectId, repositoryId: context.repositoryId, worktreeId: context.worktreeId, changedPath: delta.changedPath, entities: delta.entities.length, edges: delta.edges.length, providerHealth: delta.providerHealth },
       });
-      await coordination.refreshImpactsForWorktree(context.worktreeId);
+       await coordination.refreshImpactsForWorktree(context.worktreeId);
+      },
+    provenance,
+    onProvenance: async (result) => {
+      await store.appendAudit({
+        id: createEventId(),
+        projectId: result.projectId,
+        occurredAt: result.observedAt,
+        operation: "provenance_observed",
+        resourceRef: `${String(result.worktreeId)}:${result.path}`,
+        ...(result.receiptId === undefined ? {} : { changeRef: String(result.receiptId) }),
+        resultCode: `PROVENANCE_${result.status.toUpperCase()}`,
+        classification: result.status,
+      });
     },
   });
   const pendingCodeStateRegistrations = new Set<Promise<void>>();
@@ -529,7 +727,7 @@ export async function runDaemon(argv: string[] = process.argv.slice(2)): Promise
   });
   try {
     await store.init();
-    ipc = new IpcServer(config.endpoint, (request) => handleRequest(request, coordination, evaluation, store, health, config.projectId, options.testMode, config.project, scheduleCodeStateRegistration), config.maxFrameBytes, config.protocolVersion);
+    ipc = new IpcServer(config.endpoint, (request) => handleRequest(request, coordination, evaluation, store, health, config.projectId, options.testMode, config.project, scheduleCodeStateRegistration, (receipt) => provenance.registerReceipt(receipt), (input) => provenance.report(input)), config.maxFrameBytes, config.protocolVersion);
     await ipc.listen();
     lifecycle.set("ready");
     await writeMetadata(config, health());

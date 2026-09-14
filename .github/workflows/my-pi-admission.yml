@@ -1,0 +1,37 @@
+name: my-pi/admission
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  admission-report:
+    name: my-pi/admission
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec tsc --build packages/change-runtime/tsconfig.json
+      - name: Compute read-only admission report
+        run: >-
+          node scripts/verify-my-pi-admission.mjs
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.event.pull_request.head.sha }}"
+          --report-only
+          > my-pi-admission-report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my-pi-admission-report
+          path: my-pi-admission-report.json

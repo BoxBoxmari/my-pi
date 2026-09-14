@@ -1,5 +1,6 @@
 import net from "node:net";
 import { createRequestId } from "@my-pi/contracts";
+import type { GraphKind, GraphSnapshot, GraphTrace } from "@my-pi/graph-model";
 import { withBoundedRetry } from "./retry.js";
 import {
   decodeFrame,
@@ -17,6 +18,56 @@ export interface CoordinationClientOptions {
   clientInfo?: { name: string; version: string };
   timeoutMs?: number;
   maxAttempts?: number;
+}
+
+export interface GraphSnapshotRequest {
+  projectId: string;
+  kind: GraphKind;
+  worktreeId?: string;
+  subjectId?: string;
+  maxNodes?: number;
+  maxEdges?: number;
+  maxAttributeBytes?: number;
+  signal?: AbortSignal;
+}
+
+export interface GraphExpansionRequest extends GraphSnapshotRequest {
+  nodeId: string;
+  depth?: number;
+}
+
+export interface GraphTraceRequest extends GraphSnapshotRequest {
+  fromNodeId: string;
+  toNodeId: string;
+  maxDepth?: number;
+}
+
+export interface ProvenanceReportRequest {
+  projectId: string;
+  worktreeId: string;
+  path?: string;
+  maxResults?: number;
+  signal?: AbortSignal;
+}
+
+export interface ProvenanceReport {
+  schemaVersion: "my-pi/provenance-report/v1";
+  projectId: string;
+  worktreeId: string;
+  results: Array<{
+    projectId: string;
+    worktreeId: string;
+    path: string;
+    status: "managed" | "unmanaged" | "stale_lineage" | "unknown" | "exempt";
+    reasonCodes: string[];
+    observedAt: string;
+    receiptId?: string;
+    previous?: unknown;
+    current?: unknown;
+  }>;
+  truncated: boolean;
+  cursor?: { next: string };
+  degraded?: { provider: string; reason: string };
 }
 
 export class CoordinationClient {
@@ -40,8 +91,9 @@ export class CoordinationClient {
     return new CoordinationClient({ ...options, endpoint: metadata.endpoint });
   }
 
-  async call<T = unknown>(method: string, params: Record<string, unknown> = {}, idempotencyKey?: string): Promise<T> {
+  async call<T = unknown>(method: string, params: Record<string, unknown> = {}, idempotencyKey?: string, signal?: AbortSignal): Promise<T> {
     if (method === "eval" || method === "execute") throw new Error("generic IPC execution methods are not supported");
+    if (signal?.aborted) throw Object.assign(new Error("coordination IPC request aborted"), { code: "ERR_ABORTED", retryable: false });
     const request = {
       protocolVersion: this.protocolVersion,
       requestId: createRequestId(),
@@ -50,7 +102,7 @@ export class CoordinationClient {
       params,
       clientInfo: this.clientInfo,
     };
-    return withBoundedRetry(() => this.callOnce<T>(request), {
+    return withBoundedRetry(() => this.callOnce<T>(request, signal), {
       maxAttempts: this.maxAttempts,
       shouldRetry: (error) => Boolean((error as { retryable?: boolean }).retryable),
     });
@@ -60,20 +112,49 @@ export class CoordinationClient {
     return this.call("health");
   }
 
-  private async callOnce<T>(request: { requestId: string; [key: string]: unknown }): Promise<T> {
+  async graphSnapshot(input: GraphSnapshotRequest): Promise<GraphSnapshot> {
+    const { signal, ...params } = input;
+    return this.call<GraphSnapshot>("graph_snapshot", params as unknown as Record<string, unknown>, undefined, signal);
+  }
+
+  async graphExpand(input: GraphExpansionRequest): Promise<GraphSnapshot> {
+    const { signal, ...params } = input;
+    return this.call<GraphSnapshot>("graph_expand", params as unknown as Record<string, unknown>, undefined, signal);
+  }
+
+  async graphTrace(input: GraphTraceRequest): Promise<GraphTrace> {
+    const { signal, ...params } = input;
+    return this.call<GraphTrace>("graph_trace", params as unknown as Record<string, unknown>, undefined, signal);
+  }
+
+  async provenanceReport(input: ProvenanceReportRequest): Promise<ProvenanceReport> {
+    const { signal, ...params } = input;
+    return this.call<ProvenanceReport>("provenance_report", params as unknown as Record<string, unknown>, undefined, signal);
+  }
+
+  private async callOnce<T>(request: { requestId: string; [key: string]: unknown }, signal?: AbortSignal): Promise<T> {
     const frame = encodeFrame(request, MAX_IPC_FRAME_BYTES);
     return new Promise<T>((resolve, reject) => {
       const socket = net.createConnection(this.endpoint.address);
       let buffer = Buffer.alloc(0);
       let settled = false;
+      const onAbort = () => finish(Object.assign(new Error("coordination IPC request aborted"), { code: "ERR_ABORTED", retryable: false }));
       const finish = (error?: unknown, value?: T) => {
         if (settled) return;
         settled = true;
+        signal?.removeEventListener("abort", onAbort);
         socket.removeAllListeners();
         socket.destroy();
         if (error) reject(error);
         else resolve(value as T);
       };
+      if (signal) {
+        if (signal.aborted) {
+          onAbort();
+          return;
+        }
+        signal.addEventListener("abort", onAbort, { once: true });
+      }
       socket.setTimeout(this.timeoutMs, () => finish(Object.assign(new Error("coordination IPC request timed out"), { code: "ERR_DAEMON_UNAVAILABLE", retryable: true })));
       socket.on("error", (error) => finish(Object.assign(new Error(error.message), { code: "ERR_DAEMON_UNAVAILABLE", retryable: true, cause: error })));
       socket.on("data", (chunk: Buffer) => {

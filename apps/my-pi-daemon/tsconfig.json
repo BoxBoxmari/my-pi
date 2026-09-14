@@ -14,6 +14,9 @@
     { "path": "../../packages/coordination-runtime" },
     { "path": "../../packages/coordination-store" },
     { "path": "../../packages/evaluation-runtime" },
+    { "path": "../../packages/graph-model" },
+    { "path": "../../packages/graph-projection" },
+    { "path": "../../packages/impact-engine" },
     { "path": "../../packages/workspace-runtime" }
   ]
 }

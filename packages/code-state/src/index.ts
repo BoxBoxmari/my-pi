@@ -9,3 +9,4 @@ export * from "./lsp-provider.js";
 export * from "./vcs-provider.js";
 export * from "./indexer.js";
 export * from "./watcher.js";
+export * from "./provenance.js";

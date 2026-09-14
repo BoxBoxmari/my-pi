@@ -56,6 +56,15 @@ importers:
       '@my-pi/evaluation-runtime':
         specifier: workspace:*
         version: link:../../packages/evaluation-runtime
+      '@my-pi/graph-model':
+        specifier: workspace:*
+        version: link:../../packages/graph-model
+      '@my-pi/graph-projection':
+        specifier: workspace:*
+        version: link:../../packages/graph-projection
+      '@my-pi/impact-engine':
+        specifier: workspace:*
+        version: link:../../packages/impact-engine
       '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../../packages/workspace-runtime
@@ -90,9 +99,21 @@ importers:
       '@my-pi/mcp-adapter':
         specifier: workspace:*
         version: link:../../packages/mcp-adapter
+      '@my-pi/ui':
+        specifier: workspace:*
+        version: link:../my-pi-ui
       '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../../packages/workspace-runtime
+
+  apps/my-pi-ui:
+    dependencies:
+      '@my-pi/coordination-client':
+        specifier: workspace:*
+        version: link:../../packages/coordination-client
+      '@my-pi/graph-model':
+        specifier: workspace:*
+        version: link:../../packages/graph-model
 
   packages/artifact-store:
     dependencies:
@@ -158,6 +179,9 @@ importers:
       '@my-pi/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@my-pi/graph-model':
+        specifier: workspace:*
+        version: link:../graph-model
 
   packages/coordination-runtime:
     dependencies:
@@ -204,6 +228,20 @@ importers:
         specifier: workspace:*
         version: link:../workspace-runtime
 
+  packages/graph-model: {}
+
+  packages/graph-projection:
+    dependencies:
+      '@my-pi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@my-pi/graph-model':
+        specifier: workspace:*
+        version: link:../graph-model
+      '@my-pi/impact-engine':
+        specifier: workspace:*
+        version: link:../impact-engine
+
   packages/hashline:
     dependencies:
       '@my-pi/contracts':
@@ -239,6 +277,9 @@ importers:
       '@modelcontextprotocol/core':
         specifier: 2.0.0
         version: 2.0.0
+      '@modelcontextprotocol/ext-apps':
+        specifier: 2.0.0
+        version: 2.0.0(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/core@2.0.0)(@modelcontextprotocol/server@2.0.0)(zod@4.5.4)
       '@modelcontextprotocol/server':
         specifier: 2.0.0
         version: 2.0.0
@@ -532,9 +573,30 @@ packages:
     resolution: {integrity: sha512-pJCEwGG7Lfr/+PQp9ZTwKXNeO5wzbfKL7H3MYpCorM4oFBoQrdjnBgEoqG+RjhsvS1FKrDbKux+M1HhlnGWqcA==}
     engines: {node: '>=20'}
 
+  '@modelcontextprotocol/ext-apps@2.0.0':
+    resolution: {integrity: sha512-a6tXzFcIbIIdnqumQ7W8Oxd8W/KAPkAKYpoxpD9nDgxZ24ywgxG5pK/8G9W5pOFUygS7gWHQhPv8cwRB44/8yg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@modelcontextprotocol/client': ^2.0.0
+      '@modelcontextprotocol/core': ^2.0.0
+      '@modelcontextprotocol/server': ^2.0.0
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+      zod: ^4.2.0
+    peerDependenciesMeta:
+      '@modelcontextprotocol/server':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   '@modelcontextprotocol/server@2.0.0':
     resolution: {integrity: sha512-YhHWdHfpFMQfd0prsEnxKeS3Qz3ytIGmsS0sth4KDjnacIT7hxk6hXHkJ9KysxlkvTM+WZAtQbbcUhdoP4Hvtw==}
     engines: {node: '>=20'}
+
+  '@standard-schema/spec@1.1.0':
+    resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
   '@types/node@26.4.1':
     resolution: {integrity: sha512-k97ENvZWtvA6yqz5/FS6a7duDgOPEeOQOc2iKS/nY6mX6qJUKtLnWzQS+Xj6tXweyj6ZcTAK2Qecetnvi9nCLA==}
@@ -728,10 +790,21 @@ snapshots:
     dependencies:
       zod: 4.5.4
 
+  '@modelcontextprotocol/ext-apps@2.0.0(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/core@2.0.0)(@modelcontextprotocol/server@2.0.0)(zod@4.5.4)':
+    dependencies:
+      '@modelcontextprotocol/client': 2.0.0
+      '@modelcontextprotocol/core': 2.0.0
+      '@standard-schema/spec': 1.1.0
+      zod: 4.5.4
+    optionalDependencies:
+      '@modelcontextprotocol/server': 2.0.0
+
   '@modelcontextprotocol/server@2.0.0':
     dependencies:
       '@modelcontextprotocol/core': 2.0.0
       zod: 4.5.4
+
+  '@standard-schema/spec@1.1.0': {}
 
   '@types/node@26.4.1':
     dependencies:

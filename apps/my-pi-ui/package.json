@@ -1,0 +1,21 @@
+{
+  "name": "@my-pi/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "my-pi-ui": "./dist/main.js"
+  },
+  "dependencies": {
+    "@my-pi/coordination-client": "workspace:*",
+    "@my-pi/graph-model": "workspace:*"
+  }
+}

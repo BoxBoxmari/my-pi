@@ -3,12 +3,12 @@
   "recordType": "observed-task-v2",
   "taskId": "OT-021",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-021.json",
-  "taskDefinitionCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+  "taskDefinitionCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
   "registeredAt": "2026-09-14T07:59:23.188Z",
   "title": "Controlled replay of the recorded code-state health-metrics repair",
   "taskClass": "PN8",
   "primaryHypothesis": "PN8",
-  "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+  "baseCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
   "targetScope": {
     "include": [
       "apps/my-pi-daemon/src/code-state-manager.ts",
@@ -42,7 +42,7 @@
     "control": {
       "profileId": "my-pi-control-ordinary-feedback-replay",
       "description": "Controlled replay with ordinary failure-log guidance.",
-      "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+      "baseCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
       "worktreeKey": "OT-021-control",
       "sessionKey": "OT-021-control",
       "freshWorktree": true,
@@ -81,7 +81,7 @@
     "treatment": {
       "profileId": "my-pi-treatment-structured-feedback-replay",
       "description": "Controlled replay with the recorded structured FeedbackPacket shape.",
-      "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+      "baseCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
       "worktreeKey": "OT-021-treatment",
       "sessionKey": "OT-021-treatment",
       "freshWorktree": true,

@@ -5,3 +5,6 @@ export * from "./admission.js";
 export * from "./publication.js";
 export * from "./receipt.js";
 export * from "./runtime.js";
+export * from "./admission-subject.js";
+export * from "./attestation.js";
+export * from "./local-admission.js";

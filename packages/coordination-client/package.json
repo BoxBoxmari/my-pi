@@ -11,6 +11,7 @@
     }
   },
   "dependencies": {
-    "@my-pi/contracts": "workspace:*"
+    "@my-pi/contracts": "workspace:*",
+    "@my-pi/graph-model": "workspace:*"
   }
 }

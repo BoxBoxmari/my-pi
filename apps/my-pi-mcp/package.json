@@ -57,6 +57,7 @@
     "@my-pi/coordination-client": "workspace:*",
     "@my-pi/workspace-runtime": "workspace:*",
     "@my-pi/mcp-adapter": "workspace:*",
-    "@my-pi/host-profiles": "workspace:*"
+    "@my-pi/host-profiles": "workspace:*",
+    "@my-pi/ui": "workspace:*"
   }
 }

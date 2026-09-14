@@ -9,6 +9,7 @@ import { CoordinationClient, discoverProjectIdentity, resolveRuntimeDir } from "
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { createCoordinationCapabilities, createEvaluationCapabilities, createFoundationCapabilities, MyPiServer } from "@my-pi/mcp-adapter";
 import { COORDINATION_PROFILES, REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
+import { renderGraphViewHtml } from "@my-pi/ui";
 
 export interface CliOptions {
   command: "mcp" | "host-config";
@@ -19,6 +20,7 @@ export interface CliOptions {
   coordination?: boolean;
   evaluation?: boolean;
   coordinationRuntimeDir?: string;
+  visuals?: boolean;
 }
 
 function resolveWorkspaceRootFromEnv(): string | undefined {
@@ -41,6 +43,7 @@ export function parseArgs(argv: string[]): CliOptions {
   let coordination = false;
   let evaluation = false;
   let coordinationRuntimeDir: string | undefined;
+  let visuals = false;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--workspace") {
@@ -66,6 +69,8 @@ export function parseArgs(argv: string[]): CliOptions {
       coordination = true;
     } else if (arg === "--evaluation") {
       evaluation = true;
+    } else if (arg === "--visuals") {
+      visuals = true;
     } else if (arg === "--coordination-runtime-dir") {
       const value = args[i + 1];
       if (!value || value.startsWith("--")) throw new Error("--coordination-runtime-dir requires a path");
@@ -83,6 +88,7 @@ export function parseArgs(argv: string[]): CliOptions {
     ...(coordination ? { coordination: true } : {}),
     ...(evaluation ? { evaluation: true } : {}),
     ...(coordinationRuntimeDir === undefined ? {} : { coordinationRuntimeDir }),
+    ...(visuals ? { visuals: true } : {}),
   };
 }
 
@@ -108,6 +114,7 @@ export async function runMcp(
   coordination = false,
   evaluation = false,
   coordinationRuntimeDir?: string,
+  visuals = false,
 ): Promise<void> {
   const configuredRoot = workspace ?? resolveWorkspaceRootFromEnv();
   if (!configuredRoot && !allowCwd) {
@@ -124,21 +131,45 @@ export async function runMcp(
   console.error(`[my-pi] workspace=${path.resolve(root)} mode=${runtime.workspaceOrThrow.policy.mode} transport=stdio coordination=${coordination ? "enabled" : "disabled"} evaluation=${evaluation ? "enabled" : "disabled"}`);
 
   const capabilities = createFoundationCapabilities(runtime);
-  if (coordination || evaluation) {
-    const project = await discoverProjectIdentity(path.resolve(root));
-    const runtimeDir = resolveRuntimeDir(project.projectKey, coordinationRuntimeDir);
-    const client = await CoordinationClient.fromRuntimeDir(runtimeDir);
-    if (coordination) for (const [name, capability] of createCoordinationCapabilities(client)) capabilities.set(name, capability);
-    if (evaluation) for (const [name, capability] of createEvaluationCapabilities(client)) capabilities.set(name, capability);
+  let coordinationClient: CoordinationClient | undefined;
+  if (coordination || evaluation || visuals) {
+    try {
+      const project = await discoverProjectIdentity(path.resolve(root));
+      const runtimeDir = resolveRuntimeDir(project.projectKey, coordinationRuntimeDir);
+      coordinationClient = await CoordinationClient.fromRuntimeDir(runtimeDir);
+    } catch (error) {
+      if (coordination || evaluation) throw error;
+      console.error(`[my-pi] visuals degraded: coordination is unavailable (${error instanceof Error ? error.message : String(error)})`);
+    }
+    if (coordinationClient && coordination) for (const [name, capability] of createCoordinationCapabilities(coordinationClient)) capabilities.set(name, capability);
+    if (coordinationClient && evaluation) for (const [name, capability] of createEvaluationCapabilities(coordinationClient)) capabilities.set(name, capability);
   }
-  const server = new MyPiServer({ name: "my-pi", version: "0.1.0", runtime, capabilities });
+  const server = new MyPiServer({
+    name: "my-pi",
+    version: "0.1.0",
+    runtime,
+    capabilities,
+    visuals: visuals ? coordinationClient === undefined ? {
+      enabled: true,
+      supportedHost: false,
+      readHtml: () => "<html><body>my-pi visuals degraded: coordination is unavailable</body></html>",
+    } : {
+      enabled: true,
+      readHtml: async () => {
+        const health = await coordinationClient!.health() as { projectId: string };
+        const graph = await coordinationClient!.graphSnapshot({ projectId: health.projectId, kind: "code", maxNodes: 500, maxEdges: 1_000, maxAttributeBytes: 16_384 });
+        return renderGraphViewHtml({ sessionToken: "mcp-app", nonce: "mcp-app", initialSnapshot: graph });
+      },
+    } : undefined,
+  });
+  if (visuals && server.visualsStatus === "degraded") console.error("[my-pi] visuals degraded: host or coordination support is unavailable; baseline tools remain active");
   await server.connect();
 }
 
 export function main(argv: string[] = process.argv): Promise<void> {
   const opts = parseArgs(argv);
   if (opts.command === "host-config") return runHostConfig(opts.profileId);
-  return runMcp(opts.workspace, opts.allowCwd, opts.securityProfile, opts.coordination, opts.evaluation, opts.coordinationRuntimeDir);
+  return runMcp(opts.workspace, opts.allowCwd, opts.securityProfile, opts.coordination, opts.evaluation, opts.coordinationRuntimeDir, opts.visuals);
 }
 
 // Bin entry: run when executed directly, so importing the CLI for tests or

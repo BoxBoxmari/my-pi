@@ -7,6 +7,7 @@ import { Client } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/client";
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { MyPiServer, createFoundationCapabilities } from "@my-pi/mcp-adapter";
+import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 import { err, type Capability, type CapabilityContext } from "@my-pi/contracts";
 
 let dir: string;
@@ -49,6 +50,32 @@ test("G1: 13-tool surface is discoverable", async () => {
   ];
   assert.deepEqual(names, [...expected].sort());
   assert.equal(names.length, 13);
+});
+
+test("MCP Apps visuals are an opt-in resource and do not change the 13-tool catalog", async () => {
+  const visualServer = new MyPiServer({
+    name: "my-pi-visuals-test",
+    version: "0.0.1",
+    runtime,
+    capabilities: createFoundationCapabilities(runtime),
+    visuals: { enabled: true, readHtml: () => "<html>bounded graph</html>" },
+  });
+  assert.equal(visualServer.visualsStatus, "registered");
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  await visualServer.connect(serverTransport);
+  const visualClient = new Client({ name: "my-pi-visuals-client", version: "0.0.1" });
+  await visualClient.connect(clientTransport);
+  try {
+    const tools = await visualClient.listTools();
+    assert.equal(tools.tools.length, 13);
+    const resources = await visualClient.listResources();
+    assert.ok(resources.resources.some((resource) => resource.uri === "ui://my-pi/graph"));
+    const resource = await visualClient.readResource({ uri: "ui://my-pi/graph" });
+    assert.equal(resource.contents[0]?.mimeType, RESOURCE_MIME_TYPE);
+    assert.match(String(resource.contents[0]?.text), /bounded graph/);
+  } finally {
+    await visualClient.close();
+  }
 });
 
 test("G1: workspace_info returns normalized root", async () => {

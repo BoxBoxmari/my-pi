@@ -17,7 +17,13 @@
       "path": "packages/code-state"
     },
     {
+      "path": "packages/graph-model"
+    },
+    {
       "path": "packages/impact-engine"
+    },
+    {
+      "path": "packages/graph-projection"
     },
     {
       "path": "packages/context-router"
@@ -30,6 +36,9 @@
     },
     {
       "path": "apps/my-pi-daemon"
+    },
+    {
+      "path": "apps/my-pi-ui"
     },
     {
       "path": "packages/policy"

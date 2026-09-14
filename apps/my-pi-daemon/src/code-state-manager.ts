@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { CodeStateIndexer, CodeStateWatcher, type CodeGraphDelta, type CodeGraphSnapshot, type IndexContext } from "@my-pi/code-state";
-import type { ProjectId } from "@my-pi/contracts";
+import { CodeStateIndexer, CodeStateWatcher, ProvenanceReconciler, type CodeGraphDelta, type CodeGraphSnapshot, type IndexContext, type MutationProvenanceResult } from "@my-pi/code-state";
+import type { ProjectId, ResourceVersion } from "@my-pi/contracts";
 import type { CoordinationStore } from "@my-pi/coordination-store";
 
 const DEFAULT_MAX_WORKTREES = 64;
@@ -17,6 +17,9 @@ export interface CodeStateManagerOptions {
   reconcileMs?: number;
   watchPlatform?: NodeJS.Platform;
   onDelta?: (context: IndexContext, delta: CodeGraphDelta) => void | Promise<void>;
+  /** Observe source transitions without blocking or granting admission authority. */
+  provenance?: ProvenanceReconciler;
+  onProvenance?: (result: MutationProvenanceResult) => void | Promise<void>;
   onReady?: (context: IndexContext) => void | Promise<void>;
   onError?: (context: IndexContext, error: unknown) => void | Promise<void>;
 }
@@ -132,8 +135,15 @@ export class CodeStateManager {
       const current = new Set(paths);
       const removed = [...managed.knownPaths].filter((knownPath) => !current.has(knownPath));
       if (removed.length > 0) {
+        const before = managed.indexer.snapshot();
         const deltas = await managed.indexer.invalidate(managed.context, removed);
         if (notify) for (const delta of deltas) await this.emitDelta(managed.context, delta);
+        const after = managed.indexer.snapshot();
+        if (notify) {
+          for (const removedPath of removed) {
+            if (fileStateChanged(before, after, removedPath)) await this.emitProvenance(managed.context, removedPath, { path: removedPath, absent: true });
+          }
+        }
       }
       await this.applyPaths(managed, paths, notify);
       managed.knownPaths = current;
@@ -149,21 +159,40 @@ export class CodeStateManager {
     for (const filePath of unique) {
       const resolved = await managed.context.resolveReadPath(filePath);
       if (!resolved.exists) {
+        const before = managed.indexer.snapshot();
         const deltas = await managed.indexer.invalidate(managed.context, [resolved.relPosix]);
         managed.knownPaths.delete(resolved.relPosix);
         if (notify) for (const delta of deltas) await this.emitDelta(managed.context, delta);
+        const after = managed.indexer.snapshot();
+        if (notify && fileStateChanged(before, after, resolved.relPosix)) await this.emitProvenance(managed.context, resolved.relPosix, { path: resolved.relPosix, absent: true });
         continue;
       }
       const before = managed.indexer.snapshot();
       const delta = await managed.indexer.indexFile(managed.context, resolved.relPosix);
       managed.knownPaths.add(resolved.relPosix);
       const after = managed.indexer.snapshot();
-      if (notify && fileStateChanged(before, after, resolved.relPosix)) await this.emitDelta(managed.context, delta);
+      if (notify && fileStateChanged(before, after, resolved.relPosix)) {
+        await this.emitDelta(managed.context, delta);
+        await this.emitProvenance(managed.context, resolved.relPosix, fileVersion(after, resolved.relPosix));
+      }
     }
   }
 
   private async emitDelta(context: IndexContext, delta: CodeGraphDelta): Promise<void> {
     if (this.options.onDelta) await this.options.onDelta(context, delta);
+  }
+
+  private async emitProvenance(context: IndexContext, relativePath: string, current: ResourceVersion): Promise<void> {
+    const reconciler = this.options.provenance;
+    if (!reconciler) return;
+    const result = reconciler.observe({
+      projectId: context.projectId,
+      worktreeId: context.worktreeId,
+      path: relativePath,
+      current,
+      observedAt: new Date().toISOString(),
+    });
+    if (this.options.onProvenance) await this.options.onProvenance(result);
   }
 
   private markError(managed: ManagedWorktree, error: unknown): void {
@@ -187,6 +216,15 @@ function fileStateChanged(before: CodeGraphSnapshot, after: CodeGraphSnapshot, r
   const previousFingerprint = previous.fingerprint ? `${previous.fingerprint.algorithm}:${previous.fingerprint.digest}:${previous.fingerprint.size}` : "";
   const currentFingerprint = current.fingerprint ? `${current.fingerprint.algorithm}:${current.fingerprint.digest}:${current.fingerprint.size}` : "";
   return previousFingerprint !== currentFingerprint;
+}
+
+function fileVersion(snapshot: CodeGraphSnapshot, relativePath: string): ResourceVersion {
+  const entity = snapshot.entities.find((candidate) => candidate.kind === "file" && candidate.path === relativePath);
+  return {
+    path: relativePath,
+    absent: entity === undefined,
+    ...(entity?.fingerprint === undefined ? {} : { fingerprint: entity.fingerprint }),
+  };
 }
 
 function boundedOption(value: number, minimum: number, maximum: number, name: string): number {

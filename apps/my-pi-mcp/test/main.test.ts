@@ -11,6 +11,16 @@ test("CLI accepts explicit workspace and stdio transport", () => {
   });
 });
 
+test("CLI keeps visuals opt-in and records the requested capability", () => {
+  assert.deepEqual(parseArgs(["node", "main", "--workspace", "C:/project", "--visuals"]), {
+    command: "mcp",
+    workspace: "C:/project",
+    allowCwd: false,
+    securityProfile: "read-only",
+    visuals: true,
+  });
+});
+
 test("CLI requires workspace authority unless --allow-cwd is explicit", () => {
   const previous = process.env.MY_PI_WORKSPACE_ROOT;
   const previousLegacy = process.env.CCR_WORKSPACE_ROOT;

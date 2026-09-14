@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { createProjectId, createRepositoryId, createWorktreeId, fingerprintBytes } from "@my-pi/contracts";
 import { SqliteCoordinationStore } from "@my-pi/coordination-store";
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
-import type { IndexContext } from "@my-pi/code-state";
+import { ProvenanceReconciler, type IndexContext } from "@my-pi/code-state";
 import { CodeStateManager } from "../dist/code-state-manager.js";
 
 async function makeContext(root: string, projectId: string, repositoryId: string, worktreeId: string): Promise<IndexContext> {
@@ -53,7 +53,16 @@ test("PN5 daemon code-state is live, worktree-aware, and policy-authorized", asy
   const store = new SqliteCoordinationStore(path.join(root, "coordination.sqlite"));
   await store.init();
   let deltaCount = 0;
-  const manager = new CodeStateManager(store, { initialFileLimit: 100, reconcileFileLimit: 100, reconcileMs: 10, watchPlatform: "win32", onDelta: () => { deltaCount++; } });
+  const provenanceResults: Array<{ path: string; status: string; reasonCodes: string[] }> = [];
+  const manager = new CodeStateManager(store, {
+    initialFileLimit: 100,
+    reconcileFileLimit: 100,
+    reconcileMs: 10,
+    watchPlatform: "win32",
+    provenance: new ProvenanceReconciler(),
+    onDelta: () => { deltaCount++; },
+    onProvenance: (result) => { provenanceResults.push({ path: result.path, status: result.status, reasonCodes: result.reasonCodes }); },
+  });
   try {
     await manager.register(contextA);
     await manager.register(contextB);
@@ -82,6 +91,9 @@ test("PN5 daemon code-state is live, worktree-aware, and policy-authorized", asy
     });
     const deltaCountAfterChange = deltaCount;
     assert.ok(deltaCountAfterChange > 0);
+    await waitFor(async () => provenanceResults.some((result) => result.path === samePath));
+    const provenance = provenanceResults.find((result) => result.path === samePath);
+    assert.deepEqual(provenance, { path: samePath, status: "unmanaged", reasonCodes: ["receipt_missing"] });
     await new Promise((resolve) => setTimeout(resolve, 250));
     assert.equal(deltaCount, deltaCountAfterChange);
     const unchangedA = await manager.snapshot(projectId, contextA.worktreeId);
