@@ -46,7 +46,7 @@ function routeMetrics(selected, groundTruth) {
 
 
 function sha256Text(value) {
-  return "sha256:" + createHash("sha256").update(value, "utf8").digest("hex");
+  return "sha256:" + createHash("sha256").update(value.replaceAll("\r\n", "\n"), "utf8").digest("hex");
 }
 
 async function evaluateControlledReplay(task, marker) {
@@ -64,7 +64,7 @@ async function evaluateControlledReplay(task, marker) {
       && observed?.path === patch.path
       && typeof observed.sourceBefore === "string"
       && typeof observed.sourceAfter === "string"
-      && (!patch.expectedAfterHash || observed.sourceAfter === patch.expectedAfterHash);
+      && (!patch.expectedAfterHash || (observed.sourceAfterCanonical ?? observed.sourceAfter) === patch.expectedAfterHash);
   });
   const finalChecks = Array.isArray(workload.finalChecks) ? workload.finalChecks : [];
   const sourceChecks = [];

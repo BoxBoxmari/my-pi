@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from "node:crypto";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -61,21 +62,39 @@ async function readSnapshot(client, relativePath) {
   return call(client, "fs_read", { path: relativePath, start_line: 1, end_line: 200_000 });
 }
 
+
+function canonicalHash(value) {
+  return "sha256:" + createHash("sha256").update(value.replaceAll("\r\n", "\n"), "utf8").digest("hex");
+}
+
 async function applyPatches(client, patches, phase, history) {
   for (const patch of patches) {
     if (!patch || typeof patch.path !== "string" || typeof patch.old !== "string" || typeof patch.new !== "string") throw new Error(phase + " patch is incomplete");
     const snapshot = await readSnapshot(client, patch.path);
+    let oldText = patch.old;
+    let newText = patch.new;
+    let lineEndingMode = "lf";
+    if (!snapshot.content.includes(oldText) && snapshot.content.includes(oldText.replaceAll("\n", "\r\n"))) {
+      oldText = oldText.replaceAll("\n", "\r\n");
+      newText = newText.replaceAll("\n", "\r\n");
+      lineEndingMode = "crlf";
+    }
+    if (!snapshot.content.includes(oldText)) throw new Error("predeclared patch anchor not found for " + patch.path + " (" + patch.id + ")");
     const patched = await call(client, "fs_patch", {
       path: patch.path,
       expected_hash: snapshot.content_hash,
-      patch: { hunks: [{ old: patch.old, new: patch.new }] },
+      patch: { hunks: [{ old: oldText, new: newText }] },
     });
+    const afterSnapshot = await readSnapshot(client, patch.path);
     history.push({
       phase,
       id: patch.id,
       path: patch.path,
+      lineEndingMode,
       sourceBefore: snapshot.content_hash,
       sourceAfter: patched.content_hash,
+      sourceBeforeCanonical: canonicalHash(snapshot.content),
+      sourceAfterCanonical: canonicalHash(afterSnapshot.content),
     });
   }
 }
