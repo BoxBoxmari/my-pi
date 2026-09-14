@@ -10,6 +10,7 @@
     "taskId",
     "taskDefinitionPath",
     "taskDefinitionCommit",
+    "registration",
     "registeredAt",
     "title",
     "taskClass",
@@ -334,7 +335,8 @@
         "evidenceKind": {
           "enum": [
             "observed_source_change",
-            "controlled_replay"
+            "controlled_replay",
+            "live_repair"
           ]
         },
         "failureReplay": {
@@ -408,6 +410,110 @@
           "items": {
             "$ref": "#/$defs/finalCheck"
           }
+        },
+        "heterogeneityKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frozenStateId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mutationMode": {
+          "enum": [
+            "treatment_only",
+            "shared_source_change"
+          ]
+        },
+        "evaluator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "routeRequirements",
+            "sourceChecks",
+            "repairPatches"
+          ],
+          "properties": {
+            "kind": {
+              "const": "measured_source_repair"
+            },
+            "routeRequirements": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "control",
+                "treatment"
+              ],
+              "properties": {
+                "control": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "treatment": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "sourceChecks": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "control",
+                "treatment"
+              ],
+              "properties": {
+                "control": {
+                  "$ref": "#/$defs/finalCheck"
+                },
+                "treatment": {
+                  "$ref": "#/$defs/finalCheck"
+                }
+              }
+            },
+            "repairPatches": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "control",
+                "treatment"
+              ],
+              "properties": {
+                "control": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/workloadPatch"
+                  }
+                },
+                "treatment": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/workloadPatch"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "registration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receiptPath"
+      ],
+      "properties": {
+        "receiptPath": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

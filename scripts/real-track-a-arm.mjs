@@ -156,7 +156,8 @@ export async function main(argv = process.argv.slice(2)) {
 
     if (typeof workload.targetPath !== "string" || !workload.patch) throw new Error("PN6 workload source patch is incomplete");
     const snapshot = await readSnapshot(client, workload.targetPath);
-    const patched = args.arm === "treatment"
+    const shouldMutate = workload.mutationMode === "shared_source_change" || args.arm === "treatment";
+    const patched = shouldMutate
       ? await call(client, "fs_patch", {
         path: workload.targetPath,
         expected_hash: snapshot.content_hash,
@@ -174,7 +175,7 @@ export async function main(argv = process.argv.slice(2)) {
       groundTruth: workload.groundTruth,
       sourceBefore: snapshot.content_hash,
       sourceAfter: patched.content_hash,
-      mutationAuthority: args.arm === "treatment" ? "official my-pi fs_patch with CAS expected_hash" : "official my-pi fs_read control baseline (no mutation)",
+      mutationAuthority: shouldMutate ? "official my-pi fs_patch with CAS expected_hash" : "official my-pi fs_read control baseline (no mutation)",
     });
     console.log(JSON.stringify({ ok: true, taskId: task.taskId, arm: args.arm, targetPath: workload.targetPath, sourceAfter: patched.content_hash, route }, null, 2));
     return 0;

@@ -5,16 +5,11 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { validateObservedTask } from "./validate-observed-task-v2.mjs";
+import { verifyObservedRegistration } from "./observed-registration-v2.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HEX = /^[0-9a-f]{40}$/i;
 const ALLOWED_COMMANDS = new Set(["node", "node.exe", "npm", "npm.cmd", "pnpm", "pnpm.cmd", "go", "go.exe", "cargo", "cargo.exe", "python", "python.exe"]);
-
-function stableJson(value) {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
-  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
-}
 
 function runGit(root, args, { allowFailure = false } = {}) {
   try {
@@ -78,59 +73,10 @@ function declaredCommands(task, armId) {
   ];
 }
 
-function assertTaskPreRegistered(root, task) {
-  if (!HEX.test(task.taskDefinitionCommit)) throw new Error("taskDefinitionCommit is not a full commit SHA");
-  commitExists(root, task.baseCommit, "baseCommit");
-  const current = runGit(root, ["rev-parse", "HEAD"]);
-  runGit(root, ["cat-file", "-e", `${task.taskDefinitionCommit}^{commit}`]);
-  const ancestorCheck = runGit(root, ["merge-base", "--is-ancestor", task.taskDefinitionCommit, current], { allowFailure: true });
-  if (ancestorCheck !== "") {
-    // `git merge-base --is-ancestor` has no stdout; a non-empty result is not
-    // expected, but the command's exit status is the authoritative check.
-    throw new Error("task definition commit is not an ancestor of the current checkout");
-  }
-  const relative = task.taskDefinitionPath.replaceAll("\\", "/");
-  if (relative.startsWith("/") || relative.split("/").includes("..")) throw new Error("taskDefinitionPath must remain inside the repository");
-  const committed = runGit(root, ["show", `${task.taskDefinitionCommit}:${relative}`]);
-  const committedValue = JSON.parse(committed);
-  const currentBindingValues = [
-    task.taskDefinitionCommit,
-    task.baseCommit,
-    task.arms?.control?.baseCommit,
-    task.arms?.treatment?.baseCommit,
-  ];
-  const committedBindingValues = [
-    committedValue.taskDefinitionCommit,
-    committedValue.baseCommit,
-    committedValue.arms?.control?.baseCommit,
-    committedValue.arms?.treatment?.baseCommit,
-  ];
-  const selfBound = task.taskDefinitionCommit.toLowerCase() === current.toLowerCase()
-    && currentBindingValues.every((value) => value === current)
-    && committedBindingValues.some((value) => value !== task.taskDefinitionCommit);
-  if (selfBound) {
-    for (const [label, commit] of [
-      ["committed task definition commit", committedValue.taskDefinitionCommit],
-      ["committed task base commit", committedValue.baseCommit],
-      ["committed control base commit", committedValue.arms?.control?.baseCommit],
-      ["committed treatment base commit", committedValue.arms?.treatment?.baseCommit],
-    ]) {
-      commitExists(root, commit, label);
-      const registrationAncestor = runGit(root, ["merge-base", "--is-ancestor", commit, current], { allowFailure: true });
-      if (registrationAncestor !== "") throw new Error("self-bound task definition must retain ancestor binding commits");
-    }
-    const withoutBindings = (value) => {
-      const copy = JSON.parse(JSON.stringify(value));
-      delete copy.taskDefinitionCommit;
-      delete copy.baseCommit;
-      for (const armId of ["control", "treatment"]) if (copy.arms?.[armId]) delete copy.arms[armId].baseCommit;
-      return copy;
-    };
-    if (stableJson(withoutBindings(committedValue)) !== stableJson(withoutBindings(task))) throw new Error("task definition changed after preregistration");
-  } else if (stableJson(committedValue) !== stableJson(task)) {
-    throw new Error("task definition changed after preregistration");
-  }
-  return current;
+async function assertTaskPreRegistered(root, task, runAt) {
+  const registration = await verifyObservedRegistration(root, task, { runStartedAt: runAt });
+  if (!registration.ok) throw new Error("task registration verification failed: " + registration.errors.join("; "));
+  return registration.currentCommit;
 }
 
 export function buildPairedManifest(task, { currentCommit = task.taskDefinitionCommit, runAt = "2026-09-13T00:00:00.000Z", execute = false, stableAuthorityCommit } = {}) {
@@ -309,13 +255,13 @@ export async function main(argv = process.argv.slice(2)) {
   const root = path.resolve(args.root);
   const taskPath = path.resolve(root, args.task);
   const task = JSON.parse(await readFile(taskPath, "utf8"));
-  const currentCommit = assertTaskPreRegistered(root, task);
+  const runAt = args.run_at ?? new Date().toISOString();
+  const currentCommit = await assertTaskPreRegistered(root, task, runAt);
   if (task.contaminationControls?.stableAuthorityRequired === true) {
     if (!args.stable_authority_sha || !HEX.test(args.stable_authority_sha)) throw new Error("--stable-authority-sha is required when stableAuthorityRequired is true");
     commitExists(root, args.stable_authority_sha, "stable authority commit");
     if (args.stable_authority_sha.toLowerCase() === currentCommit.toLowerCase()) throw new Error("stable authority commit must differ from the current candidate commit");
   }
-  const runAt = args.run_at ?? new Date().toISOString();
   const manifest = buildPairedManifest(task, { currentCommit, runAt, execute: args.execute, stableAuthorityCommit: args.stable_authority_sha });
   if (args.execute) await executeManifest(manifest, task, root, args.keepWorktrees);
   const output = path.resolve(root, args.output ?? path.join("dogfood", "observed-tasks", `${task.taskId}.paired-manifest.json`));

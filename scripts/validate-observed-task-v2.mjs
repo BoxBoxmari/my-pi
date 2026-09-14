@@ -84,6 +84,33 @@ function validateWorkloadPatch(errors, patch, label) {
   if (patch.expectedAfterHash !== undefined) digest(errors, patch.expectedAfterHash.replace(/^sha256:/, ""), label + ".expectedAfterHash");
 }
 
+function validateFinalCheck(errors, check, label) {
+  add(errors, isObject(check), label + " must be an object");
+  if (!isObject(check)) return;
+  string(errors, check.path, label + ".path");
+  if (check.expectedHash !== undefined) add(errors, typeof check.expectedHash === "string" && /^sha256:[0-9a-f]{64}$/i.test(check.expectedHash), label + ".expectedHash is invalid");
+  if (check.includes !== undefined) add(errors, Array.isArray(check.includes) && check.includes.every((value) => typeof value === "string"), label + ".includes must be an array of strings");
+  if (check.excludes !== undefined) add(errors, Array.isArray(check.excludes) && check.excludes.every((value) => typeof value === "string"), label + ".excludes must be an array of strings");
+}
+
+function validatePN6Evaluator(errors, evaluator) {
+  add(errors, isObject(evaluator), "PN6 workload.evaluator must be an object");
+  if (!isObject(evaluator)) return;
+  add(errors, evaluator.kind === "measured_source_repair", "PN6 workload.evaluator.kind must be measured_source_repair");
+  add(errors, isObject(evaluator.routeRequirements), "PN6 evaluator.routeRequirements must be an object");
+  add(errors, isObject(evaluator.sourceChecks), "PN6 evaluator.sourceChecks must be an object");
+  add(errors, isObject(evaluator.repairPatches), "PN6 evaluator.repairPatches must be an object");
+  for (const armId of ARM_IDS) {
+    const routes = evaluator.routeRequirements?.[armId];
+    add(errors, Array.isArray(routes) && routes.every((value) => typeof value === "string" && value.length > 0), "PN6 evaluator.routeRequirements." + armId + " must be a string array");
+    validateFinalCheck(errors, evaluator.sourceChecks?.[armId], "PN6 evaluator.sourceChecks." + armId);
+    const patches = evaluator.repairPatches?.[armId];
+    add(errors, Array.isArray(patches), "PN6 evaluator.repairPatches." + armId + " must be an array");
+    if (Array.isArray(patches)) patches.forEach((patch, index) => validateWorkloadPatch(errors, patch, "PN6 evaluator.repairPatches." + armId + "[" + index + "]"));
+  }
+  add(errors, Array.isArray(evaluator.repairPatches?.control) && evaluator.repairPatches.control.length > 0, "PN6 evaluator.control repairPatches must contain a preregistered repair");
+}
+
 function validateWorkload(errors, workload, taskClass) {
   if (workload === undefined) return;
   add(errors, isObject(workload), "workload must be an object");
@@ -95,6 +122,8 @@ function validateWorkload(errors, workload, taskClass) {
   if (taskClass === "PN6") {
     add(errors, workload.evidenceKind === "observed_source_change", "PN6 workload.evidenceKind must be observed_source_change");
     string(errors, workload.heterogeneityKey, "PN6 workload.heterogeneityKey");
+    if (workload.mutationMode !== undefined) add(errors, ["treatment_only", "shared_source_change"].includes(workload.mutationMode), "PN6 workload.mutationMode is invalid");
+    if (workload.evaluator !== undefined) validatePN6Evaluator(errors, workload.evaluator);
   }
   if (taskClass !== "PN8") return;
   add(errors, ["controlled_replay", "live_repair"].includes(workload.evidenceKind), "PN8 workload.evidenceKind must be controlled_replay or live_repair");

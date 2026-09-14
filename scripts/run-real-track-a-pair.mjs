@@ -146,6 +146,15 @@ export async function main(argv = process.argv.slice(2)) {
     const allCommandsPassed = rawResult.arms.every((arm) => arm.commands.every((command) => command.status === "passed"));
     const allReportsAccepted = reports.every((report) => report.accepted);
     const evaluatorRunId = "eval-" + sha256(JSON.stringify(reports)).slice(0, 16);
+    const measurementEvidence = task.taskClass === "PN6"
+      ? {
+        evaluatorMode: "independent-command-output",
+        armRuns: Object.fromEntries(reports.map((report) => {
+          const arm = manifest.arms.find((candidate) => candidate.armId === report.arm);
+          return [report.arm, { runId: arm?.runId, evaluatorRunId, repairIterations: report.metrics?.repair_iterations, accepted: report.accepted }];
+        })),
+      }
+      : undefined;
     const result = {
       ...rawResult,
       taskClass: task.taskClass,
@@ -154,6 +163,7 @@ export async function main(argv = process.argv.slice(2)) {
       status: allCommandsPassed && allReportsAccepted ? "COMPLETED" : "FAILED",
       runCompletedAt: new Date().toISOString(),
       measurements: buildMeasurements(task, reports),
+      ...(measurementEvidence ? { measurementEvidence } : {}),
       adjudication: {
         independent: true,
         evaluatorRunId,
