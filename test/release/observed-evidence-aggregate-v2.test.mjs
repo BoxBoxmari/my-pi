@@ -65,8 +65,8 @@ function result(taskId, { accepted = true, treatment = 2 } = {}) {
       },
     },
     repairSessions: isPN8 ? [
-      { armId: "control", sessionId: `${taskId}-control-session`, worktreeId: `${taskId}-control-worktree`, frozenStateDigest: DIGEST, feedbackMode: "ordinary_log", attempts: 1, accepted: true, priorPassesPreserved: true, regressions: 0, falseAccepts: 0 },
-      { armId: "treatment", sessionId: `${taskId}-treatment-session`, worktreeId: `${taskId}-treatment-worktree`, frozenStateDigest: DIGEST, feedbackMode: "structured_feedback_packet", attempts: 1, accepted: true, priorPassesPreserved: true, regressions: 0, falseAccepts: 0 },
+      { armId: "control", sessionId: `${taskId}-control-session`, worktreeId: `${taskId}-control-worktree`, frozenStateDigest: DIGEST, feedbackMode: "ordinary_log", attempts: 1, initialFailureObserved: true, repairPatchIds: [`${taskId}-repair`], evaluatorEvidence: "independent evaluator output", accepted: true, priorPassesPreserved: true, regressions: 0, falseAccepts: 0 },
+      { armId: "treatment", sessionId: `${taskId}-treatment-session`, worktreeId: `${taskId}-treatment-worktree`, frozenStateDigest: DIGEST, feedbackMode: "structured_feedback_packet", attempts: 1, initialFailureObserved: true, repairPatchIds: [`${taskId}-repair`], evaluatorEvidence: "independent evaluator output", accepted: true, priorPassesPreserved: true, regressions: 0, falseAccepts: 0 },
     ] : undefined,
     arms: [
       { armId: "control", runId: `run-${"2".repeat(16)}`, sessionId: `${taskId}-control-session`, worktreeId: `${taskId}-control-worktree`, baseCommit: BASE, sourceStateDigest: DIGEST, commands: [{ id: "profile", argv: ["node", "--version"], status: "passed", exitCode: 0 }, { id: "unit", argv: ["node", "--test", "test/release/observed-evidence-aggregate-v2.test.mjs"], status: "passed", exitCode: 0 }], contamination: { detected: false, reasons: [] } },
@@ -110,4 +110,13 @@ test("failed adjudication remains visible but is not qualified", () => {
   assert.equal(report.sample.qualifiedPairs, 0);
   assert.equal(report.pairs[0].qualified, false);
   assert.match(report.pairs[0].reasons.join("\n"), /adjudication outcome/);
+});
+
+test("PN8 rejects a repair record without measured initial failure", () => {
+  const taskRecord = task("OT-013", "PN8");
+  const resultRecord = result("OT-013");
+  resultRecord.repairSessions[0].initialFailureObserved = false;
+  const report = aggregateObservedEvidence([{ task: taskRecord, result: resultRecord, registration: verifiedRegistration() }], { minQualified: 1 });
+  assert.equal(report.pairs[0].qualified, false);
+  assert.match(report.pairs[0].reasons.join("\n"), /initial failure/);
 });

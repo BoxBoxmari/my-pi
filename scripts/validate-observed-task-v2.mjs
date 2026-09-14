@@ -367,6 +367,9 @@ function validateEvidenceShape(errors, result, task) {
         digest(errors, session.frozenStateDigest, label + ".frozenStateDigest");
         add(errors, ["ordinary_log", "structured_feedback_packet"].includes(session.feedbackMode), label + ".feedbackMode is invalid");
         add(errors, Number.isInteger(session.attempts) && session.attempts >= 1, label + ".attempts must be a positive integer");
+        add(errors, session.initialFailureObserved === true, label + ".initialFailureObserved must be true");
+        add(errors, Array.isArray(session.repairPatchIds) && session.repairPatchIds.length > 0 && session.repairPatchIds.every((value) => typeof value === "string" && value.length > 0), label + ".repairPatchIds must contain a non-empty repair identity");
+        string(errors, session.evaluatorEvidence, label + ".evaluatorEvidence");
         add(errors, session.accepted === true, label + ".accepted must be true for qualified live repair");
         add(errors, session.priorPassesPreserved === true, label + ".priorPassesPreserved must be true");
         add(errors, session.regressions === 0, label + ".regressions must be zero");

@@ -86,10 +86,22 @@ export async function verifyObservedRegistration(root, task, { runStartedAt } = 
     }
     registrationCommit = receiptLog;
     registrationTimestamp = await git(root, ["show", "-s", "--format=%cI", registrationCommit]);
+    const runTimestamp = runStartedAt ? Date.parse(runStartedAt) : undefined;
+    if (runStartedAt && !Number.isFinite(runTimestamp)) errors.push("runStartedAt must be a valid ISO-8601 timestamp");
+    const definitionTimestamp = await git(root, ["show", "-s", "--format=%cI", task.taskDefinitionCommit], { allowFailure: true });
+    if (!definitionTimestamp) errors.push("taskDefinitionCommit does not resolve to a Git commit");
+    else if (runTimestamp !== undefined && Date.parse(definitionTimestamp) > runTimestamp) errors.push("taskDefinitionCommit commit time must precede runStartedAt");
+    if (!FULL_SHA.test(task?.baseCommit ?? "")) {
+      errors.push("baseCommit is not a full commit SHA");
+    } else {
+      const baseTimestamp = await git(root, ["show", "-s", "--format=%cI", task.baseCommit], { allowFailure: true });
+      if (!baseTimestamp) errors.push("baseCommit does not resolve to a Git commit");
+      else if (runTimestamp !== undefined && Date.parse(baseTimestamp) > runTimestamp) errors.push("baseCommit commit time must precede runStartedAt");
+    }
     if (!(await isAncestor(root, registrationCommit, currentCommit))) errors.push("registration receipt commit is not an ancestor of current HEAD");
     if (!(await isAncestor(root, task.taskDefinitionCommit, registrationCommit))) errors.push("taskDefinitionCommit must be an ancestor of the registration receipt commit");
-    if (runStartedAt && Date.parse(registrationTimestamp) > Date.parse(runStartedAt)) errors.push("registration receipt commit must precede runStartedAt");
-    if (task.registeredAt && runStartedAt && Date.parse(task.registeredAt) > Date.parse(runStartedAt)) errors.push("task registeredAt must not follow runStartedAt");
+    if (runTimestamp !== undefined && Date.parse(registrationTimestamp) > runTimestamp) errors.push("registration receipt commit must precede runStartedAt");
+    if (task.registeredAt && runTimestamp !== undefined && Date.parse(task.registeredAt) > runTimestamp) errors.push("task registeredAt must not follow runStartedAt");
 
     const committedTask = await committedJson(root, registrationCommit, taskPath, "task definition");
     const committedReceipt = await committedJson(root, registrationCommit, receiptPath, "registration receipt");
