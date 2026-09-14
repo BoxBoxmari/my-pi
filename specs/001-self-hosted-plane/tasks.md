@@ -100,8 +100,8 @@ fixtures and inspect the named workflow result.
 
 ## Phase 7: Polish, Evidence, and Admission
 
-- [X] T040 [P] Run the current Track A/B/C tests, pnpm build, pnpm typecheck, release tests, and a reliable full verification profile. The current full suite reports 257 tests, 256 pass, 1 Windows platform skip, and 0 failures; Theater/graph/MCP Apps checks pass, while strict-host and supported-real-host qualification remain withheld.
-- [ ] T041 [P] Run CodeGraph sync/status, AGT integrity/policy checks, Spec Kit prerequisite checks, and official my-pi runtime probes. Current evidence: CodeGraph, Spec Kit, `agt --json verify`, xh doctor, and my-pi probes pass; the current `agt lint-policy` rejects the legacy `.agt/policy.json` shape and the integrity command has no workspace-root option.
+- [X] T040 [P] Run the current Track A/B/C tests, pnpm build, pnpm typecheck, release tests, and a reliable full verification profile. The current full suite reports 257 tests, 256 pass, 1 Windows platform skip, and 0 failures; Theater/graph/MCP Apps contract and live-connection checks pass, while host-side MCP Apps rendering and strict-host qualification remain withheld.
+- [ ] T041 [P] Run CodeGraph sync/status, AGT integrity/policy checks, Spec Kit prerequisite checks, and official my-pi runtime probes. Current evidence: CodeGraph sync/status, Spec Kit, `agt --json verify`, and my-pi probes pass; `agt lint-policy` rejects the legacy `.agt/policy.json` shape, `xh doctor` is red for README npm/pnpm drift (and skips the absent workflow), and the integrity command has no workspace-root option.
 - [X] T042 Record the current candidate aggregate and x-harness state as WITHHELD/BLOCKED in `.x-harness/self-hosted-track-a-completion-card.yaml`.
 - [ ] T043 Regenerate candidate-bound evidence, attestation, SBOM/release artifacts, and the completion card after the final authorized code commit.
 - [ ] T044 Run read-only `xh verify` at deep tier on the final candidate and accept only `admission.outcome: success` plus `acceptance_status: accepted`.
