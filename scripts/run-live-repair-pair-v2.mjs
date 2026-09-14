@@ -219,7 +219,7 @@ async function runArm(task, armId, runRoot, frozenDigest, runStartedAt) {
       feedback,
       repairHistory,
       finalAttempt: { commands: final.raw, summary: final.summary, accepted },
-      repairSession: { armId, sessionId, worktreeId, frozenStateDigest: frozenDigest, feedbackMode, attempts: 1, initialFailureObserved, accepted, priorPassesPreserved, regressions: accepted ? 0 : 1, falseAccepts: accepted && final.summary.fail === 0 ? 0 : 1, repairPatchIds: repairHistory.map((item) => item.id), evaluatorEvidence: "independent downstream command output after official my-pi repair" },
+      repairSession: { armId, sessionId, worktreeId, frozenStateDigest: frozenDigest, feedbackMode, attempts: 1, initialFailureObserved, accepted, priorPassesPreserved, regressions: priorPassesPreserved ? 0 : 1, falseAccepts: accepted && !final.allPassed ? 1 : 0, repairPatchIds: repairHistory.map((item) => item.id), evaluatorEvidence: "independent downstream command output after official my-pi repair" },
     };
   } finally {
     await client?.close().catch(() => undefined);
