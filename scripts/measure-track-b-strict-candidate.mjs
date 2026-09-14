@@ -15,7 +15,15 @@ const EVIDENCE_PATH = "evidence/track-b-strict-candidate-2026-09-15.json";
 const CONFIG_PATH = ".my-pi/track-b-strict-candidate-opencode-config.json";
 
 function run(root, command, args, options = {}) {
-  return execFileSync(command, args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], windowsHide: true, ...options });
+  const windowsCommandShim = process.platform === "win32" && /\.cmd$/i.test(command);
+  return execFileSync(command, args, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+    ...(windowsCommandShim ? { shell: true } : {}),
+    ...options,
+  });
 }
 
 async function connectMyPi() {
