@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-task-v2",
+  "taskId": "OT-035",
+  "taskDefinitionPath": "dogfood/observed-tasks/OT-035.json",
+  "taskDefinitionCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+  "registeredAt": "2026-09-14T13:44:39.245Z",
+  "title": "Measure ImpactEngine source repair after bounded package impact routing",
+  "taskClass": "PN6",
+  "primaryHypothesis": "PN6",
+  "baseCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+  "targetScope": {
+    "include": [
+      "packages/impact-engine/src/engine.ts",
+      "packages/impact-engine/test/impact.test.ts"
+    ],
+    "exclude": [
+      ".my-pi/**",
+      "node_modules/**"
+    ]
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "implementation",
+      "condition": "A repository-root package intent reaches both the target and its dependent entity."
+    },
+    {
+      "id": "downstream",
+      "condition": "The independent evaluator and predeclared downstream build/test command pass in both isolated arms."
+    },
+    {
+      "id": "measured-repair",
+      "condition": "The independent evaluator records the initial acceptance check and any predeclared official my-pi repair attempt from command output."
+    }
+  ],
+  "primaryVariable": {
+    "name": "impact-aware routing context",
+    "control": "impact-aware routing disabled; route only current work item",
+    "treatment": "impact-aware routing enabled; route current and impacted dependent work items"
+  },
+  "arms": {
+    "control": {
+      "profileId": "my-pi-control-impact-off",
+      "description": "Stable my-pi environment with impact-aware routing disabled.",
+      "baseCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+      "worktreeKey": "OT-035-control",
+      "sessionKey": "OT-035-control",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-035.json",
+            "--arm",
+            "control"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    },
+    "treatment": {
+      "profileId": "my-pi-treatment-impact-on",
+      "description": "Same stable my-pi environment with impact-aware routing enabled.",
+      "baseCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+      "worktreeKey": "OT-035-treatment",
+      "sessionKey": "OT-035-treatment",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-035.json",
+            "--arm",
+            "treatment"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    }
+  },
+  "requiredTests": [
+    {
+      "id": "independent-evaluator",
+      "argv": [
+        "node",
+        "scripts/evaluate-track-a-arm.mjs",
+        "--task",
+        "dogfood/observed-tasks/OT-035.json"
+      ],
+      "timeoutMs": 900000
+    }
+  ],
+  "environment": {
+    "hostFamily": "windows-node",
+    "modelFamily": "single-primary-agent",
+    "sameHostFamily": true,
+    "sameModelFamily": true
+  },
+  "adjudication": {
+    "independent": true,
+    "evaluator": "separate node evaluator process with official my-pi repair patches",
+    "groundTruth": "predeclared acceptance behavior plus evaluator assertions",
+    "requiredEvidence": [
+      "arm command exit codes",
+      "independent evaluator stdout",
+      "source mutation hashes",
+      "independent initial/final repair command output",
+      "official my-pi repair patch CAS history"
+    ]
+  },
+  "metrics": [
+    {
+      "id": "routing_recall",
+      "definition": "Fraction of predeclared relevant work items selected by the arm route.",
+      "role": "primary"
+    },
+    {
+      "id": "routing_precision",
+      "definition": "Fraction of selected work items that are predeclared relevant.",
+      "role": "secondary"
+    },
+    {
+      "id": "selected_items",
+      "definition": "Count of work items in the arm route.",
+      "role": "secondary"
+    },
+    {
+      "id": "downstream_pass",
+      "definition": "Independent evaluator acceptance as 1 or 0.",
+      "role": "secondary"
+    },
+    {
+      "id": "repair_iterations",
+      "definition": "Independent evaluator iterations required for accepted result.",
+      "role": "secondary"
+    }
+  ],
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json"
+    ]
+  },
+  "workload": {
+    "targetPath": "packages/impact-engine/src/engine.ts",
+    "patch": {
+      "old": "      return entityPath === normalizePath(scope.value) || entityPath.startsWith(`${normalizePath(scope.value)}/`);",
+      "new": "      return scope.value === \".\" || entityPath === normalizePath(scope.value) || entityPath.startsWith(`${normalizePath(scope.value)}/`);"
+    },
+    "groundTruth": [
+      "work-track-a-012",
+      "dependent-test"
+    ],
+    "controlRoute": [
+      "work-track-a-012"
+    ],
+    "treatmentRoute": [
+      "work-track-a-012",
+      "dependent-test"
+    ],
+    "mutationMode": "shared_source_change",
+    "heterogeneityKey": "impact-engine-package-scope",
+    "evaluator": {
+      "kind": "measured_source_repair",
+      "routeRequirements": {
+        "control": [
+          "work-track-a-012"
+        ],
+        "treatment": [
+          "work-track-a-012",
+          "dependent-test"
+        ]
+      },
+      "sourceChecks": {
+        "control": {
+          "path": "packages/impact-engine/test/impact.test.ts",
+          "includes": [
+            "// PN6 measured repair marker OT-035"
+          ]
+        },
+        "treatment": {
+          "path": "packages/impact-engine/src/engine.ts",
+          "includes": [
+            "scope.value === \".\""
+          ]
+        }
+      },
+      "repairPatches": {
+        "control": [
+          {
+            "id": "repair-source-change-OT-035",
+            "path": "packages/impact-engine/test/impact.test.ts",
+            "old": "test(\"PN6 finds bounded downstream impact with deterministic reasons\", () => {",
+            "new": "test(\"PN6 finds bounded downstream impact with deterministic reasons\", () => {\n// PN6 measured repair marker OT-035"
+          }
+        ],
+        "treatment": []
+      }
+    },
+    "evidenceKind": "observed_source_change"
+  },
+  "registration": {
+    "receiptPath": "dogfood/observed-registrations/OT-035.json"
+  }
+}
