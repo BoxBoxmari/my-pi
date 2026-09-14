@@ -57,8 +57,8 @@ paths in observe and strict/report modes.
 - [X] T020 [US2] Implement canonical Git admission subjects in `packages/change-runtime/src/admission-subject.ts` and `scripts/admission-git.mjs`.
 - [X] T021 [US2] Implement Ed25519 attestation and local report decisions in `packages/change-runtime/src/attestation.ts`, `packages/change-runtime/src/local-admission.ts`, and `scripts/verify-my-pi-admission.mjs`.
 - [X] T022 [US2] Add security and tamper tests in `packages/change-runtime/test/admission-subject.test.ts` and `packages/code-state/test/provenance.test.ts`.
-- [ ] T023 [US2] Seal a clean authorized candidate with `scripts/seal-my-pi-admission.mjs`, keep private keys outside the workspace, and verify a positive report-mode admission.
-- [X] T024 [US2] Run seeded direct-editor, shell, script, Git, stale-head, extra-path, wrong-key, and tampered-attestation bypass evidence on at least one host. Evidence: evidence/track-b-host-bypass-2026-09-13.json (sha256:2dc26d96eda1467d67b7de95661c4be56451e0b73578c45c64737f1968222759); all 11 vectors produced the expected report decisions, while strict host certification remains withheld.
+- [X] T023 [US2] Seal a clean authorized candidate with `scripts/seal-my-pi-admission.mjs`, keep private keys outside the workspace, and verify a positive report-mode admission. The final official my-pi Track B measurement records a valid managed candidate as `allowed`, with a valid Ed25519 attestation and no seal coverage rejection.
+- [X] T024 [US2] Run seeded direct-editor, shell, script, Git, stale-head, extra-path, wrong-key, and tampered-attestation bypass evidence on at least one host. Evidence: `evidence/track-b-host-bypass-2026-09-13.json`, written and read back through official my-pi; all 11 vectors produced the expected report decisions, while strict host certification remains withheld.
 
 ## Phase 5: User Story 3 - Explore Bounded Evidence Graphs (Priority: P2)
 
@@ -100,7 +100,7 @@ fixtures and inspect the named workflow result.
 
 ## Phase 7: Polish, Evidence, and Admission
 
-- [X] T040 [P] Run the current Track A/B/C tests, pnpm build, pnpm typecheck, release tests, and a reliable full verification profile. This continuation verified pnpm verify at exit 0: 250/251 unit tests passed with one platform skip, 81/81 release tests, 50 gate criteria valid, PR smoke passed, aggregate verification, and official my-pi evidence writes; Track B/C and a clean candidate remain outstanding.
+- [X] T040 [P] Run the current Track A/B/C tests, pnpm build, pnpm typecheck, release tests, and a reliable full verification profile. The current full suite reports 257 tests, 256 pass, 1 Windows platform skip, and 0 failures; Theater/graph/MCP Apps checks pass, while strict-host and supported-real-host qualification remain withheld.
 - [ ] T041 [P] Run CodeGraph sync/status, AGT integrity/policy checks, Spec Kit prerequisite checks, and official my-pi runtime probes. Current evidence: CodeGraph, Spec Kit, `agt --json verify`, xh doctor, and my-pi probes pass; the current `agt lint-policy` rejects the legacy `.agt/policy.json` shape and the integrity command has no workspace-root option.
 - [X] T042 Record the current candidate aggregate and x-harness state as WITHHELD/BLOCKED in `.x-harness/self-hosted-track-a-completion-card.yaml`.
 - [ ] T043 Regenerate candidate-bound evidence, attestation, SBOM/release artifacts, and the completion card after the final authorized code commit.
