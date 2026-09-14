@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-task-v2",
+  "taskId": "OT-031",
+  "taskDefinitionPath": "dogfood/observed-tasks/OT-031.json",
+  "taskDefinitionCommit": "60c06e1e5934f2eccada7a80522d2f14338e19a2",
+  "registration": {
+    "receiptPath": "dogfood/observed-registrations/OT-031.json"
+  },
+  "registeredAt": "2026-09-14T12:49:54.430Z",
+  "title": "Repair a healthy recursive watcher that stopped bounded reconciliation",
+  "taskClass": "PN8",
+  "primaryHypothesis": "PN8",
+  "baseCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+  "targetScope": {
+    "include": [
+      "packages/code-state/src/watcher.ts",
+      "packages/code-state/test/code-state.test.ts"
+    ],
+    "exclude": [
+      ".my-pi/**",
+      "node_modules/**"
+    ]
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "frozen-failure",
+      "condition": "The preregistered evaluation test fails before repair on the frozen historical state."
+    },
+    {
+      "id": "repair-accepted",
+      "condition": "Both fresh repair sessions pass the identical independent downstream test after repair."
+    },
+    {
+      "id": "prior-passes",
+      "condition": "All tests passing before the failure remain passing after repair."
+    }
+  ],
+  "primaryVariable": {
+    "name": "feedback representation supplied to the repair session",
+    "control": "ordinary command log only",
+    "treatment": "structured FeedbackPacket with failed criteria and prior passes"
+  },
+  "arms": {
+    "control": {
+      "profileId": "pn8-ordinary-log",
+      "description": "Fresh session receives only the ordinary initial test log.",
+      "baseCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+      "worktreeKey": "OT-031-control",
+      "sessionKey": "OT-031-control",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before-evaluation",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "feedback-mode",
+          "argv": [
+            "node",
+            "-e",
+            "process.stdout.write(\"ordinary_log\")"
+          ],
+          "timeoutMs": 30000
+        }
+      ]
+    },
+    "treatment": {
+      "profileId": "pn8-structured-feedback",
+      "description": "Fresh session receives the structured preregistered FeedbackPacket.",
+      "baseCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+      "worktreeKey": "OT-031-treatment",
+      "sessionKey": "OT-031-treatment",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before-evaluation",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "feedback-mode",
+          "argv": [
+            "node",
+            "-e",
+            "process.stdout.write(\"structured_feedback_packet\")"
+          ],
+          "timeoutMs": 30000
+        }
+      ]
+    }
+  },
+  "requiredTests": [
+    {
+      "id": "code-state-independent-test",
+      "argv": [
+        "node",
+        "--test",
+        "--experimental-strip-types",
+        "packages/code-state/test/code-state.test.ts"
+      ],
+      "timeoutMs": 900000
+    }
+  ],
+  "environment": {
+    "hostFamily": "windows-node",
+    "modelFamily": "single-primary-agent",
+    "sameHostFamily": true,
+    "sameModelFamily": true
+  },
+  "adjudication": {
+    "independent": true,
+    "evaluator": "separate node test process after each official my-pi repair",
+    "groundTruth": "frozen failure plus identical downstream test result",
+    "requiredEvidence": [
+      "initial failure output",
+      "FeedbackPacket or ordinary log binding",
+      "official my-pi fs_patch CAS history",
+      "final independent test output",
+      "prior-pass and false-accept accounting"
+    ]
+  },
+  "metrics": [
+    {
+      "id": "repair_yield",
+      "definition": "Fraction of arms whose repair passes the independent downstream command and preserves prior passes.",
+      "role": "primary"
+    },
+    {
+      "id": "repair_attempts",
+      "definition": "Count of repair attempts after the initial frozen failure.",
+      "role": "secondary"
+    },
+    {
+      "id": "prior_passes_preserved",
+      "definition": "Whether all tests passing before the failure remain passing after repair, recorded as 1 or 0.",
+      "role": "secondary"
+    },
+    {
+      "id": "regressions",
+      "definition": "Count of previously passing tests lost after repair.",
+      "role": "secondary"
+    },
+    {
+      "id": "false_accepts",
+      "definition": "Count of accepted repair outcomes whose independent final command still fails.",
+      "role": "secondary"
+    }
+  ],
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json",
+      "dogfood/observed-tasks/*.paired-manifest.json"
+    ]
+  },
+  "workload": {
+    "evidenceKind": "live_repair",
+    "frozenStateId": "git:12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+    "heterogeneityKey": "code-state-healthy-watcher-reconciliation",
+    "initialFailureCriterion": "healthy-recursive-watcher-keeps-bounded-reconciliation-active",
+    "groundTruth": [
+      "healthy recursive watcher",
+      "bounded reconciliation",
+      "stop and restart"
+    ],
+    "evaluationSetupPatches": [
+      {
+        "id": "install-preregistered-evaluation-OT-031",
+        "path": "packages/code-state/test/code-state.test.ts",
+        "old": "  watcher.stop();\n    assert.equal(watcher.status, \"stopped\");\n    await store.close();\n    await rm(dir, { recursive: true, force: true });\n  }\n});\n\ntest(\"PN5 watcher contains startup failure and can be stopped and restarted\", async () => {\n  const { dir, store } = await setup();\n  const errors: unknown[] = [];\n  let ",
+        "new": "  watcher.stop();\n    assert.equal(watcher.status, \"stopped\");\n    await store.close();\n    await rm(dir, { recursive: true, force: true });\n  }\n});\n\ntest(\"PN5 healthy recursive watcher keeps bounded reconciliation active\", async () => {\n  const { dir, store } = await setup();\n  let overflowCount = 0;\n  let closeCount = 0;\n  const watcher = new CodeStateWatcher(dir, {\n    platform: \"linux\",\n    debounceMs: 5,\n    reconcileMs: 5,\n    watchFactory: () => {\n      const backend = new EventEmitter() as EventEmitter & { close: () => void };\n      backend.close = () => { closeCount++; };\n      return backend as unknown as FSWatcher;\n    },\n    onPaths: () => undefined,\n    onOverflow: () => { overflowCount++; },\n  });\n  try {\n    watcher.start();\n    assert.equal(watcher.status, \"ready\");\n    await new Promise((resolve) => setTimeout(resolve, 100));\n    assert.ok(overflowCount > 0);\n    watcher.stop();\n    assert.equal(closeCount, 1);\n    const afterStop = overflowCount;\n    await new Promise((resolve) => setTimeout(resolve, 30));\n    assert.equal(overflowCount, afterStop);\n    watcher.start();\n    assert.equal(watcher.status, \"ready\");\n    await new Promise((resolve) => setTimeout(resolve, 100));\n    assert.ok(overflowCount > afterStop);\n    watcher.stop();\n    assert.equal(closeCount, 2);\n  } finally {\n    watcher.stop();\n    await store.close();\n    await rm(dir, { recursive: true, force: true });\n  }\n});\n\ntest(\"PN5 watcher contains startup failure and can be stopped and restarted\", async () => {\n  const { dir, store } = await setup();\n  const errors: unknown[] = [];\n  let "
+      }
+    ],
+    "repairPatches": {
+      "shared": [
+        {
+          "id": "repair-frozen-failure-OT-031",
+          "path": "packages/code-state/src/watcher.ts",
+          "old": "    this.startReconciliation();\n      return;\n    }\n    try {\n      attach(factory(this.root, { recursive: true }, onEvent));\n      this.state = \"ready\";\n      return;\n    } catch (recursiveError) {\n      this.notifyError(recursiveError);\n    }\n    try {\n      // A non-recursive watcher is only an invalidation hint. Re",
+          "new": "    this.startReconciliation();\n      return;\n    }\n    try {\n      attach(factory(this.root, { recursive: true }, onEvent));\n      this.state = \"ready\";\n      // Native events are optimization hints; keep bounded reconciliation\n      // active so a missed event cannot leave the graph stale.\n      this.startReconciliation();\n      return;\n    } catch (recursiveError) {\n      this.notifyError(recursiveError);\n    }\n    try {\n      // A non-recursive watcher is only an invalidation hint. Re"
+        }
+      ]
+    },
+    "feedbackPacket": {
+      "schemaVersion": "1",
+      "packetId": "feedback-OT-031",
+      "source": "independent frozen-state evaluator",
+      "failedCriteria": [
+        "healthy-recursive-watcher-keeps-bounded-reconciliation-active"
+      ],
+      "priorPassingCriteria": [
+        "startup-failure-containment",
+        "late-backend-error-after-stop"
+      ],
+      "retryState": "recommended",
+      "taskStatement": "Repair a healthy recursive watcher that stopped bounded reconciliation"
+    }
+  }
+}

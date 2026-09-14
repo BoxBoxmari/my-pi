@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-task-registration-v1",
+  "taskId": "OT-031",
+  "taskDefinitionPath": "dogfood/observed-tasks/OT-031.json",
+  "taskDigest": "83fbd1d3750643703b3a23a772e903cb347f50e958bd7328873a224ac223bea9",
+  "registeredAt": "2026-09-14T12:49:54.430Z"
+}
