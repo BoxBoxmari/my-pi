@@ -8,7 +8,7 @@
   "title": "Measure host-profile source repair after duplicate workspace binding detection",
   "taskClass": "PN6",
   "primaryHypothesis": "PN6",
-  "baseCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+  "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
   "targetScope": {
     "include": [
       "packages/host-profiles/src/render.ts",
@@ -42,7 +42,7 @@
     "control": {
       "profileId": "my-pi-control-impact-off",
       "description": "Stable my-pi environment with impact-aware routing disabled.",
-      "baseCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+      "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
       "worktreeKey": "OT-036-control",
       "sessionKey": "OT-036-control",
       "freshWorktree": true,
@@ -81,7 +81,7 @@
     "treatment": {
       "profileId": "my-pi-treatment-impact-on",
       "description": "Same stable my-pi environment with impact-aware routing enabled.",
-      "baseCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+      "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
       "worktreeKey": "OT-036-treatment",
       "sessionKey": "OT-036-treatment",
       "freshWorktree": true,
