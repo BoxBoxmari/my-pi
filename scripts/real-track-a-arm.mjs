@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -96,6 +96,7 @@ export async function main(argv = process.argv.slice(2)) {
   const client = await connectMyPi();
   try {
     const markerPath = ".my-pi/track-a/" + task.taskId + "/arm-" + args.arm + ".json";
+    await mkdir(path.resolve(ROOT, path.dirname(markerPath)), { recursive: true });
     const isControlledReplay = task.taskClass === "PN8" || workload.evidenceKind === "controlled_replay";
     if (isControlledReplay) {
       const replayPatches = workload.failureReplay?.patches;
