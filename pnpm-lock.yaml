@@ -14,6 +14,9 @@ importers:
       '@modelcontextprotocol/server':
         specifier: 2.0.0
         version: 2.0.0
+      '@my-pi/host-profiles':
+        specifier: workspace:*
+        version: link:packages/host-profiles
       '@types/node':
         specifier: ^26.4.1
         version: 26.4.1
