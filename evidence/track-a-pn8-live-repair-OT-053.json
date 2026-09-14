@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "my-pi/track-a-pn8-live-repair-evidence/v1",
+  "measurementId": "track-a-pn8-live-repair-OT-053-1789416959242",
+  "taskClass": "PN8",
+  "evidenceKind": "live_repair",
+  "observationSource": "naturally occurring frozen failure at the preregistered historical commit",
+  "promotionEligible": false,
+  "measuredAt": "2026-09-14T20:15:59.239Z",
+  "taskId": "OT-053",
+  "taskDefinition": "dogfood/observed-tasks/OT-053.json",
+  "taskDefinitionCommit": "dbf0689a01d3b32abc7e7ab63a4afe97dc70faba",
+  "baseCommit": "1803d2a2ee41f3c01af51c6d25351b172b69e866",
+  "frozenStateId": "git:1803d2a2ee41f3c01af51c6d25351b172b69e866",
+  "frozenStateDigest": "60d9c222842a8729329b6a4ae3d16e5d48ee72526350c86acd1e3c7493b37bd2",
+  "resultPath": "dogfood/observed-tasks/OT-053.result.json",
+  "repairSessions": [
+    {
+      "armId": "control",
+      "sessionId": "session-4bd9ca595af4a4b7",
+      "worktreeId": "worktree-4bd9ca595af4a4b7",
+      "frozenStateDigest": "60d9c222842a8729329b6a4ae3d16e5d48ee72526350c86acd1e3c7493b37bd2",
+      "feedbackMode": "ordinary_log",
+      "attempts": 1,
+      "initialFailureObserved": true,
+      "accepted": false,
+      "priorPassesPreserved": true,
+      "regressions": 0,
+      "falseAccepts": 0,
+      "repairPatchIds": [
+        "ordinary-log-partial-repair-OT-053"
+      ],
+      "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+    },
+    {
+      "armId": "treatment",
+      "sessionId": "session-3ebb30bd81703f0c",
+      "worktreeId": "worktree-3ebb30bd81703f0c",
+      "frozenStateDigest": "60d9c222842a8729329b6a4ae3d16e5d48ee72526350c86acd1e3c7493b37bd2",
+      "feedbackMode": "structured_feedback_packet",
+      "attempts": 1,
+      "initialFailureObserved": true,
+      "accepted": true,
+      "priorPassesPreserved": true,
+      "regressions": 0,
+      "falseAccepts": 0,
+      "repairPatchIds": [
+        "repair-frozen-failure-OT-053"
+      ],
+      "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+    }
+  ],
+  "resultValidation": {
+    "pairValid": true,
+    "promotionEligible": false
+  },
+  "writer": "official my-pi fs_write followed by fs_read",
+  "resultHash": "sha256:bbdd415f626e2f6f4e5876628fc069394081923b827be7056afdfdc3a469d6f7"
+}

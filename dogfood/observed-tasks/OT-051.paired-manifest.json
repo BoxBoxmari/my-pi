@@ -1,0 +1,269 @@
+{
+  "schemaVersion": "my-pi/observed-live-repair-manifest/v1",
+  "taskId": "OT-051",
+  "taskDefinition": "dogfood/observed-tasks/OT-051.json",
+  "taskDefinitionCommit": "dbf0689a01d3b32abc7e7ab63a4afe97dc70faba",
+  "baseCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+  "frozenStateId": "git:12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+  "frozenStateDigest": "eab0cfab11fb4c1771754d1aeed3651d6c4f55416ba89376793f7ee6941271f5",
+  "runStartedAt": "2026-09-14T20:09:47.110Z",
+  "runCompletedAt": "2026-09-14T20:11:31.879Z",
+  "registration": {
+    "receiptPath": "dogfood/observed-registrations/OT-051.json",
+    "registrationCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+    "registrationTimestamp": "2026-09-15T03:09:40+07:00"
+  },
+  "arms": [
+    {
+      "armId": "control",
+      "runId": "run-f726cd7814d574d8",
+      "sessionId": "session-4b3accf869cf5528",
+      "worktreeId": "worktree-4b3accf869cf5528",
+      "evaluationSetupHistory": [
+        {
+          "id": "install-preregistered-evaluation-OT-051",
+          "path": "packages/code-state/test/code-state.test.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:a50e658ab2bfa835e1e56b7b3c9f57d8b7b618cd105a1a9ae4768852db3f798c",
+          "afterHash": "sha256:066d92adf8d994c2fb614b31f59f4046e2ee91d7dfa9df5e18c7e828c31dc891",
+          "patchResponseHash": "sha256:066d92adf8d994c2fb614b31f59f4046e2ee91d7dfa9df5e18c7e828c31dc891",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:a50e658ab2bfa835e1e56b7b3c9f57d8b7b618cd105a1a9ae4768852db3f798c"
+        }
+      ],
+      "initialAttempt": {
+        "commands": [
+          {
+            "id": "independent-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "code-state-independent-test",
+            "status": "failed",
+            "exitCode": 1,
+            "summary": {
+              "tests": 9,
+              "pass": 8,
+              "fail": 1
+            },
+            "stdoutDigest": "3a23d11bcae676a83a8f8f52360a6ec3a2abf4f1f681e5f00e204aeee1a8dc28",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 9,
+          "pass": 8,
+          "fail": 1
+        },
+        "accepted": false,
+        "failureCriterion": "healthy-recursive-watcher-keeps-bounded-reconciliation-active"
+      },
+      "feedback": {
+        "mode": "ordinary_log",
+        "source": "ordinary command log",
+        "failedCriteria": [
+          "healthy-recursive-watcher-keeps-bounded-reconciliation-active"
+        ],
+        "stdoutDigest": "3a23d11bcae676a83a8f8f52360a6ec3a2abf4f1f681e5f00e204aeee1a8dc28",
+        "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "repairHistory": [
+        {
+          "id": "ordinary-log-partial-repair-OT-051",
+          "path": "packages/code-state/src/watcher.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:72f17e3cf24d870db296e8cebe91c460502f710df4ab359704f7e3a09d424294",
+          "afterHash": "sha256:21de365bac35f4c71a892c6052177496bb4b0cd5203a57326a6c1e0240471898",
+          "patchResponseHash": "sha256:21de365bac35f4c71a892c6052177496bb4b0cd5203a57326a6c1e0240471898",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:72f17e3cf24d870db296e8cebe91c460502f710df4ab359704f7e3a09d424294"
+        }
+      ],
+      "finalAttempt": {
+        "commands": [
+          {
+            "id": "independent-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "code-state-independent-test",
+            "status": "failed",
+            "exitCode": 1,
+            "summary": {
+              "tests": 9,
+              "pass": 8,
+              "fail": 1
+            },
+            "stdoutDigest": "fdf757d7b7367187f9e154af88dc1df473fd3070c0f8aaaf928620ba4aab9a52",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 9,
+          "pass": 8,
+          "fail": 1
+        },
+        "accepted": false
+      },
+      "repairSession": {
+        "armId": "control",
+        "sessionId": "session-4b3accf869cf5528",
+        "worktreeId": "worktree-4b3accf869cf5528",
+        "frozenStateDigest": "eab0cfab11fb4c1771754d1aeed3651d6c4f55416ba89376793f7ee6941271f5",
+        "feedbackMode": "ordinary_log",
+        "attempts": 1,
+        "initialFailureObserved": true,
+        "accepted": false,
+        "priorPassesPreserved": true,
+        "regressions": 0,
+        "falseAccepts": 0,
+        "repairPatchIds": [
+          "ordinary-log-partial-repair-OT-051"
+        ],
+        "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+      }
+    },
+    {
+      "armId": "treatment",
+      "runId": "run-c44a85492741a39c",
+      "sessionId": "session-441bbb459ad2fac5",
+      "worktreeId": "worktree-441bbb459ad2fac5",
+      "evaluationSetupHistory": [
+        {
+          "id": "install-preregistered-evaluation-OT-051",
+          "path": "packages/code-state/test/code-state.test.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:a50e658ab2bfa835e1e56b7b3c9f57d8b7b618cd105a1a9ae4768852db3f798c",
+          "afterHash": "sha256:066d92adf8d994c2fb614b31f59f4046e2ee91d7dfa9df5e18c7e828c31dc891",
+          "patchResponseHash": "sha256:066d92adf8d994c2fb614b31f59f4046e2ee91d7dfa9df5e18c7e828c31dc891",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:a50e658ab2bfa835e1e56b7b3c9f57d8b7b618cd105a1a9ae4768852db3f798c"
+        }
+      ],
+      "initialAttempt": {
+        "commands": [
+          {
+            "id": "independent-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "code-state-independent-test",
+            "status": "failed",
+            "exitCode": 1,
+            "summary": {
+              "tests": 9,
+              "pass": 8,
+              "fail": 1
+            },
+            "stdoutDigest": "75ab3c81a1b5ba696e2d2e1dfedf2a77b0b1699ca8de2b0224d6691158acf574",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 9,
+          "pass": 8,
+          "fail": 1
+        },
+        "accepted": false,
+        "failureCriterion": "healthy-recursive-watcher-keeps-bounded-reconciliation-active"
+      },
+      "feedback": {
+        "mode": "structured_feedback_packet",
+        "packet": {
+          "schemaVersion": "1",
+          "packetId": "feedback-OT-051",
+          "source": "independent frozen-state evaluator",
+          "failedCriteria": [
+            "healthy-recursive-watcher-keeps-bounded-reconciliation-active"
+          ],
+          "priorPassingCriteria": [
+            "startup-failure-containment",
+            "late-backend-error-after-stop"
+          ],
+          "retryState": "recommended",
+          "taskStatement": "Repair a healthy recursive watcher that stopped bounded reconciliation — preregistered structured-feedback contrast"
+        },
+        "observedFailure": {
+          "failedCriteria": [
+            "healthy-recursive-watcher-keeps-bounded-reconciliation-active"
+          ],
+          "stdoutDigest": "75ab3c81a1b5ba696e2d2e1dfedf2a77b0b1699ca8de2b0224d6691158acf574",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "repairHistory": [
+        {
+          "id": "repair-frozen-failure-OT-051",
+          "path": "packages/code-state/src/watcher.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:72f17e3cf24d870db296e8cebe91c460502f710df4ab359704f7e3a09d424294",
+          "afterHash": "sha256:308d820396c0e8e8170170926973c3ea31c18a2202c9f532c9902159696a41c2",
+          "patchResponseHash": "sha256:308d820396c0e8e8170170926973c3ea31c18a2202c9f532c9902159696a41c2",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:72f17e3cf24d870db296e8cebe91c460502f710df4ab359704f7e3a09d424294"
+        }
+      ],
+      "finalAttempt": {
+        "commands": [
+          {
+            "id": "independent-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "code-state-independent-test",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {
+              "tests": 9,
+              "pass": 9,
+              "fail": 0
+            },
+            "stdoutDigest": "52e53d8b70b92e90c5219c48222137861544c4f69602eaba8b2ab95e338b8711",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0
+        },
+        "accepted": true
+      },
+      "repairSession": {
+        "armId": "treatment",
+        "sessionId": "session-441bbb459ad2fac5",
+        "worktreeId": "worktree-441bbb459ad2fac5",
+        "frozenStateDigest": "eab0cfab11fb4c1771754d1aeed3651d6c4f55416ba89376793f7ee6941271f5",
+        "feedbackMode": "structured_feedback_packet",
+        "attempts": 1,
+        "initialFailureObserved": true,
+        "accepted": true,
+        "priorPassesPreserved": true,
+        "regressions": 0,
+        "falseAccepts": 0,
+        "repairPatchIds": [
+          "repair-frozen-failure-OT-051"
+        ],
+        "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+      }
+    }
+  ],
+  "evaluatorRunId": "eval-c484525be09dda7b",
+  "authority": "official my-pi MCP fs_read/fs_patch/fs_write; independent node test process for evaluation"
+}

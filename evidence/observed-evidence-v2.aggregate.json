@@ -1,17 +1,18 @@
 {
   "schemaVersion": "1",
   "recordType": "observed-evidence-aggregate-v2",
-  "generatedAt": "2026-09-14T14:09:26.258Z",
+  "generatedAt": "2026-09-14T20:15:59.239Z",
   "status": "WITHHELD",
   "promotionEligible": false,
   "promotionVerdict": "candidate_only_requires_independent_promotion_verifier",
   "reasons": [
     "one or more pairs failed schema or identity validation",
-    "candidate aggregate is not an admission authority"
+    "candidate aggregate is not an admission authority",
+    "6 pair file(s) could not be loaded"
   ],
   "sample": {
     "minQualifiedPerHypothesis": 3,
-    "totalPairs": 22,
+    "totalPairs": 31,
     "qualifiedPairs": 6,
     "byHypothesis": {
       "PN6": {
@@ -32,7 +33,7 @@
         ]
       },
       "PN8": {
-        "registered": 6,
+        "registered": 9,
         "qualified": 3,
         "target": 3,
         "heterogeneityKeys": [
@@ -126,7 +127,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -184,7 +185,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -242,7 +243,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -300,7 +301,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -358,7 +359,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -416,7 +417,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -474,7 +475,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -532,7 +533,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -590,7 +591,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -648,7 +649,7 @@
           "result.taskDefinitionCommit must match the registered task binding",
           "result.taskDefinition must match the registered task path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -706,7 +707,7 @@
           "Git registration receipt is required",
           "registration.receiptPath must be a non-empty path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -769,7 +770,7 @@
           "Git registration receipt is required",
           "registration.receiptPath must be a non-empty path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -832,7 +833,7 @@
           "Git registration receipt is required",
           "registration.receiptPath must be a non-empty path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -895,7 +896,7 @@
           "Git registration receipt is required",
           "registration.receiptPath must be a non-empty path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -954,7 +955,7 @@
           "Git registration receipt is required",
           "registration.receiptPath must be a non-empty path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -1013,7 +1014,7 @@
           "Git registration receipt is required",
           "registration.receiptPath must be a non-empty path"
         ],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
       },
       "qualified": false,
       "reasons": [
@@ -1069,7 +1070,7 @@
       "registration": {
         "ok": true,
         "errors": [],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationCommit": "ac2b6368fae009dd7996eb670b77c75fe3d4e4d7",
         "registrationTimestamp": "2026-09-14T20:00:41+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-031.json",
@@ -1122,7 +1123,7 @@
       "registration": {
         "ok": true,
         "errors": [],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationCommit": "ac2b6368fae009dd7996eb670b77c75fe3d4e4d7",
         "registrationTimestamp": "2026-09-14T20:00:41+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-032.json",
@@ -1175,7 +1176,7 @@
       "registration": {
         "ok": true,
         "errors": [],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationCommit": "ce41a547a74ccbc236ceb2dedaede4a5d33dc0ec",
         "registrationTimestamp": "2026-09-14T19:51:21+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-033.json",
@@ -1228,7 +1229,7 @@
       "registration": {
         "ok": true,
         "errors": [],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
         "registrationTimestamp": "2026-09-14T20:51:05+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-034.json",
@@ -1281,7 +1282,7 @@
       "registration": {
         "ok": true,
         "errors": [],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
         "registrationTimestamp": "2026-09-14T20:51:05+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-035.json",
@@ -1334,7 +1335,7 @@
       "registration": {
         "ok": true,
         "errors": [],
-        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
         "registrationTimestamp": "2026-09-14T20:51:05+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-036.json",
@@ -1376,7 +1377,545 @@
         "run-600334b6fdd0e866"
       ],
       "evaluatorRunId": "eval-46ab833641fd5d98"
+    },
+    {
+      "taskId": "OT-042",
+      "taskClass": "research",
+      "primaryHypothesis": "none",
+      "resultStatus": "INCONCLUSIVE",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-042.result.json'"
+        ]
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "title must be a non-empty string",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "acceptanceCriteria must not be empty",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "exactly one primary metric is required",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "taskId must match OT-###",
+        "taskDefinition must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "runId has an invalid format",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "result.arms must contain one control and one treatment",
+        "result adjudication must be independent",
+        "adjudication.evaluatorRunId must be a non-empty string",
+        "adjudication.recordedAt must be an ISO-8601 timestamp",
+        "adjudication.outcome is invalid",
+        "adjudication.evidenceRefs must not be empty",
+        "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-042.result.json'",
+        "none requires a predeclared heterogeneityKey",
+        "result status is INCONCLUSIVE",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-043",
+      "taskClass": "research",
+      "primaryHypothesis": "none",
+      "resultStatus": "INCONCLUSIVE",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-043.result.json'"
+        ]
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "title must be a non-empty string",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "acceptanceCriteria must not be empty",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "exactly one primary metric is required",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "taskId must match OT-###",
+        "taskDefinition must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "runId has an invalid format",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "result.arms must contain one control and one treatment",
+        "result adjudication must be independent",
+        "adjudication.evaluatorRunId must be a non-empty string",
+        "adjudication.recordedAt must be an ISO-8601 timestamp",
+        "adjudication.outcome is invalid",
+        "adjudication.evidenceRefs must not be empty",
+        "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-043.result.json'",
+        "none requires a predeclared heterogeneityKey",
+        "result status is INCONCLUSIVE",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-044",
+      "taskClass": "research",
+      "primaryHypothesis": "none",
+      "resultStatus": "INCONCLUSIVE",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-044.result.json'"
+        ]
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "title must be a non-empty string",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "acceptanceCriteria must not be empty",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "exactly one primary metric is required",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "taskId must match OT-###",
+        "taskDefinition must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "runId has an invalid format",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "result.arms must contain one control and one treatment",
+        "result adjudication must be independent",
+        "adjudication.evaluatorRunId must be a non-empty string",
+        "adjudication.recordedAt must be an ISO-8601 timestamp",
+        "adjudication.outcome is invalid",
+        "adjudication.evidenceRefs must not be empty",
+        "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-044.result.json'",
+        "none requires a predeclared heterogeneityKey",
+        "result status is INCONCLUSIVE",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-048",
+      "taskClass": "research",
+      "primaryHypothesis": "none",
+      "resultStatus": "INCONCLUSIVE",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-048.result.json'"
+        ]
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "title must be a non-empty string",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "acceptanceCriteria must not be empty",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "exactly one primary metric is required",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "taskId must match OT-###",
+        "taskDefinition must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "runId has an invalid format",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "result.arms must contain one control and one treatment",
+        "result adjudication must be independent",
+        "adjudication.evaluatorRunId must be a non-empty string",
+        "adjudication.recordedAt must be an ISO-8601 timestamp",
+        "adjudication.outcome is invalid",
+        "adjudication.evidenceRefs must not be empty",
+        "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-048.result.json'",
+        "none requires a predeclared heterogeneityKey",
+        "result status is INCONCLUSIVE",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-049",
+      "taskClass": "research",
+      "primaryHypothesis": "none",
+      "resultStatus": "INCONCLUSIVE",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-049.result.json'"
+        ]
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "title must be a non-empty string",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "acceptanceCriteria must not be empty",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "exactly one primary metric is required",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "taskId must match OT-###",
+        "taskDefinition must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "runId has an invalid format",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "result.arms must contain one control and one treatment",
+        "result adjudication must be independent",
+        "adjudication.evaluatorRunId must be a non-empty string",
+        "adjudication.recordedAt must be an ISO-8601 timestamp",
+        "adjudication.outcome is invalid",
+        "adjudication.evidenceRefs must not be empty",
+        "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-049.result.json'",
+        "none requires a predeclared heterogeneityKey",
+        "result status is INCONCLUSIVE",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-050",
+      "taskClass": "research",
+      "primaryHypothesis": "none",
+      "resultStatus": "INCONCLUSIVE",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-050.result.json'"
+        ]
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "title must be a non-empty string",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "acceptanceCriteria must not be empty",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "exactly one primary metric is required",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "taskId must match OT-###",
+        "taskDefinition must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "runId has an invalid format",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "result.arms must contain one control and one treatment",
+        "result adjudication must be independent",
+        "adjudication.evaluatorRunId must be a non-empty string",
+        "adjudication.recordedAt must be an ISO-8601 timestamp",
+        "adjudication.outcome is invalid",
+        "adjudication.evidenceRefs must not be empty",
+        "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-050.result.json'",
+        "none requires a predeclared heterogeneityKey",
+        "result status is INCONCLUSIVE",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-051",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T20:11:31.879Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "registrationCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "registrationTimestamp": "2026-09-15T03:09:40+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-051.json",
+        "taskDigest": "4d5ddf971046ff2a8c34ae09c3c289497aa70f95b91b5284c49d8510adf93749"
+      },
+      "heterogeneityKey": "code-state-healthy-watcher-reconciliation",
+      "qualified": false,
+      "reasons": [
+        "a predeclared command did not pass in every arm"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 0,
+          "treatment": 1,
+          "delta": 1
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-f726cd7814d574d8",
+        "run-c44a85492741a39c"
+      ],
+      "evaluatorRunId": "eval-c484525be09dda7b"
+    },
+    {
+      "taskId": "OT-052",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T20:14:18.037Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "registrationCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "registrationTimestamp": "2026-09-15T03:09:40+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-052.json",
+        "taskDigest": "4f067cb4e0141fa608e59f1f445c1ec5d9b391ce4125c7e10dd266858048f59b"
+      },
+      "heterogeneityKey": "code-state-late-backend-error-containment",
+      "qualified": false,
+      "reasons": [
+        "a predeclared command did not pass in every arm"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 0,
+          "treatment": 1,
+          "delta": 1
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-94e17ed691c526e4",
+        "run-4c89b414829c807e"
+      ],
+      "evaluatorRunId": "eval-31c5432fcda1ba07"
+    },
+    {
+      "taskId": "OT-053",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T20:15:59.239Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "registrationCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "registrationTimestamp": "2026-09-15T03:09:40+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-053.json",
+        "taskDigest": "f673f1abc1e76c0fb738e2cc0c371d5280982a9c21c6891232cd29aa01b1eb9a"
+      },
+      "heterogeneityKey": "daemon-join-latency-registration-bound",
+      "qualified": false,
+      "reasons": [
+        "a predeclared command did not pass in every arm"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 0,
+          "treatment": 1,
+          "delta": 1
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-3d526cbfbb9b5728",
+        "run-ba1f494ecbafba93"
+      ],
+      "evaluatorRunId": "eval-aabf71f04709a744"
     }
   ],
-  "loadErrors": []
+  "loadErrors": [
+    {
+      "taskId": "OT-042",
+      "error": "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-042.result.json'"
+    },
+    {
+      "taskId": "OT-043",
+      "error": "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-043.result.json'"
+    },
+    {
+      "taskId": "OT-044",
+      "error": "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-044.result.json'"
+    },
+    {
+      "taskId": "OT-048",
+      "error": "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-048.result.json'"
+    },
+    {
+      "taskId": "OT-049",
+      "error": "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-049.result.json'"
+    },
+    {
+      "taskId": "OT-050",
+      "error": "ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\dogfood\\observed-tasks\\OT-050.result.json'"
+    }
+  ]
 }

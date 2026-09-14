@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-result-v2",
+  "taskId": "OT-051",
+  "taskDefinition": "dogfood/observed-tasks/OT-051.json",
+  "taskDefinitionCommit": "dbf0689a01d3b32abc7e7ab63a4afe97dc70faba",
+  "runId": "run-556d37d5b089f02a",
+  "status": "COMPLETED",
+  "baseCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+  "runStartedAt": "2026-09-14T20:09:47.110Z",
+  "runCompletedAt": "2026-09-14T20:11:31.879Z",
+  "evidenceKind": "live_repair",
+  "observationSource": "live repair from preregistered frozen failing state",
+  "arms": [
+    {
+      "armId": "control",
+      "runId": "run-f726cd7814d574d8",
+      "sessionId": "session-4b3accf869cf5528",
+      "worktreeId": "worktree-4b3accf869cf5528",
+      "baseCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+      "sourceStateDigest": "eab0cfab11fb4c1771754d1aeed3651d6c4f55416ba89376793f7ee6941271f5",
+      "commands": [
+        {
+          "id": "build-before-evaluation",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "8e69c90e537e394ecc6b97ea959d717f97ef730ad3a7fc1b5d3d7181db578606",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "feedback-mode",
+          "argv": [
+            "node",
+            "-e",
+            "process.stdout.write(\"ordinary_log\")"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "5db8aec06b40cea6690ae47b086c6676fa4da7dea8a36526f4a4e361da357e8b",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "independent-build",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "code-state-independent-test",
+          "argv": [
+            "node",
+            "--test",
+            "--experimental-strip-types",
+            "packages/code-state/test/code-state.test.ts"
+          ],
+          "phase": "downstream",
+          "status": "failed",
+          "exitCode": 1,
+          "stdoutDigest": "fdf757d7b7367187f9e154af88dc1df473fd3070c0f8aaaf928620ba4aab9a52",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    },
+    {
+      "armId": "treatment",
+      "runId": "run-c44a85492741a39c",
+      "sessionId": "session-441bbb459ad2fac5",
+      "worktreeId": "worktree-441bbb459ad2fac5",
+      "baseCommit": "12ef74fecc0dcb3f79f4ff84723536871bfc917f",
+      "sourceStateDigest": "eab0cfab11fb4c1771754d1aeed3651d6c4f55416ba89376793f7ee6941271f5",
+      "commands": [
+        {
+          "id": "build-before-evaluation",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "57b41e73ef002d7349efda85d02f8fda7dd955511d51c00d636c04b379858ee0",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "feedback-mode",
+          "argv": [
+            "node",
+            "-e",
+            "process.stdout.write(\"structured_feedback_packet\")"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "d5e938c34cbfa8de5726281f09e264a1f246cbc5e4c629b2892d5a641a2e96f3",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "independent-build",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "code-state-independent-test",
+          "argv": [
+            "node",
+            "--test",
+            "--experimental-strip-types",
+            "packages/code-state/test/code-state.test.ts"
+          ],
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "52e53d8b70b92e90c5219c48222137861544c4f69602eaba8b2ab95e338b8711",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    }
+  ],
+  "measurements": [
+    {
+      "id": "repair_yield",
+      "armId": "control",
+      "value": 0,
+      "unit": "ratio",
+      "source": "independent downstream command output"
+    },
+    {
+      "id": "repair_attempts",
+      "armId": "control",
+      "value": 1,
+      "unit": "count",
+      "source": "official my-pi repair history"
+    },
+    {
+      "id": "prior_passes_preserved",
+      "armId": "control",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent downstream command output"
+    },
+    {
+      "id": "regressions",
+      "armId": "control",
+      "value": 0,
+      "unit": "count",
+      "source": "independent downstream command output"
+    },
+    {
+      "id": "false_accepts",
+      "armId": "control",
+      "value": 0,
+      "unit": "count",
+      "source": "independent downstream command output"
+    },
+    {
+      "id": "repair_yield",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent downstream command output"
+    },
+    {
+      "id": "repair_attempts",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "count",
+      "source": "official my-pi repair history"
+    },
+    {
+      "id": "prior_passes_preserved",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent downstream command output"
+    },
+    {
+      "id": "regressions",
+      "armId": "treatment",
+      "value": 0,
+      "unit": "count",
+      "source": "independent downstream command output"
+    },
+    {
+      "id": "false_accepts",
+      "armId": "treatment",
+      "value": 0,
+      "unit": "count",
+      "source": "independent downstream command output"
+    }
+  ],
+  "repairSessions": [
+    {
+      "armId": "control",
+      "sessionId": "session-4b3accf869cf5528",
+      "worktreeId": "worktree-4b3accf869cf5528",
+      "frozenStateDigest": "eab0cfab11fb4c1771754d1aeed3651d6c4f55416ba89376793f7ee6941271f5",
+      "feedbackMode": "ordinary_log",
+      "attempts": 1,
+      "initialFailureObserved": true,
+      "accepted": false,
+      "priorPassesPreserved": true,
+      "regressions": 0,
+      "falseAccepts": 0,
+      "repairPatchIds": [
+        "ordinary-log-partial-repair-OT-051"
+      ],
+      "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+    },
+    {
+      "armId": "treatment",
+      "sessionId": "session-441bbb459ad2fac5",
+      "worktreeId": "worktree-441bbb459ad2fac5",
+      "frozenStateDigest": "eab0cfab11fb4c1771754d1aeed3651d6c4f55416ba89376793f7ee6941271f5",
+      "feedbackMode": "structured_feedback_packet",
+      "attempts": 1,
+      "initialFailureObserved": true,
+      "accepted": true,
+      "priorPassesPreserved": true,
+      "regressions": 0,
+      "falseAccepts": 0,
+      "repairPatchIds": [
+        "repair-frozen-failure-OT-051"
+      ],
+      "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+    }
+  ],
+  "adjudication": {
+    "independent": true,
+    "evaluatorRunId": "eval-c484525be09dda7b",
+    "recordedAt": "2026-09-14T20:11:31.879Z",
+    "outcome": "accepted",
+    "evidenceRefs": [
+      "frozen-state-digest",
+      "initial-failure-command-output",
+      "official-my-pi-repair-history",
+      "independent-downstream-command-output"
+    ]
+  }
+}
