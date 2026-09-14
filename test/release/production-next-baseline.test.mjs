@@ -43,5 +43,7 @@ test("candidate state excludes generated protocol evidence without excluding sou
   assert.equal(isGeneratedArtifact("docs/protocol-evidence.json"), true);
   assert.equal(isGeneratedArtifact("results.sarif"), true);
   assert.equal(isGeneratedArtifact("evidence/PN9.json"), true);
+  assert.equal(isGeneratedArtifact("evidence/track-a-integrity-gates-2026-09-15.json"), true);
+  assert.equal(isGeneratedArtifact("evidence/track-a-xh-verify-2026-09-15.json"), true);
   assert.equal(isGeneratedArtifact("packages/contracts/src/ids.ts"), false);
 });
