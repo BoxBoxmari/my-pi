@@ -47,6 +47,7 @@ test("candidate state excludes generated protocol evidence without excluding sou
   assert.equal(isGeneratedArtifact("evidence/track-a-xh-verify-2026-09-15.json"), true);
   assert.equal(isGeneratedArtifact("evidence/track-a-real-pn6-OT-061.json"), true);
   assert.equal(isGeneratedArtifact("evidence/track-a-pn8-live-repair-OT-071.json"), true);
+  assert.equal(isGeneratedArtifact("evidence/track-b-report-mode-2026-09-15.json"), true);
   assert.equal(isGeneratedArtifact("dogfood/observed-tasks/OT-061.result.json"), true);
   assert.equal(isGeneratedArtifact("dogfood/observed-tasks/OT-071.paired-manifest.json"), true);
   assert.equal(isGeneratedArtifact("dist-release/release-manifest.json"), true);
