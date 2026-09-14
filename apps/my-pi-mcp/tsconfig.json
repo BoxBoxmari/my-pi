@@ -9,6 +9,7 @@
   "references": [
     { "path": "../../packages/contracts" },
     { "path": "../../packages/coordination-client" },
+    { "path": "../../packages/graph-model" },
     { "path": "../../packages/workspace-runtime" },
     { "path": "../../packages/mcp-adapter" },
     { "path": "../../packages/host-profiles" },

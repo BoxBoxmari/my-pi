@@ -99,6 +99,9 @@ importers:
       '@my-pi/coordination-client':
         specifier: workspace:*
         version: link:../../packages/coordination-client
+      '@my-pi/graph-model':
+        specifier: workspace:*
+        version: link:../../packages/graph-model
       '@my-pi/host-profiles':
         specifier: workspace:*
         version: link:../../packages/host-profiles

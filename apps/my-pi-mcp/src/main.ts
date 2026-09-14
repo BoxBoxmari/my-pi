@@ -9,7 +9,8 @@ import { CoordinationClient, discoverProjectIdentity, resolveRuntimeDir } from "
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { createCoordinationCapabilities, createEvaluationCapabilities, createFoundationCapabilities, MyPiServer } from "@my-pi/mcp-adapter";
 import { COORDINATION_PROFILES, REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
-import { renderGraphViewHtml } from "@my-pi/ui";
+import { createTheaterFrame, type TheaterEvent } from "@my-pi/graph-model";
+import { renderGraphViewHtml, renderTheaterViewHtml } from "@my-pi/ui";
 
 export interface CliOptions {
   command: "mcp" | "host-config";
@@ -159,6 +160,19 @@ export async function runMcp(
         const health = await coordinationClient!.health() as { projectId: string };
         const graph = await coordinationClient!.graphSnapshot({ projectId: health.projectId, kind: "code", maxNodes: 500, maxEdges: 1_000, maxAttributeBytes: 16_384 });
         return renderGraphViewHtml({ sessionToken: "mcp-app", nonce: "mcp-app", initialSnapshot: graph });
+      },
+      readTheaterHtml: async () => {
+        const health = await coordinationClient!.health() as { projectId: string };
+        const graph = await coordinationClient!.graphSnapshot({ projectId: health.projectId, kind: "work", maxNodes: 500, maxEdges: 1_000, maxAttributeBytes: 16_384 });
+        const eventResult = await coordinationClient!.graphEvents({ projectId: health.projectId, kind: "work", mode: "live", maxEvents: 500, maxBytes: 128 * 1024 });
+        const frame = createTheaterFrame({
+          scope: { projectId: health.projectId, kind: "work" },
+          graph,
+          events: eventResult.events as TheaterEvent[],
+          cursor: { lastSequence: eventResult.throughSequence },
+          capabilities: { live: true, replay: true, expand: false, trace: false, renderer3d: true },
+        });
+        return renderTheaterViewHtml({ sessionToken: "mcp-app", nonce: "mcp-app", initialFrame: frame, isMcp: true });
       },
     } : undefined,
   });
