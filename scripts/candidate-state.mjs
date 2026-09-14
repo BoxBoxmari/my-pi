@@ -10,7 +10,8 @@ function git(args, options = {}) {
 }
 
 function isGeneratedEvidence(relativePath) {
-  return /^evidence\/PN\d+\.json$/i.test(relativePath.replaceAll("\\", "/"));
+  const normalized = relativePath.replaceAll("\\", "/");
+  return /^evidence\/PN\d+\.json$/i.test(normalized) || normalized === "evidence/track-b-host-bypass-2026-09-13.json";
 }
 
 export function isGeneratedArtifact(relativePath) {
