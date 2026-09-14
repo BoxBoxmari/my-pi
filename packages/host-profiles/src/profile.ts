@@ -5,6 +5,7 @@ export interface HostProfile {
   releaseRole: ReleaseRole;
   preferredTransport: "stdio";
   configDialect: "claude-code" | "opencode" | "cursor" | "antigravity" | "copilot-vscode" | "copilot-cli";
+  strictCandidate?: boolean;
   observedMcpEra?: string;
   coordination?: boolean;
   knownQuirks: string[];
@@ -27,4 +28,9 @@ export const COORDINATION_PROFILES: HostProfile[] = [
   { id: "claude-code-local-coord", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "claude-code", coordination: true, knownQuirks: ["requires a running local my-pi daemon"] },
   { id: "opencode-local-coord", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "opencode", coordination: true, knownQuirks: ["requires a running local my-pi daemon"] },
   { id: "cursor-local-coord", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "cursor", coordination: true, knownQuirks: ["requires a running local my-pi daemon"] },
+];
+
+/** Opt-in host-enforced candidate; certification still requires the seeded bypass suite. */
+export const STRICT_CANDIDATE_PROFILES: HostProfile[] = [
+  { id: "opencode-local-strict", releaseRole: "monitoring", preferredTransport: "stdio", configDialect: "opencode", strictCandidate: true, knownQuirks: ["native edit and alternate MCP paths require empirical bypass evidence"] },
 ];

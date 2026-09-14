@@ -32,7 +32,7 @@ function dualMcpServers(opts: RenderOptions, args: string[], entry: unknown): Re
 }
 
 export function renderProfile(profile: HostProfile, opts: RenderOptions): RenderedConfig {
-  const args = [...(opts.args ?? ["--transport", "stdio", "--security-profile", "read-only"])];
+  const args = [...(opts.args ?? ["--transport", "stdio", "--security-profile", profile.strictCandidate ? "trusted" : "read-only"])];
   if (profile.coordination) args.push("--coordination");
   if (opts.workspace !== undefined) args.push("--workspace", opts.workspace);
 
@@ -50,6 +50,14 @@ export function renderProfile(profile: HostProfile, opts: RenderOptions): Render
       const entry = mcpEntry(opts, args);
       const j = {
         $schema: "https://opencode.ai/config.json",
+        ...(profile.strictCandidate ? {
+          permission: {
+            bash: "deny",
+            edit: "deny",
+            external_directory: { "*": "deny" },
+            webfetch: "deny",
+          },
+        } : {}),
         mcp: {
           "my-pi": entry,
           ccr: entry,

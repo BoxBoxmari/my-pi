@@ -11,7 +11,7 @@ function git(args, options = {}) {
 
 function isGeneratedEvidence(relativePath) {
   const normalized = relativePath.replaceAll("\\", "/");
-  return /^evidence\/PN\d+\.json$/i.test(normalized) || /^evidence\/track-a-(?:integrity-gates|xh-verify)-\d{4}-\d{2}-\d{2}\.json$/i.test(normalized) || /^evidence\/track-a-(?:real-pn6|pn8-live-repair)-OT-\d+\.json$/i.test(normalized) || normalized === "evidence/observed-evidence-v2.aggregate.json" || normalized === "evidence/track-b-host-bypass-2026-09-13.json" || /^evidence\/track-b-report-mode-\d{4}-\d{2}-\d{2}\.json$/i.test(normalized) || normalized === "evidence/track-c-mcp-apps-2026-09-13.json";
+  return /^evidence\/PN\d+\.json$/i.test(normalized) || /^evidence\/track-a-(?:integrity-gates|xh-verify)-\d{4}-\d{2}-\d{2}\.json$/i.test(normalized) || /^evidence\/track-a-(?:real-pn6|pn8-live-repair)-OT-\d+\.json$/i.test(normalized) || normalized === "evidence/observed-evidence-v2.aggregate.json" || normalized === "evidence/track-b-host-bypass-2026-09-13.json" || /^evidence\/track-b-(?:report-mode|strict-candidate)-\d{4}-\d{2}-\d{2}\.json$/i.test(normalized) || normalized === "evidence/track-c-mcp-apps-2026-09-13.json";
 }
 
 export function isGeneratedArtifact(relativePath) {

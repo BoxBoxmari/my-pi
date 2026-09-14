@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { CoordinationClient, discoverProjectIdentity, resolveRuntimeDir } from "@my-pi/coordination-client";
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { createCoordinationCapabilities, createEvaluationCapabilities, createFoundationCapabilities, MyPiServer } from "@my-pi/mcp-adapter";
-import { COORDINATION_PROFILES, REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
+import { COORDINATION_PROFILES, REQUIRED_PROFILES, STRICT_CANDIDATE_PROFILES, renderProfile } from "@my-pi/host-profiles";
 import { createTheaterFrame, type TheaterEvent } from "@my-pi/graph-model";
 import { renderGraphViewHtml, renderTheaterViewHtml } from "@my-pi/ui";
 
@@ -94,9 +94,9 @@ export function parseArgs(argv: string[]): CliOptions {
 }
 
 export async function runHostConfig(profileId: string | undefined): Promise<void> {
-  const profile = [...REQUIRED_PROFILES, ...COORDINATION_PROFILES].find((p) => p.id === profileId);
+  const profile = [...REQUIRED_PROFILES, ...COORDINATION_PROFILES, ...STRICT_CANDIDATE_PROFILES].find((p) => p.id === profileId);
   if (!profile) {
-    const ids = [...REQUIRED_PROFILES, ...COORDINATION_PROFILES].map((p) => p.id).join("\n  ");
+    const ids = [...REQUIRED_PROFILES, ...COORDINATION_PROFILES, ...STRICT_CANDIDATE_PROFILES].map((p) => p.id).join("\n  ");
     console.error(`unknown profile '${profileId}'. Available profiles:\n  ${ids}`);
     process.exitCode = 1;
     return;

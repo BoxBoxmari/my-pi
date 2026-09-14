@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { COORDINATION_PROFILES, REQUIRED_PROFILES, renderProfile } from "@my-pi/host-profiles";
+import { COORDINATION_PROFILES, REQUIRED_PROFILES, STRICT_CANDIDATE_PROFILES, renderProfile } from "@my-pi/host-profiles";
 
 test("REQUIRED_PROFILES: two blocking, seven monitoring", () => {
   assert.equal(REQUIRED_PROFILES.filter((p) => p.releaseRole === "blocking").length, 2);
@@ -48,4 +48,14 @@ test("coordination profiles are opt-in and add only the coordination flag", () =
   assert.deepEqual(COORDINATION_PROFILES.map((profile) => profile.id), ["claude-code-local-coord", "opencode-local-coord", "cursor-local-coord"]);
   const cursor = renderProfile(COORDINATION_PROFILES.find((profile) => profile.id === "cursor-local-coord")!, { command: "my-pi-mcp" });
   assert.match(JSON.stringify(cursor), /--coordination/);
+});
+
+test("strict OpenCode candidate renders host denies without claiming certification", () => {
+  const profile = STRICT_CANDIDATE_PROFILES.find((item) => item.id === "opencode-local-strict")!;
+  const rendered = renderProfile(profile, { command: "my-pi-mcp", workspace: "${workspaceFolder}" });
+  const config = (rendered as { json: Record<string, any> }).json;
+  assert.equal(config.permission.bash, "deny");
+  assert.equal(config.permission.edit, "deny");
+  assert.equal(config.permission.external_directory["*"], "deny");
+  assert.match(JSON.stringify(config), /security-profile.*trusted/);
 });

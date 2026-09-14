@@ -95,7 +95,7 @@ fixtures and inspect the named workflow result.
 - [X] T035 [P] [US4] Add host policy bundle generation and maturity declarations in `packages/host-profiles/src/policy-bundle.ts` and `packages/host-profiles/test/policy-bundle.test.ts`.
 - [X] T036 [US4] Keep the workflow and policy implementation report-only/managed unless empirical bypass evidence justifies strict maturity.
 - [X] T037 [US4] Execute report-mode positive and negative PR/branch fixtures against the exact candidate head and preserve the outputs in `evidence/track-b-report-mode-2026-09-15.json`; the official my-pi measurement records valid, stale, tampered, and uncovered-path reports.
-- [ ] T038 [US4] Complete one host strict-candidate bypass suite and record residual native mutation paths before using a strict-capable label.
+- [X] T038 [US4] Complete the OpenCode strict-candidate bypass suite and record residual native mutation paths in `evidence/track-b-strict-candidate-2026-09-15.json`; the profile remains candidate-only and not strict-certified.
 - [ ] T039 [US4] Activate repository admission rules only after report-mode, strict-profile, and merge-block evidence is independently approved.
 
 ## Phase 7: Polish, Evidence, and Admission

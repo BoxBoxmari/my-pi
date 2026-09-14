@@ -18,6 +18,7 @@ Host differences belong in config/profile/compatibility evidence, not capability
 | copilot-vscode-local | monitoring | copilot-vscode |
 | copilot-cli-local | monitoring | copilot-cli |
 | copilot-cloud-local-in-agent | monitoring | copilot-vscode |
+| opencode-local-strict | monitoring candidate | opencode |
 
 ## Observed MCP era
 - **Negotiated era**: `2025-11-25` (empirically observed over stdio handshake using `@modelcontextprotocol/server` v2.0.0; documented in `docs/protocol-evidence.json`).
@@ -54,4 +55,10 @@ The machine-readable candidate matrix is kept in `provenance/production-next-pro
   - LSP: `lsp_status`, `lsp_diagnostics`, `lsp_symbols`, `lsp_navigate` (TypeScript, Python, Rust, Go orchestration; compatible server executables are host-provided)
   - VCS: `vcs_status`, `vcs_diff`
 - Cursor/Antigravity/Copilot: configured in monitoring role (`host-profiles`).
+
+`opencode-local-strict` is an opt-in candidate configuration. It denies
+OpenCode `bash`, `edit`, `external_directory`, and `webfetch` permissions while
+running my-pi in trusted mode. It is not strict-certified: native editor
+writes, alternate MCP servers, and direct Git patch paths remain residual paths
+until seeded bypass evidence proves they are blocked or fail admission.
 

@@ -46,8 +46,10 @@ async function call(client, name, args) {
   return unwrap(await client.callTool({ name, arguments: args }));
 }
 
-async function writeThroughMyPi(client, relativePath, content) {
-  return call(client, "fs_write", { path: relativePath, content });
+async function writeThroughMyPi(client, relativePath, content, expectedHash) {
+  const args = { path: relativePath, content };
+  if (expectedHash !== undefined) args.expected_hash = expectedHash;
+  return call(client, "fs_write", args);
 }
 
 async function readThroughMyPi(client, relativePath) {
@@ -222,6 +224,24 @@ try {
   for (const vector of vectors) {
     cases.push(await measureCase(client, vector[0], { expectedStatus: "review_required", expectedReason: "head_mismatch", afterSeal: commitHostMutation(vector[1], vector[2]) }));
   }
+  cases.push(await measureCase(client, "alternate-mcp-filesystem", {
+    expectedStatus: "review_required",
+    expectedReason: "head_mismatch",
+    afterSeal: async (fixture) => {
+      const alternate = await connectMyPi();
+      try {
+        const target = fixture.relative + "/src/feature.txt";
+        const before = await readThroughMyPi(alternate.client, target);
+        await writeThroughMyPi(alternate.client, target, "alternate-mcp\n", before.content_hash);
+      } finally {
+        await alternate.client.close();
+        await alternate.transport.close?.();
+      }
+      git(fixture.fixture, ["add", "src/feature.txt"]);
+      git(fixture.fixture, ["commit", "-m", "alternate MCP filesystem write"]);
+      return git(fixture.fixture, ["rev-parse", "HEAD"]);
+    },
+  }));
   cases.push(await measureCase(client, "git-apply-write", {
     expectedStatus: "review_required",
     expectedReason: "head_mismatch",
@@ -278,7 +298,7 @@ try {
     },
     method: {
       sourceSetup: "official my-pi fs_write/fs_patch with CAS expected_hash",
-      hostVectors: ["Node direct editor write", "cmd.exe shell redirection", "Node scripted write", "git apply"],
+      hostVectors: ["Node direct editor write", "cmd.exe shell redirection", "Node scripted write", "second unconfigured my-pi MCP stdio process", "git apply"],
       verifier: "scripts/verify-my-pi-admission.mjs --report-only",
       evidenceWriter: "official my-pi fs_write followed by fs_read",
     },
@@ -294,6 +314,7 @@ try {
       shellRedirection: "shell write changes the Git subject and requires review",
       scriptedWrite: "scripted write changes the Git subject and requires review",
       gitApply: "git apply changes the Git subject and requires review",
+      alternateMcpFilesystem: "a second unconfigured my-pi MCP process changes the Git subject and requires review",
       staleHead: "old attestation is rejected against the newer head",
       extraPath: "coverage must cover every changed source path",
       wrongAuthority: "signature verification failure requires review",
