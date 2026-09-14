@@ -97,7 +97,7 @@ function evidenceGate(task, result) {
         if (!session || session.initialFailureObserved !== true) errors.push("PN8 requires an observed initial failure before repair");
         if (!session || !Array.isArray(session.repairPatchIds) || session.repairPatchIds.length < 1 || !session.repairPatchIds.every((value) => typeof value === "string" && value.length > 0)) errors.push("PN8 requires measured repair patch identity");
         if (!session || typeof session.evaluatorEvidence !== "string" || session.evaluatorEvidence.length === 0) errors.push("PN8 requires independent evaluator evidence after repair");
-        if (!session || session.accepted !== true) errors.push("PN8 requires accepted repair outcomes in both arms");
+        if (!session || typeof session.accepted !== "boolean") errors.push("PN8 requires an independently recorded repair outcome in both arms");
         if (!session || session.priorPassesPreserved !== true) errors.push("PN8 prior passes must be independently preserved");
         if (!session || session.regressions !== 0 || session.falseAccepts !== 0) errors.push("PN8 regressions and false accepts must both be zero");
       }

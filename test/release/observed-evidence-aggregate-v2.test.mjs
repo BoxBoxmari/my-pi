@@ -138,6 +138,17 @@ test("PN8 rejects a repair record without measured initial failure", () => {
   assert.match(report.pairs[0].reasons.join("\n"), /initial failure/);
 });
 
+test("PN8 preserves an independently observed failed control repair for yield measurement", () => {
+  const taskRecord = task("OT-031", "PN8");
+  const resultRecord = result("OT-031");
+  resultRecord.repairSessions[0].accepted = false;
+  resultRecord.measurements.find((measurement) => measurement.id === "repair_yield" && measurement.armId === "control").value = 0;
+  const report = aggregateObservedEvidence([{ task: taskRecord, result: resultRecord, registration: verifiedRegistration() }], { minQualified: 1 });
+  assert.equal(report.pairs[0].qualified, true);
+  assert.equal(report.pairs[0].measurements.repair_yield.control, 0);
+  assert.equal(report.pairs[0].measurements.repair_yield.treatment, 1);
+});
+
 test("candidate evidence retains independent PN8 live-repair identities", () => {
   const report = aggregateObservedEvidence([
     { task: task("OT-031", "PN8"), result: result("OT-031"), registration: verifiedRegistration() },

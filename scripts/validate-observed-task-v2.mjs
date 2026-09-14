@@ -370,7 +370,7 @@ function validateEvidenceShape(errors, result, task) {
         add(errors, session.initialFailureObserved === true, label + ".initialFailureObserved must be true");
         add(errors, Array.isArray(session.repairPatchIds) && session.repairPatchIds.length > 0 && session.repairPatchIds.every((value) => typeof value === "string" && value.length > 0), label + ".repairPatchIds must contain a non-empty repair identity");
         string(errors, session.evaluatorEvidence, label + ".evaluatorEvidence");
-        add(errors, session.accepted === true, label + ".accepted must be true for qualified live repair");
+        add(errors, typeof session.accepted === "boolean", label + ".accepted must be independently recorded");
         add(errors, session.priorPassesPreserved === true, label + ".priorPassesPreserved must be true");
         add(errors, session.regressions === 0, label + ".regressions must be zero");
         add(errors, session.falseAccepts === 0, label + ".falseAccepts must be zero");
