@@ -149,7 +149,7 @@ export async function main(argv = process.argv.slice(2)) {
     const result = {
       ...rawResult,
       taskClass: task.taskClass,
-      evidenceKind,
+      evidenceKind: task.taskClass === "PN8" ? "controlled_replay" : "observed_source_change",
       observationSource: task.taskClass === "PN8" ? "controlled_replay_of_recorded_legacy_failure" : "real_source_change",
       status: allCommandsPassed && allReportsAccepted ? "COMPLETED" : "FAILED",
       runCompletedAt: new Date().toISOString(),
