@@ -84,4 +84,3 @@ eventToMotionCue(event: TheaterEvent, graph: GraphSnapshot): SceneCue | null
 - URI: `ui://my-pi/theater`
 - Catalog invariant: stable 13-tool MCP catalog is strictly preserved; theater is exposed solely as an opt-in resource.
 - Strict read-only semantics: zero mutation, zero side-effects.
-
