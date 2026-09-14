@@ -103,7 +103,7 @@ function executeCommand(argv, cwd, timeoutMs) {
 function parseSummary(stdout, stderr) {
   const text = stdout + "\n" + stderr;
   const value = (name) => {
-    const match = text.match(new RegExp("^# " + name + "\\s+(\\d+)", "m"));
+    const match = text.match(new RegExp("^(?:#|ℹ) " + name + "\\s+(\\d+)", "m"));
     return match ? Number(match[1]) : undefined;
   };
   return { tests: value("tests"), pass: value("pass"), fail: value("fail") };
