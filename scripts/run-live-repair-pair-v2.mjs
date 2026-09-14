@@ -243,7 +243,10 @@ export async function main(argv = process.argv.slice(2)) {
     for (const armId of ["control", "treatment"]) arms.push(await runArm(task, armId, runRoot, frozenDigest, runStartedAt));
     const runCompletedAt = new Date().toISOString();
     const evaluatorRunId = "eval-" + sha256(JSON.stringify(arms.map((arm) => ({ armId: arm.armId, finalAttempt: arm.finalAttempt, repairSession: arm.repairSession })))).slice(0, 16);
-    const accepted = arms.every((arm) => arm.repairSession.accepted);
+    // A live PN8 observation is complete when both arms reproduced the frozen
+    // failure. The independent outcome is recorded per arm; requiring both
+    // repairs to pass here would erase the contrast that PN8 measures.
+    const measurementCompleted = arms.length === 2 && arms.every((arm) => arm.repairSession.initialFailureObserved === true);
     const result = {
       schemaVersion: "2",
       recordType: "observed-result-v2",
@@ -251,7 +254,7 @@ export async function main(argv = process.argv.slice(2)) {
       taskDefinition: task.taskDefinitionPath,
       taskDefinitionCommit: task.taskDefinitionCommit,
       runId: "run-" + sha256(task.taskId + "\0paired-live-repair\0" + task.baseCommit + "\0" + runStartedAt).slice(0, 16),
-      status: accepted ? "COMPLETED" : "FAILED",
+      status: measurementCompleted ? "COMPLETED" : "INCONCLUSIVE",
       baseCommit: task.baseCommit,
       runStartedAt,
       runCompletedAt,
@@ -266,7 +269,7 @@ export async function main(argv = process.argv.slice(2)) {
         { id: "false_accepts", armId: arm.armId, value: arm.repairSession.falseAccepts, unit: "count", source: "independent downstream command output" },
       ]),
       repairSessions: arms.map((arm) => arm.repairSession),
-      adjudication: { independent: true, evaluatorRunId, recordedAt: runCompletedAt, outcome: accepted ? "accepted" : "inconclusive", evidenceRefs: ["frozen-state-digest", "initial-failure-command-output", "official-my-pi-repair-history", "identical-independent-downstream-command-output"] },
+      adjudication: { independent: true, evaluatorRunId, recordedAt: runCompletedAt, outcome: measurementCompleted ? "accepted" : "inconclusive", evidenceRefs: ["frozen-state-digest", "initial-failure-command-output", "official-my-pi-repair-history", "independent-downstream-command-output"] },
     };
     const validation = validateObservedPair(task, result);
     if (!validation.ok) throw new Error("live repair result failed validation: " + validation.errors.join("; "));

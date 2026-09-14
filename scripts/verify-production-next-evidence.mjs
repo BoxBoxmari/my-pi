@@ -96,6 +96,22 @@ async function verifyPN6() {
   has(evidence.id === "PN6", "PN6 evidence id must be PN6", errors);
   has(evidence.schemaVersion === "1", "PN6 schemaVersion must be 1", errors);
   has(evidence.profile === "impact-routing-arms", "PN6 profile is invalid", errors);
+  if (evidence.evidenceKind === "observed_replay") {
+    has(["CANDIDATE", "ACCEPTED"].includes(evidence.status), "PN6 observed evidence status is invalid", errors);
+    has(evidence.promotionEligible === (evidence.status === "ACCEPTED"), "PN6 observed evidence promotion flag does not match status", errors);
+    has(typeof evidence.report?.observationSource === "string" && evidence.report.observationSource.length > 0, "PN6 observed evidence source is missing", errors);
+    has(Array.isArray(evidence.report?.independentRunIds) && evidence.report.independentRunIds.length > 0, "PN6 observed evidence requires independent run IDs", errors);
+    has(Array.isArray(evidence.report?.taskIds) && evidence.report.taskIds.length >= 3, "PN6 observed evidence requires three qualified task IDs", errors);
+    has(new Set(evidence.report?.heterogeneityKeys ?? []).size >= 3, "PN6 observed evidence requires three heterogeneous task classes", errors);
+    const observedFull = evidence.report?.arms?.fullImpactRouting;
+    const observedBaseline = evidence.report?.arms?.taskBoardOnly;
+    has(Number.isFinite(observedFull?.recall) && Number.isFinite(observedBaseline?.recall), "PN6 observed routing recall is missing", errors);
+    has(Number.isFinite(observedFull?.averageRepairIterations) && Number.isFinite(observedBaseline?.averageRepairIterations), "PN6 observed repair iterations are missing", errors);
+    has(FULL_SHA.test(evidence.commit ?? "") && evidence.commit.toLowerCase() === head, `PN6 evidence commit must equal current HEAD ${head}`, errors);
+    has(evidence.candidateStateDigest === CURRENT_STATE_DIGEST, "PN6 evidence candidateStateDigest does not match the current working tree", errors);
+    has(evidence.candidateDirty === true ? evidence.candidateSha === "uncommitted" : evidence.candidateSha === head, "PN6 candidateSha does not match candidateDirty", errors);
+    return { present: true, valid: errors.length === 0, commit: head, errors, evidence: { cases: evidence.report.cases ?? null, fullRecall: observedFull?.recall ?? null, baselineRecall: observedBaseline?.recall ?? null, fullRepairReduction: (observedBaseline?.averageRepairIterations ?? 0) - (observedFull?.averageRepairIterations ?? 0) } };
+  }
   has(evidence.status === "CANDIDATE", "PN6 evidence must remain CANDIDATE", errors);
   has(evidence.evidenceKind === "controlled_replay", "PN6 evidence must identify controlled replay", errors);
   has(evidence.promotionEligible === false, "PN6 evidence cannot self-declare promotion eligibility", errors);
@@ -127,6 +143,23 @@ async function verifyPN8() {
   has(evidence.id === "PN8", "PN8 evidence id must be PN8", errors);
   has(evidence.schemaVersion === "1", "PN8 schemaVersion must be 1", errors);
   has(evidence.profile === "evaluation-feedback-arms", "PN8 profile is invalid", errors);
+  if (evidence.evidenceKind === "observed_replay") {
+    has(["CANDIDATE", "ACCEPTED"].includes(evidence.status), "PN8 observed evidence status is invalid", errors);
+    has(evidence.promotionEligible === (evidence.status === "ACCEPTED"), "PN8 observed evidence promotion flag does not match status", errors);
+    has(typeof evidence.report?.observationSource === "string" && evidence.report.observationSource.length > 0, "PN8 observed evidence source is missing", errors);
+    has(Array.isArray(evidence.report?.independentRunIds) && evidence.report.independentRunIds.length > 0, "PN8 observed evidence requires independent run IDs", errors);
+    has(Array.isArray(evidence.report?.taskIds) && evidence.report.taskIds.length >= 3, "PN8 observed evidence requires three qualified task IDs", errors);
+    has(new Set(evidence.report?.heterogeneityKeys ?? []).size >= 3, "PN8 observed evidence requires three heterogeneous task classes", errors);
+    const observedStructured = evidence.report?.arms?.structuredFeedback;
+    const observedOrdinary = evidence.report?.arms?.ordinaryLogHandoff;
+    has(Number.isFinite(observedStructured?.repairYield) && Number.isFinite(observedOrdinary?.repairYield), "PN8 observed repair yield is missing", errors);
+    has(observedStructured?.priorPassesPreserved === observedStructured?.repairsAccepted, "PN8 observed structured repairs do not preserve all prior required passes", errors);
+    has(evidence.report?.seededFalseAccepts === 0, "PN8 observed seeded false accepts must be zero", errors);
+    has(FULL_SHA.test(evidence.commit ?? "") && evidence.commit.toLowerCase() === head, `PN8 evidence commit must equal current HEAD ${head}`, errors);
+    has(evidence.candidateStateDigest === CURRENT_STATE_DIGEST, "PN8 evidence candidateStateDigest does not match the current working tree", errors);
+    has(evidence.candidateDirty === true ? evidence.candidateSha === "uncommitted" : evidence.candidateSha === head, "PN8 candidateSha does not match candidateDirty", errors);
+    return { present: true, valid: errors.length === 0, commit: head, errors, evidence: { cases: evidence.report.cases ?? null, structuredYield: observedStructured?.repairYield ?? null, ordinaryYield: observedOrdinary?.repairYield ?? null, falseAccepts: evidence.report?.seededFalseAccepts ?? null } };
+  }
   has(evidence.status === "CANDIDATE", "PN8 evidence must remain CANDIDATE", errors);
   has(evidence.evidenceKind === "controlled_replay", "PN8 evidence must identify controlled replay", errors);
   has(evidence.outcomeSource === "controlled_fixture_repair_model", "PN8 outcome source must be explicit", errors);

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { aggregateObservedEvidence } from "../../scripts/aggregate-observed-evidence-v2.mjs";
+import { aggregateObservedEvidence, buildCandidateEvidence } from "../../scripts/aggregate-observed-evidence-v2.mjs";
 
 const BASE = "a".repeat(40);
 const DIGEST = "c".repeat(64);
@@ -28,7 +28,13 @@ function task(taskId, hypothesis = "PN6") {
     requiredTests: [{ id: "unit", argv: ["node", "--test", "test/release/observed-evidence-aggregate-v2.test.mjs"], timeoutMs: 60_000 }],
     environment: { hostFamily: "local-node", modelFamily: "none", sameHostFamily: true, sameModelFamily: true },
     adjudication: { independent: true, evaluator: "independent-run", groundTruth: "test result", requiredEvidence: ["stdout"] },
-    metrics: [
+    metrics: hypothesis === "PN8" ? [
+      { id: "repair_yield", definition: "accepted repair yield", role: "primary" },
+      { id: "repair_attempts", definition: "independent repair attempts", role: "secondary" },
+      { id: "prior_passes_preserved", definition: "prior passes preserved", role: "secondary" },
+      { id: "regressions", definition: "new regressions", role: "secondary" },
+      { id: "false_accepts", definition: "false accepts", role: "secondary" },
+    ] : [
       { id: "primary", definition: "observed outcome", role: "primary" },
       { id: "downstream_pass", definition: "independent acceptance", role: "secondary" },
       { id: "repair_iterations", definition: "independent repair attempts", role: "secondary" },
@@ -43,7 +49,7 @@ function verifiedRegistration() {
 }
 
 function result(taskId, { accepted = true, treatment = 2 } = {}) {
-  const isPN8 = taskId === "OT-013";
+  const isPN8 = ["OT-013", "OT-031", "OT-032", "OT-033"].includes(taskId);
   const evaluatorRunId = taskId + "-evaluator";
   return {
     schemaVersion: "2",
@@ -72,7 +78,18 @@ function result(taskId, { accepted = true, treatment = 2 } = {}) {
       { armId: "control", runId: `run-${"2".repeat(16)}`, sessionId: `${taskId}-control-session`, worktreeId: `${taskId}-control-worktree`, baseCommit: BASE, sourceStateDigest: DIGEST, commands: [{ id: "profile", argv: ["node", "--version"], status: "passed", exitCode: 0 }, { id: "unit", argv: ["node", "--test", "test/release/observed-evidence-aggregate-v2.test.mjs"], status: "passed", exitCode: 0 }], contamination: { detected: false, reasons: [] } },
       { armId: "treatment", runId: `run-${"3".repeat(16)}`, sessionId: `${taskId}-treatment-session`, worktreeId: `${taskId}-treatment-worktree`, baseCommit: BASE, sourceStateDigest: DIGEST, commands: [{ id: "profile", argv: ["node", "--help"], status: "passed", exitCode: 0 }, { id: "unit", argv: ["node", "--test", "test/release/observed-evidence-aggregate-v2.test.mjs"], status: "passed", exitCode: 0 }], contamination: { detected: false, reasons: [] } },
     ],
-    measurements: [
+    measurements: isPN8 ? [
+      { id: "repair_yield", armId: "control", value: 1 },
+      { id: "repair_yield", armId: "treatment", value: 1 },
+      { id: "repair_attempts", armId: "control", value: 1 },
+      { id: "repair_attempts", armId: "treatment", value: 1 },
+      { id: "prior_passes_preserved", armId: "control", value: 1 },
+      { id: "prior_passes_preserved", armId: "treatment", value: 1 },
+      { id: "regressions", armId: "control", value: 0 },
+      { id: "regressions", armId: "treatment", value: 0 },
+      { id: "false_accepts", armId: "control", value: 0 },
+      { id: "false_accepts", armId: "treatment", value: 0 },
+    ] : [
       { id: "primary", armId: "control", value: 1 },
       { id: "primary", armId: "treatment", value: treatment },
       { id: "downstream_pass", armId: "control", value: 1 },
@@ -94,7 +111,7 @@ test("aggregate reports metric deltas but never self-promotes", () => {
   assert.equal(report.promotionEligible, false);
   assert.equal(report.sample.byHypothesis.PN6.qualified, 2);
   assert.equal(report.sample.byHypothesis.PN8.qualified, 1);
-  assert.equal(report.metrics.primary.meanDelta, 4 / 3);
+  assert.equal(report.metrics.primary.meanDelta, 3 / 2);
   assert.match(report.reasons.join("\n"), /sample target/);
 });
 
@@ -119,4 +136,25 @@ test("PN8 rejects a repair record without measured initial failure", () => {
   const report = aggregateObservedEvidence([{ task: taskRecord, result: resultRecord, registration: verifiedRegistration() }], { minQualified: 1 });
   assert.equal(report.pairs[0].qualified, false);
   assert.match(report.pairs[0].reasons.join("\n"), /initial failure/);
+});
+
+test("candidate evidence retains independent PN8 live-repair identities", () => {
+  const report = aggregateObservedEvidence([
+    { task: task("OT-031", "PN8"), result: result("OT-031"), registration: verifiedRegistration() },
+    { task: task("OT-032", "PN8"), result: result("OT-032"), registration: verifiedRegistration() },
+    { task: task("OT-033", "PN8"), result: result("OT-033"), registration: verifiedRegistration() },
+  ], { minQualified: 3 });
+  const evidence = buildCandidateEvidence(report, {
+    commit: BASE,
+    candidateSha: BASE,
+    candidateDirty: false,
+    candidateStateDigest: DIGEST,
+  });
+  assert.equal(evidence.PN8.evidenceKind, "observed_replay");
+  assert.equal(evidence.PN8.status, "CANDIDATE");
+  assert.equal(evidence.PN8.promotionEligible, false);
+  assert.deepEqual(evidence.PN8.report.taskIds, ["OT-031", "OT-032", "OT-033"]);
+  assert.equal(evidence.PN8.report.independentRunIds.length, 5);
+  assert.equal(evidence.PN8.report.arms.structuredFeedback.repairYield, 1);
+  assert.equal(evidence.PN8.report.arms.ordinaryLogHandoff.repairYield, 1);
 });
