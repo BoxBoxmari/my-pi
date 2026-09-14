@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -56,16 +56,86 @@ async function writeJson(client, relativePath, value) {
   return call(client, "fs_write", { path: relativePath, content: JSON.stringify(value, null, 2) + "\n" });
 }
 
+
+async function readSnapshot(client, relativePath) {
+  return call(client, "fs_read", { path: relativePath, start_line: 1, end_line: 200_000 });
+}
+
+async function applyPatches(client, patches, phase, history) {
+  for (const patch of patches) {
+    if (!patch || typeof patch.path !== "string" || typeof patch.old !== "string" || typeof patch.new !== "string") throw new Error(phase + " patch is incomplete");
+    const snapshot = await readSnapshot(client, patch.path);
+    const patched = await call(client, "fs_patch", {
+      path: patch.path,
+      expected_hash: snapshot.content_hash,
+      patch: { hunks: [{ old: patch.old, new: patch.new }] },
+    });
+    history.push({
+      phase,
+      id: patch.id,
+      path: patch.path,
+      sourceBefore: snapshot.content_hash,
+      sourceAfter: patched.content_hash,
+    });
+  }
+}
+
+async function sourceHashes(client, paths) {
+  const hashes = {};
+  for (const relativePath of [...new Set(paths)]) hashes[relativePath] = (await readSnapshot(client, relativePath)).content_hash;
+  return hashes;
+}
+
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   if (!args) return 0;
   const taskPath = path.resolve(ROOT, args.task);
   const task = JSON.parse(await readFile(taskPath, "utf8"));
   const workload = task.workload;
-  if (!workload || typeof workload.targetPath !== "string" || !workload.patch || !Array.isArray(workload.groundTruth)) throw new Error("task workload is incomplete");
+  if (!workload || !Array.isArray(workload.groundTruth)) throw new Error("task workload is incomplete");
   const client = await connectMyPi();
   try {
-    const snapshot = await call(client, "fs_read", { path: workload.targetPath, start_line: 1, end_line: 200_000 });
+    const markerPath = ".my-pi/track-a/" + task.taskId + "/arm-" + args.arm + ".json";
+    const isControlledReplay = task.taskClass === "PN8" || workload.evidenceKind === "controlled_replay";
+    if (isControlledReplay) {
+      const replayPatches = workload.failureReplay?.patches;
+      const repairPatches = workload.repairPatches?.[args.arm] ?? workload.repairPatches?.shared;
+      if (!Array.isArray(replayPatches) || replayPatches.length === 0) throw new Error("PN8 workload failureReplay.patches is empty");
+      if (!Array.isArray(repairPatches) || repairPatches.length === 0) throw new Error("PN8 workload repairPatches is empty");
+      const patchHistory = [];
+      const sourceBefore = await sourceHashes(client, [...replayPatches, ...repairPatches].map((patch) => patch.path));
+      await applyPatches(client, replayPatches, "failure_replay", patchHistory);
+      await applyPatches(client, repairPatches, "repair", patchHistory);
+      const sourceAfter = await sourceHashes(client, [...replayPatches, ...repairPatches].map((patch) => patch.path));
+      const route = Array.isArray(workload[args.arm + "Route"]) ? workload[args.arm + "Route"] : [];
+      const guidance = workload.guidance?.[args.arm] ?? null;
+      const markerValue = {
+        schemaVersion: "my-pi/track-a-arm/v2",
+        taskClass: "PN8",
+        evidenceKind: "controlled_replay",
+        taskId: task.taskId,
+        arm: args.arm,
+        route,
+        groundTruth: workload.groundTruth,
+        sourceBefore,
+        sourceAfter,
+        patchHistory,
+        failureReplay: {
+          id: workload.failureReplay.id,
+          sourceRecord: workload.failureReplay.sourceRecord,
+        },
+        guidance,
+        repairIterations: repairPatches.length,
+        mutationCount: patchHistory.length,
+        mutationAuthority: "official my-pi fs_patch with CAS expected_hash for failure replay and repair",
+      };
+      await writeJson(client, markerPath, markerValue);
+      console.log(JSON.stringify({ ok: true, taskId: task.taskId, arm: args.arm, evidenceKind: "controlled_replay", sourceAfter, repairIterations: repairPatches.length }, null, 2));
+      return 0;
+    }
+
+    if (typeof workload.targetPath !== "string" || !workload.patch) throw new Error("PN6 workload source patch is incomplete");
+    const snapshot = await readSnapshot(client, workload.targetPath);
     const patched = args.arm === "treatment"
       ? await call(client, "fs_patch", {
         path: workload.targetPath,
@@ -75,8 +145,6 @@ export async function main(argv = process.argv.slice(2)) {
       : snapshot;
     const route = args.arm === "treatment" ? workload.treatmentRoute : workload.controlRoute;
     if (!Array.isArray(route) || route.length === 0) throw new Error("workload route is empty");
-    const markerPath = ".my-pi/track-a/" + task.taskId + "/arm-" + args.arm + ".json";
-    await mkdir(path.resolve(ROOT, path.dirname(markerPath)), { recursive: true });
     await writeJson(client, markerPath, {
       schemaVersion: "my-pi/track-a-arm/v1",
       taskId: task.taskId,

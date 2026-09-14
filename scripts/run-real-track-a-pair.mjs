@@ -148,6 +148,9 @@ export async function main(argv = process.argv.slice(2)) {
     const evaluatorRunId = "eval-" + sha256(JSON.stringify(reports)).slice(0, 16);
     const result = {
       ...rawResult,
+      taskClass: task.taskClass,
+      evidenceKind,
+      observationSource: task.taskClass === "PN8" ? "controlled_replay_of_recorded_legacy_failure" : "real_source_change",
       status: allCommandsPassed && allReportsAccepted ? "COMPLETED" : "FAILED",
       runCompletedAt: new Date().toISOString(),
       measurements: buildMeasurements(task, reports),
@@ -164,11 +167,18 @@ export async function main(argv = process.argv.slice(2)) {
     myPi = await connectMyPi();
     const resultWrite = await writeJsonWithCas(myPi, "dogfood/observed-tasks/" + task.taskId + ".result.json", result);
     const resultRead = await call(myPi, "fs_read", { path: "dogfood/observed-tasks/" + task.taskId + ".result.json", start_line: 1, end_line: 200_000 });
+    const evidenceKind = task.taskClass === "PN8" ? "controlled_replay" : "observed_source_change";
+    const evidenceSchema = task.taskClass === "PN8" ? "my-pi/track-a-pn8-controlled-replay-evidence/v1" : "my-pi/track-a-real-pn6-evidence/v1";
+    const evidencePrefix = task.taskClass === "PN8" ? "track-a-pn8-controlled-replay-" : "track-a-real-pn6-";
     const evidence = {
-      schemaVersion: "my-pi/track-a-real-pn6-evidence/v1",
-      measurementId: "track-a-real-pn6-" + task.taskId + "-" + Date.now(),
+      schemaVersion: evidenceSchema,
+      measurementId: evidencePrefix + task.taskId + "-" + Date.now(),
+      taskClass: task.taskClass,
+      evidenceKind,
+      observationSource: task.taskClass === "PN8" ? "replay of a recorded legacy real failure; not live product-value evidence" : "paired source-change workload",
+      promotionEligible: false,
       measuredAt: new Date().toISOString(),
-      sourceSetup: "official my-pi fs_patch with CAS expected_hash in isolated arm worktrees",
+      sourceSetup: task.taskClass === "PN8" ? "official my-pi fs_patch with CAS expected_hash for failure replay and repair in isolated arm worktrees" : "official my-pi fs_patch with CAS expected_hash in isolated arm worktrees",
       evidenceWriter: "official my-pi fs_write followed by fs_read",
       taskId: task.taskId,
       taskDefinition: task.taskDefinitionPath,
@@ -179,9 +189,9 @@ export async function main(argv = process.argv.slice(2)) {
       commandStatus: rawResult.arms.map((arm) => ({ armId: arm.armId, commands: arm.commands.map((command) => ({ id: command.id, status: command.status, exitCode: command.exitCode, stdoutDigest: command.stdoutDigest, stderrDigest: command.stderrDigest })) })),
       independentReports: reports,
       validation: { pairValid: validation.ok, promotionEligible: false },
-      interpretation: "This is a real source-change workload with one declared impact-routing variable; qualification is separate from promotion.",
+      interpretation: task.taskClass === "PN8" ? "Controlled replay of three recorded legacy failures. It measures replay fidelity and repair bookkeeping; it does not establish a live ordinary-versus-structured feedback product effect." : "This is a real source-change workload with one declared impact-routing variable; qualification is separate from promotion.",
     };
-    const evidencePath = "evidence/track-a-real-pn6-" + task.taskId + ".json";
+    const evidencePath = "evidence/" + evidencePrefix + task.taskId + ".json";
     await writeJsonWithCas(myPi, evidencePath, evidence);
     const evidenceRead = await call(myPi, "fs_read", { path: evidencePath, start_line: 1, end_line: 200_000 });
     console.log(JSON.stringify({ ok: true, taskId: task.taskId, resultHash: resultRead.content_hash, evidencePath, evidenceHash: evidenceRead.content_hash, evaluatorRunId, reports }, null, 2));

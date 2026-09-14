@@ -1,0 +1,250 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-task-v2",
+  "taskId": "OT-022",
+  "taskDefinitionPath": "dogfood/observed-tasks/OT-022.json",
+  "taskDefinitionCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+  "registeredAt": "2026-09-14T07:59:23.310Z",
+  "title": "Controlled replay of the recorded watcher-reconciliation repair",
+  "taskClass": "PN8",
+  "primaryHypothesis": "PN8",
+  "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+  "targetScope": {
+    "include": [
+      "packages/code-state/src/watcher.ts"
+    ],
+    "exclude": [
+      ".my-pi/**",
+      "node_modules/**"
+    ]
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "failure-replay",
+      "condition": "The official my-pi CAS patch sequence reaches the recorded historical failure state before repair."
+    },
+    {
+      "id": "repair",
+      "condition": "The predeclared repair sequence restores the current base source and the independent downstream command passes."
+    },
+    {
+      "id": "boundary",
+      "condition": "The result records controlled replay only and does not claim a live ordinary-versus-structured feedback product effect."
+    }
+  ],
+  "primaryVariable": {
+    "name": "feedback representation in controlled replay",
+    "control": "ordinary failure log replay",
+    "treatment": "structured feedback packet replay"
+  },
+  "arms": {
+    "control": {
+      "profileId": "my-pi-control-ordinary-feedback-replay",
+      "description": "Controlled replay with ordinary failure-log guidance.",
+      "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+      "worktreeKey": "OT-022-control",
+      "sessionKey": "OT-022-control",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-022.json",
+            "--arm",
+            "control"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    },
+    "treatment": {
+      "profileId": "my-pi-treatment-structured-feedback-replay",
+      "description": "Controlled replay with the recorded structured FeedbackPacket shape.",
+      "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+      "worktreeKey": "OT-022-treatment",
+      "sessionKey": "OT-022-treatment",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-022.json",
+            "--arm",
+            "treatment"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    }
+  },
+  "requiredTests": [
+    {
+      "id": "downstream",
+      "argv": [
+        "node",
+        "--test",
+        "packages/code-state/test/code-state.test.ts"
+      ],
+      "timeoutMs": 900000
+    }
+  ],
+  "environment": {
+    "hostFamily": "windows-node",
+    "modelFamily": "single-primary-agent",
+    "sameHostFamily": true,
+    "sameModelFamily": true
+  },
+  "adjudication": {
+    "independent": true,
+    "evaluator": "separate node evaluator process after CAS replay and repair",
+    "groundTruth": "predeclared failure replay hashes, final source checks, and downstream command",
+    "requiredEvidence": [
+      "CAS source hashes",
+      "independent evaluator stdout",
+      "downstream exit code"
+    ]
+  },
+  "metrics": [
+    {
+      "id": "replay_match",
+      "definition": "Both arm patch histories match the predeclared replay and repair sequence, including CAS after-hashes.",
+      "role": "primary"
+    },
+    {
+      "id": "repair_yield",
+      "definition": "Final controlled-replay source checks accepted by the independent evaluator, not a live agent yield.",
+      "role": "secondary"
+    },
+    {
+      "id": "repair_iterations",
+      "definition": "Count of predeclared repair patches applied after the replay.",
+      "role": "secondary"
+    },
+    {
+      "id": "downstream_pass",
+      "definition": "Independent downstream command acceptance as 1 or 0.",
+      "role": "secondary"
+    },
+    {
+      "id": "prior_passes_preserved",
+      "definition": "Final source checks preserve the predeclared repaired state as 1 or 0.",
+      "role": "secondary"
+    }
+  ],
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json"
+    ]
+  },
+  "workload": {
+    "evidenceKind": "controlled_replay",
+    "groundTruth": [
+      "recorded-watcher-failure"
+    ],
+    "failureReplay": {
+      "id": "legacy-OT-005-recorded-initial-failure",
+      "sourceRecord": "dogfood/observed-tasks/OT-005.result.json#sha256:1834de240ca3a233059e9b31f16cc5f3e739c2525d3511a6642ab9747ea3e4af; implementation c3ab8638c7fc039e703fb0fce72fb423a9ba1d4d",
+      "patches": [
+        {
+          "id": "replay-packages-code-state-src-watcher-ts",
+          "path": "packages/code-state/src/watcher.ts",
+          "old": "import { watch as fsWatch, type FSWatcher, type WatchOptions } from \"node:fs\";\nimport path from \"node:path\";\n\nexport type WatchFactory = (target: string, options: WatchOptions | undefined, listener: (eventType: string, filename: string | Buffer | null) => void) => FSWatcher;\n\nexport interface CodeStateWatcherOptions {\n  debounceMs?: number;\n  maxPendingPaths?: number;\n  reconcileMs?: number;\n  ignoredSegments?: string[];\n  /** Override the runtime platform in deterministic tests; production defaults to process.platform. */\n  platform?: NodeJS.Platform;\n  onPaths: (paths: string[]) => void | Promise<void>;\n  onOverflow?: () => void | Promise<void>;\n  onError?: (error: unknown) => void | Promise<void>;\n  watchFactory?: WatchFactory;\n}\n\nconst DEFAULT_IGNORED_SEGMENTS = [\".git\", \"node_modules\", \"dist\", \"target\", \".cache\"];\nconst DEFAULT_RECONCILE_MS = 5_000;\n\n/** File events are optimization hints; index fingerprints remain authoritative. */\nexport class CodeStateWatcher {\n  private watcher?: FSWatcher;\n  private timer?: NodeJS.Timeout;\n  private reconciliationTimer?: NodeJS.Timeout;\n  private readonly pending = new Set<string>();\n  private overflowed = false;\n  private state: \"stopped\" | \"ready\" | \"degraded\" = \"stopped\";\n\n  constructor(private readonly root: string, private readonly options: CodeStateWatcherOptions) {}\n\n  get status(): \"stopped\" | \"ready\" | \"degraded\" {\n    return this.state;\n  }\n\n  start(): void {\n    if (this.state !== \"stopped\") return;\n    const onEvent = (_event: string, filename: string | Buffer | null) => {\n      if (!filename) return;\n      const relative = String(filename).replaceAll(\"\\\\\", \"/\");\n      const segments = relative.split(\"/\");\n      const ignored = this.options.ignoredSegments ?? DEFAULT_IGNORED_SEGMENTS;\n      if (segments.some((segment) => ignored.includes(segment))) return;\n      const maxPending = this.options.maxPendingPaths ?? 2_000;\n      if (this.pending.size >= maxPending && !this.pending.has(relative)) {\n        this.overflowed = true;\n      } else {\n        this.pending.add(relative);\n      }\n      this.scheduleFlush();\n    };\n    const factory = this.options.watchFactory ?? ((target, watchOptions, listener) => watchOptions === undefined ? fsWatch(target, listener) : fsWatch(target, watchOptions, listener));\n    const attach = (watcher: FSWatcher): void => {\n      watcher.on(\"error\", (error) => this.handleError(error));\n      this.watcher = watcher;\n    };\n    this.state = \"degraded\";\n    const platform = this.options.platform ?? process.platform;\n    // Node's Windows recursive fs.watch path can terminate the process in\n    // native libuv before JavaScript can observe an error. Never enter that\n    // backend on the qualified Windows runtime; reconciliation is authoritative.\n    // The same runner has also shown the native fs-event callback asserting for\n    // non-recursive watches, so Windows uses reconciliation-only rather than\n    // attempting any fs.watch backend.\n    if (platform === \"win32\") {\n      this.startReconciliation();\n      return;\n    }\n    try {\n      attach(factory(this.root, { recursive: true }, onEvent));\n      this.state = \"ready\";\n      // Native events are optimization hints; keep bounded reconciliation\n      // active so a missed event cannot leave the graph stale.\n      this.startReconciliation();\n      return;\n    } catch (recursiveError) {\n      this.notifyError(recursiveError);\n    }\n    try {\n      // A non-recursive watcher is only an invalidation hint. Reconciliation\n      // remains active so nested changes are eventually discovered.\n      attach(factory(this.root, undefined, onEvent));\n      this.startReconciliation();\n    } catch (fallbackError) {\n      this.notifyError(fallbackError);\n      this.startReconciliation();\n    }\n  }\n\n  stop(): void {\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    if (this.timer) clearTimeout(this.timer);\n    this.timer = undefined;\n    if (this.reconciliationTimer) clearInterval(this.reconciliationTimer);\n    this.reconciliationTimer = undefined;\n    this.pending.clear();\n    this.overflowed = false;\n    this.state = \"stopped\";\n  }\n\n  private handleError(error: unknown): void {\n    if (this.state === \"stopped\") return;\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    this.state = \"degraded\";\n    this.notifyError(error);\n    this.startReconciliation();\n    this.overflowed = true;\n    this.scheduleFlush();\n  }\n\n  private startReconciliation(): void {\n    const interval = this.options.reconcileMs ?? DEFAULT_RECONCILE_MS;\n    if (!Number.isFinite(interval) || interval <= 0 || this.reconciliationTimer) return;\n    this.reconciliationTimer = setInterval(() => {\n      if (this.state === \"stopped\") return;\n      this.overflowed = true;\n      this.scheduleFlush();\n    }, interval);\n    this.reconciliationTimer.unref();\n  }\n\n  private notifyError(error: unknown): void {\n    if (this.options.onError) void Promise.resolve(this.options.onError(error)).catch(() => undefined);\n  }\n\n  private scheduleFlush(): void {\n    if (this.timer) return;\n    this.timer = setTimeout(() => {\n      this.timer = undefined;\n      const paths = [...this.pending];\n      const overflowed = this.overflowed;\n      this.pending.clear();\n      this.overflowed = false;\n      if (overflowed && this.options.onOverflow) void Promise.resolve(this.options.onOverflow()).catch((error) => this.notifyError(error));\n      if (paths.length > 0) void Promise.resolve(this.options.onPaths(paths)).catch((error) => this.notifyError(error));\n    }, this.options.debounceMs ?? 100);\n    this.timer.unref();\n  }\n}\n\nexport function watcherPath(root: string, filename: string): string {\n  return path.relative(root, path.resolve(root, filename)).replaceAll(\"\\\\\", \"/\");\n}\n",
+          "new": "import { watch as fsWatch, type FSWatcher, type WatchOptions } from \"node:fs\";\nimport path from \"node:path\";\n\nexport type WatchFactory = (target: string, options: WatchOptions | undefined, listener: (eventType: string, filename: string | Buffer | null) => void) => FSWatcher;\n\nexport interface CodeStateWatcherOptions {\n  debounceMs?: number;\n  maxPendingPaths?: number;\n  reconcileMs?: number;\n  ignoredSegments?: string[];\n  /** Override the runtime platform in deterministic tests; production defaults to process.platform. */\n  platform?: NodeJS.Platform;\n  onPaths: (paths: string[]) => void | Promise<void>;\n  onOverflow?: () => void | Promise<void>;\n  onError?: (error: unknown) => void | Promise<void>;\n  watchFactory?: WatchFactory;\n}\n\nconst DEFAULT_IGNORED_SEGMENTS = [\".git\", \"node_modules\", \"dist\", \"target\", \".cache\"];\nconst DEFAULT_RECONCILE_MS = 5_000;\n\n/** File events are optimization hints; index fingerprints remain authoritative. */\nexport class CodeStateWatcher {\n  private watcher?: FSWatcher;\n  private timer?: NodeJS.Timeout;\n  private reconciliationTimer?: NodeJS.Timeout;\n  private readonly pending = new Set<string>();\n  private overflowed = false;\n  private state: \"stopped\" | \"ready\" | \"degraded\" = \"stopped\";\n\n  constructor(private readonly root: string, private readonly options: CodeStateWatcherOptions) {}\n\n  get status(): \"stopped\" | \"ready\" | \"degraded\" {\n    return this.state;\n  }\n\n  start(): void {\n    if (this.state !== \"stopped\") return;\n    const onEvent = (_event: string, filename: string | Buffer | null) => {\n      if (!filename) return;\n      const relative = String(filename).replaceAll(\"\\\\\", \"/\");\n      const segments = relative.split(\"/\");\n      const ignored = this.options.ignoredSegments ?? DEFAULT_IGNORED_SEGMENTS;\n      if (segments.some((segment) => ignored.includes(segment))) return;\n      const maxPending = this.options.maxPendingPaths ?? 2_000;\n      if (this.pending.size >= maxPending && !this.pending.has(relative)) {\n        this.overflowed = true;\n      } else {\n        this.pending.add(relative);\n      }\n      this.scheduleFlush();\n    };\n    const factory = this.options.watchFactory ?? ((target, watchOptions, listener) => watchOptions === undefined ? fsWatch(target, listener) : fsWatch(target, watchOptions, listener));\n    const attach = (watcher: FSWatcher): void => {\n      watcher.on(\"error\", (error) => this.handleError(error));\n      this.watcher = watcher;\n    };\n    this.state = \"degraded\";\n    const platform = this.options.platform ?? process.platform;\n    // Node's Windows recursive fs.watch path can terminate the process in\n    // native libuv before JavaScript can observe an error. Never enter that\n    // backend on the qualified Windows runtime; reconciliation is authoritative.\n    // The same runner has also shown the native fs-event callback asserting for\n    // non-recursive watches, so Windows uses reconciliation-only rather than\n    // attempting any fs.watch backend.\n    if (platform === \"win32\") {\n      this.startReconciliation();\n      return;\n    }\n    try {\n      attach(factory(this.root, { recursive: true }, onEvent));\n      this.state = \"ready\";\n      return;\n    } catch (recursiveError) {\n      this.notifyError(recursiveError);\n    }\n    try {\n      // A non-recursive watcher is only an invalidation hint. Reconciliation\n      // remains active so nested changes are eventually discovered.\n      attach(factory(this.root, undefined, onEvent));\n      this.startReconciliation();\n    } catch (fallbackError) {\n      this.notifyError(fallbackError);\n      this.startReconciliation();\n    }\n  }\n\n  stop(): void {\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    if (this.timer) clearTimeout(this.timer);\n    this.timer = undefined;\n    if (this.reconciliationTimer) clearInterval(this.reconciliationTimer);\n    this.reconciliationTimer = undefined;\n    this.pending.clear();\n    this.overflowed = false;\n    this.state = \"stopped\";\n  }\n\n  private handleError(error: unknown): void {\n    if (this.state === \"stopped\") return;\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    this.state = \"degraded\";\n    this.notifyError(error);\n    this.startReconciliation();\n    this.overflowed = true;\n    this.scheduleFlush();\n  }\n\n  private startReconciliation(): void {\n    const interval = this.options.reconcileMs ?? DEFAULT_RECONCILE_MS;\n    if (!Number.isFinite(interval) || interval <= 0 || this.reconciliationTimer) return;\n    this.reconciliationTimer = setInterval(() => {\n      if (this.state === \"stopped\") return;\n      this.overflowed = true;\n      this.scheduleFlush();\n    }, interval);\n    this.reconciliationTimer.unref();\n  }\n\n  private notifyError(error: unknown): void {\n    if (this.options.onError) void Promise.resolve(this.options.onError(error)).catch(() => undefined);\n  }\n\n  private scheduleFlush(): void {\n    if (this.timer) return;\n    this.timer = setTimeout(() => {\n      this.timer = undefined;\n      const paths = [...this.pending];\n      const overflowed = this.overflowed;\n      this.pending.clear();\n      this.overflowed = false;\n      if (overflowed && this.options.onOverflow) void Promise.resolve(this.options.onOverflow()).catch((error) => this.notifyError(error));\n      if (paths.length > 0) void Promise.resolve(this.options.onPaths(paths)).catch((error) => this.notifyError(error));\n    }, this.options.debounceMs ?? 100);\n    this.timer.unref();\n  }\n}\n\nexport function watcherPath(root: string, filename: string): string {\n  return path.relative(root, path.resolve(root, filename)).replaceAll(\"\\\\\", \"/\");\n}\n",
+          "expectedAfterHash": "sha256:a1cc92aa08594aa0e1d3ba76c808805079d1e1e53485e430a2e660bc3542ef15"
+        }
+      ]
+    },
+    "repairPatches": {
+      "shared": [
+        {
+          "id": "repair-packages-code-state-src-watcher-ts",
+          "path": "packages/code-state/src/watcher.ts",
+          "old": "import { watch as fsWatch, type FSWatcher, type WatchOptions } from \"node:fs\";\nimport path from \"node:path\";\n\nexport type WatchFactory = (target: string, options: WatchOptions | undefined, listener: (eventType: string, filename: string | Buffer | null) => void) => FSWatcher;\n\nexport interface CodeStateWatcherOptions {\n  debounceMs?: number;\n  maxPendingPaths?: number;\n  reconcileMs?: number;\n  ignoredSegments?: string[];\n  /** Override the runtime platform in deterministic tests; production defaults to process.platform. */\n  platform?: NodeJS.Platform;\n  onPaths: (paths: string[]) => void | Promise<void>;\n  onOverflow?: () => void | Promise<void>;\n  onError?: (error: unknown) => void | Promise<void>;\n  watchFactory?: WatchFactory;\n}\n\nconst DEFAULT_IGNORED_SEGMENTS = [\".git\", \"node_modules\", \"dist\", \"target\", \".cache\"];\nconst DEFAULT_RECONCILE_MS = 5_000;\n\n/** File events are optimization hints; index fingerprints remain authoritative. */\nexport class CodeStateWatcher {\n  private watcher?: FSWatcher;\n  private timer?: NodeJS.Timeout;\n  private reconciliationTimer?: NodeJS.Timeout;\n  private readonly pending = new Set<string>();\n  private overflowed = false;\n  private state: \"stopped\" | \"ready\" | \"degraded\" = \"stopped\";\n\n  constructor(private readonly root: string, private readonly options: CodeStateWatcherOptions) {}\n\n  get status(): \"stopped\" | \"ready\" | \"degraded\" {\n    return this.state;\n  }\n\n  start(): void {\n    if (this.state !== \"stopped\") return;\n    const onEvent = (_event: string, filename: string | Buffer | null) => {\n      if (!filename) return;\n      const relative = String(filename).replaceAll(\"\\\\\", \"/\");\n      const segments = relative.split(\"/\");\n      const ignored = this.options.ignoredSegments ?? DEFAULT_IGNORED_SEGMENTS;\n      if (segments.some((segment) => ignored.includes(segment))) return;\n      const maxPending = this.options.maxPendingPaths ?? 2_000;\n      if (this.pending.size >= maxPending && !this.pending.has(relative)) {\n        this.overflowed = true;\n      } else {\n        this.pending.add(relative);\n      }\n      this.scheduleFlush();\n    };\n    const factory = this.options.watchFactory ?? ((target, watchOptions, listener) => watchOptions === undefined ? fsWatch(target, listener) : fsWatch(target, watchOptions, listener));\n    const attach = (watcher: FSWatcher): void => {\n      watcher.on(\"error\", (error) => this.handleError(error));\n      this.watcher = watcher;\n    };\n    this.state = \"degraded\";\n    const platform = this.options.platform ?? process.platform;\n    // Node's Windows recursive fs.watch path can terminate the process in\n    // native libuv before JavaScript can observe an error. Never enter that\n    // backend on the qualified Windows runtime; reconciliation is authoritative.\n    // The same runner has also shown the native fs-event callback asserting for\n    // non-recursive watches, so Windows uses reconciliation-only rather than\n    // attempting any fs.watch backend.\n    if (platform === \"win32\") {\n      this.startReconciliation();\n      return;\n    }\n    try {\n      attach(factory(this.root, { recursive: true }, onEvent));\n      this.state = \"ready\";\n      return;\n    } catch (recursiveError) {\n      this.notifyError(recursiveError);\n    }\n    try {\n      // A non-recursive watcher is only an invalidation hint. Reconciliation\n      // remains active so nested changes are eventually discovered.\n      attach(factory(this.root, undefined, onEvent));\n      this.startReconciliation();\n    } catch (fallbackError) {\n      this.notifyError(fallbackError);\n      this.startReconciliation();\n    }\n  }\n\n  stop(): void {\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    if (this.timer) clearTimeout(this.timer);\n    this.timer = undefined;\n    if (this.reconciliationTimer) clearInterval(this.reconciliationTimer);\n    this.reconciliationTimer = undefined;\n    this.pending.clear();\n    this.overflowed = false;\n    this.state = \"stopped\";\n  }\n\n  private handleError(error: unknown): void {\n    if (this.state === \"stopped\") return;\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    this.state = \"degraded\";\n    this.notifyError(error);\n    this.startReconciliation();\n    this.overflowed = true;\n    this.scheduleFlush();\n  }\n\n  private startReconciliation(): void {\n    const interval = this.options.reconcileMs ?? DEFAULT_RECONCILE_MS;\n    if (!Number.isFinite(interval) || interval <= 0 || this.reconciliationTimer) return;\n    this.reconciliationTimer = setInterval(() => {\n      if (this.state === \"stopped\") return;\n      this.overflowed = true;\n      this.scheduleFlush();\n    }, interval);\n    this.reconciliationTimer.unref();\n  }\n\n  private notifyError(error: unknown): void {\n    if (this.options.onError) void Promise.resolve(this.options.onError(error)).catch(() => undefined);\n  }\n\n  private scheduleFlush(): void {\n    if (this.timer) return;\n    this.timer = setTimeout(() => {\n      this.timer = undefined;\n      const paths = [...this.pending];\n      const overflowed = this.overflowed;\n      this.pending.clear();\n      this.overflowed = false;\n      if (overflowed && this.options.onOverflow) void Promise.resolve(this.options.onOverflow()).catch((error) => this.notifyError(error));\n      if (paths.length > 0) void Promise.resolve(this.options.onPaths(paths)).catch((error) => this.notifyError(error));\n    }, this.options.debounceMs ?? 100);\n    this.timer.unref();\n  }\n}\n\nexport function watcherPath(root: string, filename: string): string {\n  return path.relative(root, path.resolve(root, filename)).replaceAll(\"\\\\\", \"/\");\n}\n",
+          "new": "import { watch as fsWatch, type FSWatcher, type WatchOptions } from \"node:fs\";\nimport path from \"node:path\";\n\nexport type WatchFactory = (target: string, options: WatchOptions | undefined, listener: (eventType: string, filename: string | Buffer | null) => void) => FSWatcher;\n\nexport interface CodeStateWatcherOptions {\n  debounceMs?: number;\n  maxPendingPaths?: number;\n  reconcileMs?: number;\n  ignoredSegments?: string[];\n  /** Override the runtime platform in deterministic tests; production defaults to process.platform. */\n  platform?: NodeJS.Platform;\n  onPaths: (paths: string[]) => void | Promise<void>;\n  onOverflow?: () => void | Promise<void>;\n  onError?: (error: unknown) => void | Promise<void>;\n  watchFactory?: WatchFactory;\n}\n\nconst DEFAULT_IGNORED_SEGMENTS = [\".git\", \"node_modules\", \"dist\", \"target\", \".cache\"];\nconst DEFAULT_RECONCILE_MS = 5_000;\n\n/** File events are optimization hints; index fingerprints remain authoritative. */\nexport class CodeStateWatcher {\n  private watcher?: FSWatcher;\n  private timer?: NodeJS.Timeout;\n  private reconciliationTimer?: NodeJS.Timeout;\n  private readonly pending = new Set<string>();\n  private overflowed = false;\n  private state: \"stopped\" | \"ready\" | \"degraded\" = \"stopped\";\n\n  constructor(private readonly root: string, private readonly options: CodeStateWatcherOptions) {}\n\n  get status(): \"stopped\" | \"ready\" | \"degraded\" {\n    return this.state;\n  }\n\n  start(): void {\n    if (this.state !== \"stopped\") return;\n    const onEvent = (_event: string, filename: string | Buffer | null) => {\n      if (!filename) return;\n      const relative = String(filename).replaceAll(\"\\\\\", \"/\");\n      const segments = relative.split(\"/\");\n      const ignored = this.options.ignoredSegments ?? DEFAULT_IGNORED_SEGMENTS;\n      if (segments.some((segment) => ignored.includes(segment))) return;\n      const maxPending = this.options.maxPendingPaths ?? 2_000;\n      if (this.pending.size >= maxPending && !this.pending.has(relative)) {\n        this.overflowed = true;\n      } else {\n        this.pending.add(relative);\n      }\n      this.scheduleFlush();\n    };\n    const factory = this.options.watchFactory ?? ((target, watchOptions, listener) => watchOptions === undefined ? fsWatch(target, listener) : fsWatch(target, watchOptions, listener));\n    const attach = (watcher: FSWatcher): void => {\n      watcher.on(\"error\", (error) => this.handleError(error));\n      this.watcher = watcher;\n    };\n    this.state = \"degraded\";\n    const platform = this.options.platform ?? process.platform;\n    // Node's Windows recursive fs.watch path can terminate the process in\n    // native libuv before JavaScript can observe an error. Never enter that\n    // backend on the qualified Windows runtime; reconciliation is authoritative.\n    // The same runner has also shown the native fs-event callback asserting for\n    // non-recursive watches, so Windows uses reconciliation-only rather than\n    // attempting any fs.watch backend.\n    if (platform === \"win32\") {\n      this.startReconciliation();\n      return;\n    }\n    try {\n      attach(factory(this.root, { recursive: true }, onEvent));\n      this.state = \"ready\";\n      // Native events are optimization hints; keep bounded reconciliation\n      // active so a missed event cannot leave the graph stale.\n      this.startReconciliation();\n      return;\n    } catch (recursiveError) {\n      this.notifyError(recursiveError);\n    }\n    try {\n      // A non-recursive watcher is only an invalidation hint. Reconciliation\n      // remains active so nested changes are eventually discovered.\n      attach(factory(this.root, undefined, onEvent));\n      this.startReconciliation();\n    } catch (fallbackError) {\n      this.notifyError(fallbackError);\n      this.startReconciliation();\n    }\n  }\n\n  stop(): void {\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    if (this.timer) clearTimeout(this.timer);\n    this.timer = undefined;\n    if (this.reconciliationTimer) clearInterval(this.reconciliationTimer);\n    this.reconciliationTimer = undefined;\n    this.pending.clear();\n    this.overflowed = false;\n    this.state = \"stopped\";\n  }\n\n  private handleError(error: unknown): void {\n    if (this.state === \"stopped\") return;\n    try {\n      this.watcher?.close();\n    } catch {\n      // Closing an already-failed platform watcher is best effort.\n    }\n    this.watcher = undefined;\n    this.state = \"degraded\";\n    this.notifyError(error);\n    this.startReconciliation();\n    this.overflowed = true;\n    this.scheduleFlush();\n  }\n\n  private startReconciliation(): void {\n    const interval = this.options.reconcileMs ?? DEFAULT_RECONCILE_MS;\n    if (!Number.isFinite(interval) || interval <= 0 || this.reconciliationTimer) return;\n    this.reconciliationTimer = setInterval(() => {\n      if (this.state === \"stopped\") return;\n      this.overflowed = true;\n      this.scheduleFlush();\n    }, interval);\n    this.reconciliationTimer.unref();\n  }\n\n  private notifyError(error: unknown): void {\n    if (this.options.onError) void Promise.resolve(this.options.onError(error)).catch(() => undefined);\n  }\n\n  private scheduleFlush(): void {\n    if (this.timer) return;\n    this.timer = setTimeout(() => {\n      this.timer = undefined;\n      const paths = [...this.pending];\n      const overflowed = this.overflowed;\n      this.pending.clear();\n      this.overflowed = false;\n      if (overflowed && this.options.onOverflow) void Promise.resolve(this.options.onOverflow()).catch((error) => this.notifyError(error));\n      if (paths.length > 0) void Promise.resolve(this.options.onPaths(paths)).catch((error) => this.notifyError(error));\n    }, this.options.debounceMs ?? 100);\n    this.timer.unref();\n  }\n}\n\nexport function watcherPath(root: string, filename: string): string {\n  return path.relative(root, path.resolve(root, filename)).replaceAll(\"\\\\\", \"/\");\n}\n",
+          "expectedAfterHash": "sha256:8e8bbc2de3b21d666fefe61ef2cddb2e27f1cdb08ff7af77577e1738b468a3de"
+        }
+      ]
+    },
+    "guidance": {
+      "control": {
+        "mode": "ordinary_failure_log",
+        "sourceRecord": "dogfood/observed-tasks/OT-005.result.json#sha256:1834de240ca3a233059e9b31f16cc5f3e739c2525d3511a6642ab9747ea3e4af",
+        "packet": {
+          "failure": [
+            "healthy-watcher-reconciliation"
+          ],
+          "representation": "ordinary test output and failure text"
+        }
+      },
+      "treatment": {
+        "mode": "structured_feedback_packet",
+        "sourceRecord": "dogfood/observed-tasks/OT-005.result.json#sha256:1834de240ca3a233059e9b31f16cc5f3e739c2525d3511a6642ab9747ea3e4af",
+        "packet": {
+          "feedbackPacketId": "recorded-in-OT-005",
+          "failedCriteria": [
+            "healthy-watcher-reconciliation"
+          ],
+          "retryState": "recommended",
+          "structuredFeedbackGenerated": true
+        }
+      }
+    },
+    "finalChecks": [
+      {
+        "path": "packages/code-state/src/watcher.ts",
+        "expectedHash": "sha256:8e8bbc2de3b21d666fefe61ef2cddb2e27f1cdb08ff7af77577e1738b468a3de",
+        "includes": [
+          "this.state = \"ready\";",
+          "this.startReconciliation();"
+        ]
+      }
+    ]
+  }
+}

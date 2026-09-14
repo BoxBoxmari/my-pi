@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -43,8 +44,87 @@ function routeMetrics(selected, groundTruth) {
   };
 }
 
+
+function sha256Text(value) {
+  return "sha256:" + createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+async function evaluateControlledReplay(task, marker) {
+  const workload = task.workload ?? {};
+  const replayPatches = workload.failureReplay?.patches;
+  const repairPatches = workload.repairPatches?.[marker.arm] ?? workload.repairPatches?.shared;
+  if (!Array.isArray(replayPatches) || !Array.isArray(repairPatches)) throw new Error("PN8 workload patch plan is incomplete");
+  const history = Array.isArray(marker.patchHistory) ? marker.patchHistory : [];
+  const expectedPatches = [...replayPatches, ...repairPatches];
+  const historyMatches = history.length === expectedPatches.length && expectedPatches.every((patch, index) => {
+    const observed = history[index];
+    const expectedPhase = index < replayPatches.length ? "failure_replay" : "repair";
+    return observed?.phase === expectedPhase
+      && observed?.id === patch.id
+      && observed?.path === patch.path
+      && typeof observed.sourceBefore === "string"
+      && typeof observed.sourceAfter === "string"
+      && (!patch.expectedAfterHash || observed.sourceAfter === patch.expectedAfterHash);
+  });
+  const finalChecks = Array.isArray(workload.finalChecks) ? workload.finalChecks : [];
+  const sourceChecks = [];
+  for (const check of finalChecks) {
+    const content = await readFile(path.resolve(ROOT, check.path), "utf8");
+    const digest = sha256Text(content);
+    const includes = Array.isArray(check.includes) ? check.includes.every((value) => content.includes(value)) : true;
+    const excludes = Array.isArray(check.excludes) ? check.excludes.every((value) => !content.includes(value)) : true;
+    const hashMatches = check.expectedHash === undefined || check.expectedHash === digest;
+    sourceChecks.push({ path: check.path, digest, includes, excludes, hashMatches, passed: includes && excludes && hashMatches });
+  }
+  const expectedGuidance = workload.guidance?.[marker.arm];
+  const guidanceMatches = expectedGuidance !== undefined
+    && marker.guidance?.mode === expectedGuidance.mode
+    && marker.guidance?.sourceRecord === expectedGuidance.sourceRecord;
+  const sourceChangeObserved = history.some((entry) => entry.sourceBefore !== entry.sourceAfter);
+  const assertion = {
+    passed: marker.taskId === task.taskId
+      && marker.evidenceKind === "controlled_replay"
+      && marker.mutationCount === history.length
+      && historyMatches
+      && guidanceMatches
+      && sourceChangeObserved
+      && sourceChecks.length > 0
+      && sourceChecks.every((check) => check.passed),
+    historyMatches,
+    guidanceMatches,
+    sourceChangeObserved,
+    sourceChecks,
+    repairIterations: repairPatches.length,
+    expectedRepairIterations: marker.repairIterations,
+  };
+  const metrics = {
+    replay_match: historyMatches ? 1 : 0,
+    repair_yield: assertion.passed ? 1 : 0,
+    repair_iterations: repairPatches.length,
+    downstream_pass: assertion.passed ? 1 : 0,
+    prior_passes_preserved: assertion.passed ? 1 : 0,
+  };
+  return {
+    schemaVersion: "my-pi/track-a-evaluator/v2",
+    taskId: task.taskId,
+    arm: marker.arm,
+    accepted: assertion.passed,
+    evaluator: "independent node process",
+    evidenceKind: "controlled_replay",
+    sourceChangeExpected: true,
+    sourceChangeObserved,
+    groundTruth: marker.groundTruth,
+    selected: marker.route,
+    guidanceMode: marker.guidance?.mode,
+    failureReplay: marker.failureReplay,
+    metrics,
+    assertion,
+  };
+}
+
 async function evaluate(task, marker) {
   const workload = task.workload;
+  if (task.taskClass === "PN8" || workload?.evidenceKind === "controlled_replay") return evaluateControlledReplay(task, marker);
   let assertion;
   if (task.taskId === "OT-011") {
     const { ContextRouter } = await importFromRoot("packages/context-router/dist/router.js");

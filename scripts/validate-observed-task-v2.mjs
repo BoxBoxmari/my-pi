@@ -73,6 +73,61 @@ function validateArm(errors, arm, label, taskBase) {
   }
 }
 
+
+function validateWorkloadPatch(errors, patch, label) {
+  add(errors, isObject(patch), label + " must be an object");
+  if (!isObject(patch)) return;
+  string(errors, patch.id, label + ".id");
+  string(errors, patch.path, label + ".path");
+  string(errors, patch.old, label + ".old", { nonEmpty: false });
+  string(errors, patch.new, label + ".new", { nonEmpty: false });
+  if (patch.expectedAfterHash !== undefined) digest(errors, patch.expectedAfterHash.replace(/^sha256:/, ""), label + ".expectedAfterHash");
+}
+
+function validateWorkload(errors, workload, taskClass) {
+  if (workload === undefined) return;
+  add(errors, isObject(workload), "workload must be an object");
+  if (!isObject(workload)) return;
+  if (workload.targetPath !== undefined) string(errors, workload.targetPath, "workload.targetPath");
+  if (workload.patch !== undefined) validateWorkloadPatch(errors, { ...workload.patch, id: workload.patch.id ?? "source-patch", path: workload.targetPath ?? workload.patch.path }, "workload.patch");
+  if (workload.groundTruth !== undefined) add(errors, Array.isArray(workload.groundTruth), "workload.groundTruth must be an array");
+  for (const routeName of ["controlRoute", "treatmentRoute"]) if (workload[routeName] !== undefined) add(errors, Array.isArray(workload[routeName]), "workload." + routeName + " must be an array");
+  if (taskClass !== "PN8") return;
+  add(errors, workload.evidenceKind === "controlled_replay", "PN8 workload.evidenceKind must be controlled_replay");
+  add(errors, isObject(workload.failureReplay), "PN8 workload.failureReplay must be an object");
+  if (isObject(workload.failureReplay)) {
+    string(errors, workload.failureReplay.id, "workload.failureReplay.id");
+    string(errors, workload.failureReplay.sourceRecord, "workload.failureReplay.sourceRecord");
+    add(errors, Array.isArray(workload.failureReplay.patches) && workload.failureReplay.patches.length > 0, "PN8 failureReplay.patches must not be empty");
+    if (Array.isArray(workload.failureReplay.patches)) workload.failureReplay.patches.forEach((patch, index) => validateWorkloadPatch(errors, patch, "workload.failureReplay.patches[" + index + "]"));
+  }
+  add(errors, isObject(workload.repairPatches), "PN8 workload.repairPatches must be an object");
+  if (isObject(workload.repairPatches)) {
+    const repairSets = ["shared", "control", "treatment"].filter((name) => Array.isArray(workload.repairPatches[name]));
+    add(errors, repairSets.length > 0, "PN8 repairPatches must declare shared or both arm-specific patch sets");
+    for (const name of repairSets) workload.repairPatches[name].forEach((patch, index) => validateWorkloadPatch(errors, patch, "workload.repairPatches." + name + "[" + index + "]"));
+  }
+  add(errors, isObject(workload.guidance), "PN8 workload.guidance must be an object");
+  if (isObject(workload.guidance)) for (const armId of ["control", "treatment"]) {
+    const guidance = workload.guidance[armId];
+    add(errors, isObject(guidance), "workload.guidance." + armId + " must be an object");
+    if (isObject(guidance)) {
+      string(errors, guidance.mode, "workload.guidance." + armId + ".mode");
+      string(errors, guidance.sourceRecord, "workload.guidance." + armId + ".sourceRecord");
+    }
+  }
+  add(errors, Array.isArray(workload.finalChecks) && workload.finalChecks.length > 0, "PN8 workload.finalChecks must not be empty");
+  if (Array.isArray(workload.finalChecks)) for (const [index, check] of workload.finalChecks.entries()) {
+    add(errors, isObject(check), "workload.finalChecks[" + index + "] must be an object");
+    if (isObject(check)) {
+      string(errors, check.path, "workload.finalChecks[" + index + "].path");
+      if (check.expectedHash !== undefined) add(errors, typeof check.expectedHash === "string" && /^sha256:[0-9a-f]{64}$/i.test(check.expectedHash), "workload.finalChecks[" + index + "].expectedHash is invalid");
+      if (check.includes !== undefined) add(errors, Array.isArray(check.includes), "workload.finalChecks[" + index + "].includes must be an array");
+      if (check.excludes !== undefined) add(errors, Array.isArray(check.excludes), "workload.finalChecks[" + index + "].excludes must be an array");
+    }
+  }
+}
+
 export function validateObservedTask(task) {
   const errors = [];
   add(errors, isObject(task), "task must be an object");
@@ -186,6 +241,7 @@ export function validateObservedTask(task) {
     add(errors, Array.isArray(task.contaminationControls.forbiddenPaths), "contaminationControls.forbiddenPaths must be an array");
   }
 
+  validateWorkload(errors, task.workload, task.taskClass);
   return { ok: errors.length === 0, errors };
 }
 
