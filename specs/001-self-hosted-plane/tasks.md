@@ -105,7 +105,7 @@ fixtures and inspect the named workflow result.
 - [X] T042 Record the current candidate aggregate and x-harness state as WITHHELD/BLOCKED in `.x-harness/self-hosted-track-a-completion-card.yaml`.
 - [ ] T043 Regenerate candidate-bound evidence, attestation, SBOM/release artifacts, and the completion card after the final authorized code commit.
 - [ ] T044 Run read-only `xh verify` at deep tier on the final candidate and accept only `admission.outcome: success` plus `acceptance_status: accepted`.
-- [ ] T045 Run the unchanged Production Next promotion verifier; keep PN11 closed unless it reports `promotionEligible: true`.
+- [X] T045 Run the unchanged Production Next promotion verifier; keep PN11 closed unless it reports `promotionEligible: true`. The current read-only run reports PN6/PN8/PN9/PN12 as `WITHHELD`, `promotionEligible: false`, and leaves PN11 closed.
 
 ## Dependencies and Execution Order
 
