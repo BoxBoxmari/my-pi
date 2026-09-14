@@ -1,0 +1,253 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-result-v2",
+  "taskId": "OT-036",
+  "taskDefinition": "dogfood/observed-tasks/OT-036.json",
+  "taskDefinitionCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+  "runId": "run-2b4acae8ad4c1292",
+  "status": "COMPLETED",
+  "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+  "runStartedAt": "2026-09-14T14:07:51.768Z",
+  "runCompletedAt": "2026-09-14T14:09:26.258Z",
+  "arms": [
+    {
+      "armId": "control",
+      "runId": "run-1a47b1f843c6527d",
+      "sessionId": "session-408a3f4f64375f49",
+      "worktreeId": "worktree-408a3f4f64375f49",
+      "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+      "sourceStateDigest": "af5501e4b99cef76e67e24c2bcf64cbe8c7ebf9f077a4913e979adc808815a75",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "6d29470bcb1e5fdca13b100898d3e6a76a9c711023b6d0ed330de88f426c000e",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-036.json",
+            "--arm",
+            "control"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "a33707df8f31171b1088dd61463dc4c49e316e05cf0e812c6f11c7a3f070e175",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "independent-evaluator",
+          "argv": [
+            "node",
+            "scripts/evaluate-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-036.json"
+          ],
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "fec2f22f0db54c48ff9b552cde08f9f5e11b6972a8d0e2fa65821fd3a606c901",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    },
+    {
+      "armId": "treatment",
+      "runId": "run-600334b6fdd0e866",
+      "sessionId": "session-e34cf4f2257162a7",
+      "worktreeId": "worktree-e34cf4f2257162a7",
+      "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+      "sourceStateDigest": "af5501e4b99cef76e67e24c2bcf64cbe8c7ebf9f077a4913e979adc808815a75",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "88b3f26fbacb1721d4348029d5f8ef0a94b5e47e50280496b6268a95841a0f02",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-036.json",
+            "--arm",
+            "treatment"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "3c0d8e0a103ec2565ffbc7c8dbe4add8bbea84468775168ea16d6ebb0da2870d",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "independent-evaluator",
+          "argv": [
+            "node",
+            "scripts/evaluate-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-036.json"
+          ],
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "c28e3aba2a05f2449456c2d29837e7e5d2286c57e73713a1aebbadec54fe1e53",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    }
+  ],
+  "adjudication": {
+    "independent": true,
+    "evaluatorRunId": "eval-46ab833641fd5d98",
+    "recordedAt": "2026-09-14T14:09:26.260Z",
+    "outcome": "accepted",
+    "evidenceRefs": [
+      "paired-run-manifest",
+      "predeclared-command-results",
+      "independent-evaluator-stdout"
+    ]
+  },
+  "taskClass": "PN6",
+  "evidenceKind": "observed_source_change",
+  "observationSource": "real_source_change",
+  "measurements": [
+    {
+      "id": "routing_recall",
+      "armId": "control",
+      "value": 0.5,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "routing_precision",
+      "armId": "control",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "selected_items",
+      "armId": "control",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "downstream_pass",
+      "armId": "control",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "repair_iterations",
+      "armId": "control",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "routing_recall",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "routing_precision",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "selected_items",
+      "armId": "treatment",
+      "value": 2,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "downstream_pass",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-036"
+    },
+    {
+      "id": "repair_iterations",
+      "armId": "treatment",
+      "value": 0,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-036"
+    }
+  ],
+  "measurementEvidence": {
+    "evaluatorMode": "independent-command-output",
+    "armRuns": {
+      "control": {
+        "runId": "run-1a47b1f843c6527d",
+        "evaluatorRunId": "eval-46ab833641fd5d98",
+        "repairIterations": 1,
+        "accepted": true
+      },
+      "treatment": {
+        "runId": "run-600334b6fdd0e866",
+        "evaluatorRunId": "eval-46ab833641fd5d98",
+        "repairIterations": 0,
+        "accepted": true
+      }
+    }
+  }
+}

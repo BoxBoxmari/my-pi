@@ -264,6 +264,7 @@ export interface MyPiServerOptions {
     enabled: boolean;
     supportedHost?: boolean;
     readHtml: () => string | Promise<string>;
+    readTheaterHtml?: () => string | Promise<string>;
   };
 }
 
@@ -299,7 +300,7 @@ export class MyPiServer {
     }
   }
 
-  private registerVisualsResource(visuals: { readHtml: () => string | Promise<string> }): boolean {
+  private registerVisualsResource(visuals: { readHtml: () => string | Promise<string>; readTheaterHtml?: () => string | Promise<string> }): boolean {
     const registerResource = (this.server as unknown as { registerResource?: (...args: unknown[]) => unknown }).registerResource;
     if (typeof registerResource !== "function") return false;
     registerAppResource(
@@ -314,6 +315,20 @@ export class MyPiServer {
         contents: [{ uri: uri.href, mimeType: RESOURCE_MIME_TYPE, text: await visuals.readHtml() }],
       }),
     );
+    if (visuals.readTheaterHtml) {
+      registerAppResource(
+        this.server as unknown as Pick<McpServer, "registerResource">,
+        "my-pi-theater",
+        "ui://my-pi/theater",
+        {
+          title: "my-pi theater view",
+          description: "Read-only 3D isometric and 2D spatial Agent Operations Theater for live coordination events.",
+        },
+        async (uri) => ({
+          contents: [{ uri: uri.href, mimeType: RESOURCE_MIME_TYPE, text: await visuals.readTheaterHtml!() }],
+        }),
+      );
+    }
     return true;
   }
 

@@ -1,0 +1,243 @@
+{
+  "schemaVersion": "my-pi/track-a-verification/v2",
+  "generatedAt": "2026-09-14T08:59:45.757Z",
+  "candidateCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+  "workspaceState": "candidate source commit is measured; workspace retains uncommitted evidence/docs/runtime artifacts and is not an admission claim",
+  "commands": [
+    {
+      "id": "test-fast",
+      "command": "C:\\Users\\Admin\\AppData\\Local\\Microsoft\\WinGet\\Packages\\pnpm.pnpm_Microsoft.Winget.Source_8wekyb3d8bbwe\\pnpm.exe test:fast",
+      "started_at": "2026-09-14T08:58:55.399Z",
+      "finished_at": "2026-09-14T08:58:59.605Z",
+      "duration_ms": 4205,
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout_hash": "sha256:f3a1feb6e519c97117d74f89d33b0ad100094271899e19d3d2f5b0aeb1f66b8c",
+      "stderr_hash": "sha256:2da4e899a9d932939eca6bc51077395a9feed9fae6bb0b80e318d2168937d11c",
+      "result_tail": "✔ PN5 indexes File/Module/Symbol entities with provider and fingerprint metadata (425.6603ms)\n✔ PN5 incremental edits replace only the changed path and reload from persistence (229.8912ms)\n✔ PN5 provider failure is explicit and does not discard successful providers (61.0245ms)\n✔ PN5 watcher coalesces changed paths and ignores build/vendor segments (113.4405ms)\n✔ PN5 watcher skips recursive fs.watch on Windows and uses bounded reconciliation (85.0686ms)\n✔ PN5 watcher uses degraded reconciliation when recursive watching is unavailable (102.2696ms)\n✔ PN5 healthy recursive watcher keeps bounded reconciliation active (312.2376ms)\n✔ PN5 watcher contains startup failure and can be stopped and restarted (319.8725ms)\n✔ PN5 watcher ignores a late backend error after stop (114.7298ms)\n✔ B0/B1 golden: verified my-pi output is managed (7.9684ms)\n✔ B0/B1 bypass: direct editor mutation is unmanaged (0.742ms)\n✔ B1 stale lineage: output bytes do not override an incompatible ancestor (0.5114ms)\n✔ B1 unknown: an invalid receipt never grants managed status (0.5172ms)\n✔ B1 exempt: configured evidence paths are never treated as source mutations (8.3861ms)\n✔ B1 bypass: writing the same bytes again does not fabricate a second transition (0.7327ms)\n✔ B1 provenance report is read-only, latest-per-path, and bounded (25.175ms)\n✔ architecture checker rejects Production Next layering violations (440.1408ms)\n✔ PN6 controlled routing corpus compares all five coordination arms (379.2937ms)\n✔ PN0 compatibility: the MCP catalog exposes exactly the 13 legacy tools and schemas (75.785ms)\n✔ aggregate reports metric deltas but never self-promotes (44.7851ms)\n✔ failed adjudication remains visible but is not qualified (2.726ms)\n✔ ObservedTask v2 golden fixture validates (4.8399ms)\n✔ validator rejects a missing preregistration identity and an unregistered command (0.5948ms)\n✔ validator rejects control/treatment base drift and shared isolation keys (0.4576ms)\n✔ PN6 and PN8 tasks require divergent preregistered arm setup commands (2.3494ms)\n✔ paired result golden fixture validates only with independent adjudication (2.5409ms)\n✔ result command evidence must match the preregistered argv (0.4878ms)\n✔ contamination bypass is fail-closed and cannot be reported completed (0.4615ms)\n✔ paired manifest is deterministic for frozen inputs (0.7832ms)\n✔ executed manifest conversion preserves bounded command evidence (1.8519ms)\n✔ measurements reject unknown metrics and duplicate arm/metric pairs (0.6836ms)\n✔ aggregate verifier accepts a valid withheld candidate (2.448ms)\n✔ aggregate verifier rejects self-promotion and non-independent qualification (0.4868ms)\nℹ tests 33\nℹ suites 0\nℹ pass 33\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2319.045\n$ node --test --experimental-strip-types \"packages/code-state/test/**/*.test.ts\" \"test/compat/**/*.test.mjs\" \"test/release/observed-task-v2.test.mjs\" \"test/release/observed-evidence-aggregate-v2.test.mjs\" \"test/release/verify-observed-evidence-v2.test.mjs\"\n"
+    },
+    {
+      "id": "test-release",
+      "command": "C:\\Users\\Admin\\AppData\\Local\\Microsoft\\WinGet\\Packages\\pnpm.pnpm_Microsoft.Winget.Source_8wekyb3d8bbwe\\pnpm.exe test:release",
+      "started_at": "2026-09-14T08:58:59.605Z",
+      "finished_at": "2026-09-14T08:59:35.847Z",
+      "duration_ms": 36242,
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout_hash": "sha256:8ca3891942a2e35c391b8827368433a1090c30bf37d55cf5e5802a558d25ca16",
+      "stderr_hash": "sha256:05775c8245e8124a5d62196e0db94f3fcb482ecfee515db19270d5c522f2d79a",
+      "result_tail": "table bootstrap rejects a bootstrap SHA equal to candidate (3.8626ms)\n✔ stable bootstrap rejects an artifact built from the wrong predecessor (0.5018ms)\n✔ stable bootstrap rejects an unavailable predecessor build (0.3813ms)\n✔ stable bootstrap rejects a dirty candidate (0.2682ms)\n✔ stable bootstrap rejects stale candidate evidence (0.2947ms)\n✔ stable bootstrap rejects evidence when the N-1 runtime was not used (0.9006ms)\n✔ stable bootstrap accepts workflow and job API qualification provenance (1.6716ms)\n✔ stable bootstrap accepts pinned public job-page qualification provenance (0.4587ms)\n✔ publish artifact binding accepts one fully admitted artifact identity (45.2498ms)\n✔ publish artifact binding rejects a checksum pair that contradicts the admitted manifest (19.8768ms)\n✔ publish artifact binding rejects injected package identity when it diverges (13.2698ms)\n✔ publish artifact CLI extracts and accepts package identity from a real TGZ (1050.0746ms)\n✔ publish artifact CLI rejects divergent package identity extracted from a real TGZ (698.4241ms)\n✔ publish artifact binding rejects a checksum filename that is not the selected TGZ (24.4986ms)\n✔ server.json: declares an installable local workspace contract (26.8383ms)\n✔ verify-release: accepts a synchronized MCP Registry manifest (3333.479ms)\n✔ verify-release: rejects stale server.json versions (3004.4607ms)\n✔ verify-release: rejects an npm mcpName that diverges from server.json (1560.1452ms)\n✔ release identity: explicit RELEASE_COMMIT has priority (2.8503ms)\n✔ release identity: GITHUB_SHA is used when RELEASE_COMMIT is absent (0.4396ms)\n✔ release identity: short commits resolve to full SHAs (419.9164ms)\n✔ release identity: malformed commits fail closed (1.2854ms)\n✔ release manifest binds artifact, SBOM, benchmark, version, channel, and commit (92.2644ms)\n✔ release manifest rejects stale benchmark evidence (210.9186ms)\n✔ Production Next manifest binds extended provenance and rejects a dirty candidate (437.8373ms)\n✔ aggregate verifier accepts a valid withheld candidate (4.3344ms)\n✔ aggregate verifier rejects self-promotion and non-independent qualification (0.8303ms)\n✔ verify-release: baseline passes with clean exit code 0 (2709.2122ms)\n✔ verify-release: fails closed when a required criterion is BLOCKED (2097.5195ms)\n✔ verify-release: fails closed when a required criterion is missing (774.4171ms)\n✔ verify-release: fails closed on package version mismatch (668.5693ms)\n✔ verify-release: fails closed on release tag mismatch (496.9944ms)\n✔ verify-release: fails closed on duplicate required criteria (507.7402ms)\n✔ verify-release: fails closed when an evidence filename and id disagree (514.607ms)\n✔ verify-release: fails closed on missing commit identifier in evidence (556.4092ms)\n✔ verify-release: fails closed on malformed evidence commit (787.2096ms)\n✔ verify-release: fails closed on a valid but stale evidence commit (479.1097ms)\n✔ verify-release: fails closed on an unrelated abbreviated evidence commit (630.5313ms)\n✔ verify-release: fails closed on benchmark observed count below target (430.5457ms)\n✔ verify-release: strict mode requires candidate-bound release benchmark evidence (516.3394ms)\n✔ verify-release: strict mode requires spawned-server runtime performance evidence (446.7404ms)\n✔ verify-release: strict mode rejects an undersized release benchmark (616.7486ms)\n✔ SBOM parser retains scoped pnpm package names (46.6258ms)\n✔ SBOM generation derives release version, commit, and direct dependency inventory (9.7876ms)\n✔ SBOM validator accepts a current, structurally valid document (23.8096ms)\n✔ SBOM validator rejects the wrong release version (3.3525ms)\n✔ SBOM validator rejects a stale release commit (2.1764ms)\n✔ SBOM validator rejects a missing direct production dependency (1.7752ms)\n✔ SBOM validator rejects malformed and empty documents (1.6704ms)\nℹ tests 76\nℹ suites 0\nℹ pass 76\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 34473.4678\n$ node --test test/release/**/*.test.mjs\n"
+    },
+    {
+      "id": "typecheck",
+      "command": "C:\\Users\\Admin\\AppData\\Local\\Microsoft\\WinGet\\Packages\\pnpm.pnpm_Microsoft.Winget.Source_8wekyb3d8bbwe\\pnpm.exe typecheck",
+      "started_at": "2026-09-14T08:59:35.848Z",
+      "finished_at": "2026-09-14T08:59:39.598Z",
+      "duration_ms": 3750,
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "sha256:8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+      "result_tail": "$ tsc --noEmit\n"
+    },
+    {
+      "id": "build",
+      "command": "C:\\Users\\Admin\\AppData\\Local\\Microsoft\\WinGet\\Packages\\pnpm.pnpm_Microsoft.Winget.Source_8wekyb3d8bbwe\\pnpm.exe build",
+      "started_at": "2026-09-14T08:59:39.598Z",
+      "finished_at": "2026-09-14T08:59:44.681Z",
+      "duration_ms": 5084,
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout_hash": "sha256:335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+      "stderr_hash": "sha256:6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+      "result_tail": "[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling completed successfully.\n$ tsc --build && node scripts/bundle-app.mjs\n"
+    },
+    {
+      "id": "verify-observed-v2",
+      "command": "C:\\Program Files\\nodejs\\node.exe scripts/verify-observed-evidence-v2.mjs evidence/observed-evidence-v2.aggregate.json",
+      "started_at": "2026-09-14T08:59:44.682Z",
+      "finished_at": "2026-09-14T08:59:44.858Z",
+      "duration_ms": 176,
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout_hash": "sha256:9aa61180dbff1070196ab9b976a7d28e306a9ba7f56bf61b71e153af82c64f00",
+      "stderr_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result_tail": "{\n  \"ok\": true,\n  \"errors\": [],\n  \"admission\": \"WITHHELD\",\n  \"promotionEligible\": false,\n  \"report\": \"C:\\\\Users\\\\Admin\\\\Downloads\\\\Compressed\\\\my-pi\\\\evidence\\\\observed-evidence-v2.aggregate.json\"\n}\n"
+    }
+  ],
+  "priorFullSuiteCapture": {
+    "status": "failed",
+    "id": "full-test-suite",
+    "command": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "--test",
+      "--experimental-strip-types",
+      "packages/*/test/**/*.test.ts",
+      "apps/*/test/**/*.test.ts",
+      "test/compat/**/*.test.mjs"
+    ],
+    "started_at": "2026-09-13T19:12:41.266Z",
+    "finished_at": "2026-09-13T19:13:58.114Z",
+    "duration_ms": 76848,
+    "exit_code": 1,
+    "stdout_hash": "39c4d910d97644a0967942e15536b7683689979ab48e5551280c825f51f345fa",
+    "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "result_tail": "econds\n      at waitForReady (file:///C:/Users/Admin/Downloads/Compressed/my-pi/apps/my-pi-daemon/test/daemon.test.ts:50:46)\n      at async TestContext.<anonymous> (file:///C:/Users/Admin/Downloads/Compressed/my-pi/apps/my-pi-daemon/test/daemon.test.ts:88:22)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)\n\ntest at apps\\my-pi-daemon\\test\\evaluation.test.ts:35:1\n✖ PN8 IPC: evaluator records exact-state evidence and returns acceptance state (11016.4115ms)\n  Error: daemon did not become ready\n      at waitForReady (file:///C:/Users/Admin/Downloads/Compressed/my-pi/apps/my-pi-daemon/test/evaluation.test.ts:23:46)\n      at async TestContext.<anonymous> (file:///C:/Users/Admin/Downloads/Compressed/my-pi/apps/my-pi-daemon/test/evaluation.test.ts:40:22)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)\n\ntest at apps\\my-pi-mcp\\test\\coordination.test.ts:46:1\n✖ PN4 MCP adapter: coordination mode exposes six opt-in tools backed by the daemon (10945.4481ms)\n  Error: daemon did not become ready\n      at waitForReady (file:///C:/Users/Admin/Downloads/Compressed/my-pi/apps/my-pi-mcp/test/coordination.test.ts:30:46)\n      at async TestContext.<anonymous> (file:///C:/Users/Admin/Downloads/Compressed/my-pi/apps/my-pi-mcp/test/coordination.test.ts:52:22)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)"
+  },
+  "subsequentFullSuiteAttempt": {
+    "status": "inconclusive",
+    "reason": "test process remained alive beyond the bounded capture window at apps/my-pi-mcp/test/coordination.test.ts; capture was stopped without converting the run to pass"
+  },
+  "officialMyPi": {
+    "status": "passed",
+    "workspaceRoot": "C:\\Users\\Admin\\Downloads\\Compressed\\my-pi",
+    "toolCount": 13,
+    "tools": [
+      "workspace_info",
+      "fs_stat",
+      "fs_read",
+      "fs_write",
+      "fs_patch",
+      "search",
+      "vcs_status",
+      "vcs_diff",
+      "ast_search",
+      "lsp_status",
+      "lsp_diagnostics",
+      "lsp_symbols",
+      "lsp_navigate"
+    ],
+    "vcsStatusHash": "sha256:7db034e546818ad41dbb3e482128c5275ec13e80961d91ea5c8b30d62733db23",
+    "workspaceInfoHash": "sha256:16ace424f763db451efd4808905b4c319b68d3f4b30a9827bb28328d66e17f7f"
+  },
+  "sequentialFullSuite": {
+    "status": "passed",
+    "command": "node --test --test-concurrency=1 --experimental-strip-types packages/*/test/**/*.test.ts apps/*/test/**/*.test.ts test/compat/**/*.test.mjs",
+    "started_at": "2026-09-14T02:23:37+07:00",
+    "finished_at": "2026-09-14T02:26:17+07:00",
+    "exit_code": 0,
+    "result": "251 tests; 250 passed; 0 failed; 1 Windows POSIX-mode skip",
+    "interpretation": "Sequential execution avoids the shared-workspace daemon lock contention observed under default test concurrency."
+  },
+  "codegraphShellValidation": {
+    "status": "passed",
+    "command": "codegraph sync",
+    "result": "3 changed files synced; 48 nodes modified"
+  },
+  "fullSuiteResolution": "The default concurrent profile is not a stable admission signal on this Windows shared-workspace setup; the sequential profile is the reproducible full-suite evidence.",
+  "updatedAt": "2026-09-14T08:59:45.757Z",
+  "commandProvenance": {
+    "recordedAt": "2026-09-14T07:15:59.735Z",
+    "runner": "Node child_process shell wrapper on Windows",
+    "note": "Hashes are captured from the current checkout; this record is evidence, not an admission claim.",
+    "commands": [
+      {
+        "command": "pnpm.cmd test:fast",
+        "exit_code": 0,
+        "started_at": "2026-09-14T07:15:45.504Z",
+        "ended_at": "2026-09-14T07:15:48.270Z",
+        "stdout_hash": "fe1573127597c70d6bde84e171935bb4289461d0e854b4ef181843dc976099a3",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "artifact_hash": "e7c8351227973b96954807ad0f94f71ee260182c614076471094c32cb02d19c9",
+        "result": "33 tests; 33 passed; 0 failed"
+      },
+      {
+        "command": "pnpm.cmd test:release",
+        "exit_code": 0,
+        "started_at": "2026-09-14T07:15:13.444Z",
+        "ended_at": "2026-09-14T07:15:35.896Z",
+        "stdout_hash": "5f48f4a6513ff8fd30b767ae9f6927561d9c7a955964a82596a7553f0173e7e4",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "artifact_hash": "ba53a57a8be1634c94d8a761c11e437d48cc460ccd3d9fc8e445818dac5334bc",
+        "result": "76 tests; 76 passed; 0 failed"
+      },
+      {
+        "command": "pnpm.cmd typecheck",
+        "exit_code": 0,
+        "started_at": "2026-09-14T07:15:57.386Z",
+        "ended_at": "2026-09-14T07:15:58.321Z",
+        "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "artifact_hash": "84e9053ea0ff30ed1ec8a5040841875078f56d8f30437c83e4dd60cbe5787258",
+        "result": "completed with no output and exit code 0"
+      },
+      {
+        "command": "pnpm.cmd build",
+        "exit_code": 0,
+        "started_at": "2026-09-14T07:15:58.322Z",
+        "ended_at": "2026-09-14T07:15:59.735Z",
+        "stdout_hash": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "artifact_hash": "a414aa3f38bcade25643f988577d881b9f97c556fd29f807e00e07d244c4645e",
+        "result": "bundle-app completed successfully"
+      }
+    ]
+  },
+  "aggregate": {
+    "path": "evidence/observed-evidence-v2.aggregate.json",
+    "contentHash": "sha256:0e49bf9245fbf4758188b37cd6ff9a091daebaf8f5b6a61d7be392c7d2df7c1d",
+    "status": "WITHHELD",
+    "promotionEligible": false,
+    "sample": {
+      "minQualifiedPerHypothesis": 3,
+      "totalPairs": 16,
+      "qualifiedPairs": 6,
+      "byHypothesis": {
+        "PN6": {
+          "registered": 3,
+          "qualified": 3,
+          "target": 3,
+          "targetMet": true,
+          "taskIds": [
+            "OT-011",
+            "OT-012",
+            "OT-013"
+          ]
+        },
+        "PN8": {
+          "registered": 3,
+          "qualified": 3,
+          "target": 3,
+          "targetMet": true,
+          "taskIds": [
+            "OT-021",
+            "OT-022",
+            "OT-023"
+          ]
+        }
+      }
+    }
+  },
+  "observedEvidence": {
+    "evidence/track-a-real-pn6-OT-011.json": {
+      "contentHash": "sha256:c97d80af3808c4c123b4a48a15bfeaedc38add2d251388d98f70d6d28f329dd3",
+      "size": 4993
+    },
+    "evidence/track-a-real-pn6-OT-012.json": {
+      "contentHash": "sha256:58823e26133a6aa17ab74294597ab2f704b21f240353fedcc67f870b0d453302",
+      "size": 5135
+    },
+    "evidence/track-a-real-pn6-OT-013.json": {
+      "contentHash": "sha256:266e1e9427e6cae2155c786880ce2f06a5d2bce5cfce2a5a16a8234b2e063a0c",
+      "size": 5322
+    },
+    "evidence/track-a-pn8-controlled-replay-OT-021.json": {
+      "contentHash": "sha256:6ca1ffe9532444616e0be8516d2a78f3cdd41a44ec89ee0515d631ca93c53291",
+      "size": 7304
+    },
+    "evidence/track-a-pn8-controlled-replay-OT-022.json": {
+      "contentHash": "sha256:f187944943386c2878dcbc3b3bc4da4b806cc58b090ad1875d612c520b8ba567",
+      "size": 6694
+    },
+    "evidence/track-a-pn8-controlled-replay-OT-023.json": {
+      "contentHash": "sha256:9086e0ddcbf891ef4c5e8ab8cef9c98698a2294432a58d92f07aeffc9a10650d",
+      "size": 6678
+    }
+  },
+  "interpretation": "PN6 and PN8 sample targets are met structurally (3/3 each), but the aggregate remains WITHHELD and PN8 is controlled replay only; x-harness admission is the sole completion authority."
+}

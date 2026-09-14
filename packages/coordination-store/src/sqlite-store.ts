@@ -112,12 +112,26 @@ export class SqliteCoordinationStore implements CoordinationStore {
     const db = this.requireDb();
     const limit = this.boundedInteger(query.limit ?? DEFAULT_EVENT_LIMIT, 1, MAX_EVENT_LIMIT, "event limit");
     const maxBytes = this.boundedInteger(query.maxBytes ?? DEFAULT_EVENT_BYTES, 1, MAX_EVENT_BYTES, "event byte limit");
-    const after = this.sequenceNumber(query.afterSequence ?? 0n);
     try {
-      const rows = db.prepare(
-        `SELECT project_id, sequence, event_id, event_type, occurred_at, actor_json, correlation_id, causation_id, payload_json
-         FROM event_log WHERE project_id = ? AND sequence > ? ORDER BY sequence ASC LIMIT ?`,
-      ).all(query.projectId, after, limit + 1) as EventRow[];
+      let sql = `SELECT project_id, sequence, event_id, event_type, occurred_at, actor_json, correlation_id, causation_id, payload_json
+         FROM event_log WHERE project_id = ?`;
+      const params: (string | number | bigint)[] = [query.projectId];
+      if (query.fromSequence !== undefined) {
+        sql += ` AND sequence >= ?`;
+        params.push(this.sequenceNumber(query.fromSequence));
+      } else {
+        const after = this.sequenceNumber(query.afterSequence ?? 0n);
+        sql += ` AND sequence > ?`;
+        params.push(after);
+      }
+      if (query.toSequence !== undefined) {
+        sql += ` AND sequence <= ?`;
+        params.push(this.sequenceNumber(query.toSequence));
+      }
+      sql += ` ORDER BY sequence ASC LIMIT ?`;
+      params.push(limit + 1);
+
+      const rows = db.prepare(sql).all(...params) as EventRow[];
       const events: CoordinationEvent[] = [];
       let bytes = 0;
       for (const row of rows.slice(0, limit)) {
@@ -128,7 +142,7 @@ export class SqliteCoordinationStore implements CoordinationStore {
         bytes += eventBytes;
         events.push(event);
       }
-      const throughSequence = events.length > 0 ? events[events.length - 1]!.sequence : (query.afterSequence ?? 0n);
+      const throughSequence = events.length > 0 ? events[events.length - 1]!.sequence : (query.afterSequence ?? query.fromSequence ?? 0n);
       return { events, throughSequence, hasMore: rows.length > events.length };
     } catch (error) {
       throw normalizeCoordinationStoreError(error);

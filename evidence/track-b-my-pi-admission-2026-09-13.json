@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "my-pi/track-b-admission-evidence/v1",
+  "measurementId": "track-b-1789311183053-31940",
+  "measuredAt": "2026-09-13T14:53:09.021Z",
+  "method": {
+    "authority": "official my-pi MCP stdio server",
+    "sourceMutations": [
+      "fs_write",
+      "fs_patch"
+    ],
+    "readback": [
+      "fs_read",
+      "vcs_status"
+    ],
+    "verification": "scripts/seal-my-pi-admission.mjs and scripts/verify-my-pi-admission.mjs"
+  },
+  "fixture": {
+    "baseCommit": "396d69d6500d3b36a9b62b1e47ce21bbc4a250b4",
+    "initialHead": "b321b8f0efa10f33ba13d1e2f425b97420c4be69",
+    "directExistingHead": "4cfd62f078c7f826b984a2ed920324ef93e04a7d",
+    "directAddedHead": "195608c7a90ab2404ef2784c8f82c6e8c9322dbe"
+  },
+  "cases": [
+    {
+      "label": "my-pi-managed-source-and-valid-attestation",
+      "exitCode": 0,
+      "status": "allowed",
+      "localDecision": "allowed",
+      "attestationValid": true,
+      "reasonCodes": [
+        "verified_receipt_output"
+      ]
+    },
+    {
+      "label": "missing-provenance",
+      "exitCode": 0,
+      "status": "rejected",
+      "localDecision": "rejected",
+      "attestationValid": true,
+      "reasonCodes": [
+        "provenance_missing"
+      ]
+    },
+    {
+      "label": "tampered-attestation",
+      "exitCode": 0,
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "subject_mismatch",
+        "verified_receipt_output"
+      ]
+    },
+    {
+      "label": "wrong-authority-key",
+      "exitCode": 0,
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "signature_invalid",
+        "verified_receipt_output"
+      ]
+    },
+    {
+      "label": "direct-host-mutation-existing-path",
+      "exitCode": 0,
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "head_mismatch",
+        "subject_mismatch",
+        "verified_receipt_output"
+      ]
+    },
+    {
+      "label": "direct-host-unprovenanced-add",
+      "exitCode": 0,
+      "status": "rejected",
+      "localDecision": "rejected",
+      "attestationValid": false,
+      "reasonCodes": [
+        "head_mismatch",
+        "provenance_missing",
+        "subject_mismatch",
+        "verified_receipt_output"
+      ]
+    }
+  ],
+  "interpretation": {
+    "allowed": "my-pi-managed source plus matching Ed25519 attestation is allowed",
+    "missing": "missing provenance is rejected",
+    "tampered": "tampered attestation requires review",
+    "wrongKey": "wrong authority key requires review",
+    "directExisting": "existing-path direct host mutation is blocked by subject/attestation mismatch",
+    "directAdded": "unprovenanced direct host addition is rejected"
+  }
+}

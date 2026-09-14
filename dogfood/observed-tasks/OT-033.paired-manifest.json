@@ -1,0 +1,269 @@
+{
+  "schemaVersion": "my-pi/observed-live-repair-manifest/v1",
+  "taskId": "OT-033",
+  "taskDefinition": "dogfood/observed-tasks/OT-033.json",
+  "taskDefinitionCommit": "60c06e1e5934f2eccada7a80522d2f14338e19a2",
+  "baseCommit": "1803d2a2ee41f3c01af51c6d25351b172b69e866",
+  "frozenStateId": "git:1803d2a2ee41f3c01af51c6d25351b172b69e866",
+  "frozenStateDigest": "43e0ba9001ba5f25f580fb7d7ddf904afd9f629e44bc5fb9ae63a1af2dd6f5e7",
+  "runStartedAt": "2026-09-14T13:08:38.345Z",
+  "runCompletedAt": "2026-09-14T13:11:25.643Z",
+  "registration": {
+    "receiptPath": "dogfood/observed-registrations/OT-033.json",
+    "registrationCommit": "ce41a547a74ccbc236ceb2dedaede4a5d33dc0ec",
+    "registrationTimestamp": "2026-09-14T19:51:21+07:00"
+  },
+  "arms": [
+    {
+      "armId": "control",
+      "runId": "run-e4b0958b4dbbfaa9",
+      "sessionId": "session-dde276476dc6fe8c",
+      "worktreeId": "worktree-dde276476dc6fe8c",
+      "evaluationSetupHistory": [
+        {
+          "id": "install-preregistered-evaluation-OT-033",
+          "path": "apps/my-pi-daemon/test/daemon.test.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:62f30fab1010d361e5b9ca71057f7a3ebbf3607fc52cfd203d13b400753f6073",
+          "afterHash": "sha256:e78d85d174fd5fecfad02b88076bf41bf034dbc71c4eed65f2d0a14ae23fa634",
+          "patchResponseHash": "sha256:e78d85d174fd5fecfad02b88076bf41bf034dbc71c4eed65f2d0a14ae23fa634",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:62f30fab1010d361e5b9ca71057f7a3ebbf3607fc52cfd203d13b400753f6073"
+        }
+      ],
+      "initialAttempt": {
+        "commands": [
+          {
+            "id": "daemon-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "daemon-independent-test",
+            "status": "failed",
+            "exitCode": 1,
+            "summary": {
+              "tests": 8,
+              "pass": 7,
+              "fail": 1
+            },
+            "stdoutDigest": "f7ad2f532753d90f553435c53005090cd8c93ae1855118c31316e740b9c88081",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 8,
+          "pass": 7,
+          "fail": 1
+        },
+        "accepted": false,
+        "failureCriterion": "coord-join-returns-before-large-code-state-registration-consumes-lease"
+      },
+      "feedback": {
+        "mode": "ordinary_log",
+        "source": "ordinary command log",
+        "failedCriteria": [
+          "coord-join-returns-before-large-code-state-registration-consumes-lease"
+        ],
+        "stdoutDigest": "f7ad2f532753d90f553435c53005090cd8c93ae1855118c31316e740b9c88081",
+        "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "repairHistory": [
+        {
+          "id": "repair-frozen-failure-OT-033",
+          "path": "apps/my-pi-daemon/src/main.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:cdaaade558b6a33853cc5c6f4f94e3a53361f6c0a590257dbcb30c427c81a68c",
+          "afterHash": "sha256:cfd1d5c9d679bc3f40184983e7c02fb3a4e84c1aa6179be0315f370affd911c6",
+          "patchResponseHash": "sha256:cfd1d5c9d679bc3f40184983e7c02fb3a4e84c1aa6179be0315f370affd911c6",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:cdaaade558b6a33853cc5c6f4f94e3a53361f6c0a590257dbcb30c427c81a68c"
+        }
+      ],
+      "finalAttempt": {
+        "commands": [
+          {
+            "id": "daemon-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "daemon-independent-test",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {
+              "tests": 8,
+              "pass": 8,
+              "fail": 0
+            },
+            "stdoutDigest": "ad408d169daa9ffc5bfa7677514b7bee1206221b7e31c39588ec956edc2023ce",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0
+        },
+        "accepted": true
+      },
+      "repairSession": {
+        "armId": "control",
+        "sessionId": "session-dde276476dc6fe8c",
+        "worktreeId": "worktree-dde276476dc6fe8c",
+        "frozenStateDigest": "43e0ba9001ba5f25f580fb7d7ddf904afd9f629e44bc5fb9ae63a1af2dd6f5e7",
+        "feedbackMode": "ordinary_log",
+        "attempts": 1,
+        "initialFailureObserved": true,
+        "accepted": true,
+        "priorPassesPreserved": true,
+        "regressions": 0,
+        "falseAccepts": 0,
+        "repairPatchIds": [
+          "repair-frozen-failure-OT-033"
+        ],
+        "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+      }
+    },
+    {
+      "armId": "treatment",
+      "runId": "run-fa784fd1663e01cd",
+      "sessionId": "session-7e9c8329d05d2412",
+      "worktreeId": "worktree-7e9c8329d05d2412",
+      "evaluationSetupHistory": [
+        {
+          "id": "install-preregistered-evaluation-OT-033",
+          "path": "apps/my-pi-daemon/test/daemon.test.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:62f30fab1010d361e5b9ca71057f7a3ebbf3607fc52cfd203d13b400753f6073",
+          "afterHash": "sha256:e78d85d174fd5fecfad02b88076bf41bf034dbc71c4eed65f2d0a14ae23fa634",
+          "patchResponseHash": "sha256:e78d85d174fd5fecfad02b88076bf41bf034dbc71c4eed65f2d0a14ae23fa634",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:62f30fab1010d361e5b9ca71057f7a3ebbf3607fc52cfd203d13b400753f6073"
+        }
+      ],
+      "initialAttempt": {
+        "commands": [
+          {
+            "id": "daemon-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "daemon-independent-test",
+            "status": "failed",
+            "exitCode": 1,
+            "summary": {
+              "tests": 8,
+              "pass": 7,
+              "fail": 1
+            },
+            "stdoutDigest": "b456223e057dab7836f31f8319db4542004fefb876cf41d692fb290c05ae4591",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 8,
+          "pass": 7,
+          "fail": 1
+        },
+        "accepted": false,
+        "failureCriterion": "coord-join-returns-before-large-code-state-registration-consumes-lease"
+      },
+      "feedback": {
+        "mode": "structured_feedback_packet",
+        "packet": {
+          "schemaVersion": "1",
+          "packetId": "feedback-OT-033",
+          "source": "independent frozen-state evaluator",
+          "failedCriteria": [
+            "coord-join-returns-before-large-code-state-registration-consumes-lease"
+          ],
+          "priorPassingCriteria": [
+            "eventual registration",
+            "failure containment"
+          ],
+          "retryState": "recommended",
+          "taskStatement": "Repair daemon join latency when code-state registration is large"
+        },
+        "observedFailure": {
+          "failedCriteria": [
+            "coord-join-returns-before-large-code-state-registration-consumes-lease"
+          ],
+          "stdoutDigest": "b456223e057dab7836f31f8319db4542004fefb876cf41d692fb290c05ae4591",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "repairHistory": [
+        {
+          "id": "repair-frozen-failure-OT-033",
+          "path": "apps/my-pi-daemon/src/main.ts",
+          "lineEndingMode": "crlf",
+          "beforeHash": "sha256:cdaaade558b6a33853cc5c6f4f94e3a53361f6c0a590257dbcb30c427c81a68c",
+          "afterHash": "sha256:cfd1d5c9d679bc3f40184983e7c02fb3a4e84c1aa6179be0315f370affd911c6",
+          "patchResponseHash": "sha256:cfd1d5c9d679bc3f40184983e7c02fb3a4e84c1aa6179be0315f370affd911c6",
+          "mutationTool": "official my-pi fs_patch",
+          "casExpectedHash": "sha256:cdaaade558b6a33853cc5c6f4f94e3a53361f6c0a590257dbcb30c427c81a68c"
+        }
+      ],
+      "finalAttempt": {
+        "commands": [
+          {
+            "id": "daemon-build",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {},
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "daemon-independent-test",
+            "status": "passed",
+            "exitCode": 0,
+            "summary": {
+              "tests": 8,
+              "pass": 8,
+              "fail": 0
+            },
+            "stdoutDigest": "1e1b66f82648209e03bf7e0a3292d903e009517623376a7f5e535a0ff16aad7e",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "summary": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0
+        },
+        "accepted": true
+      },
+      "repairSession": {
+        "armId": "treatment",
+        "sessionId": "session-7e9c8329d05d2412",
+        "worktreeId": "worktree-7e9c8329d05d2412",
+        "frozenStateDigest": "43e0ba9001ba5f25f580fb7d7ddf904afd9f629e44bc5fb9ae63a1af2dd6f5e7",
+        "feedbackMode": "structured_feedback_packet",
+        "attempts": 1,
+        "initialFailureObserved": true,
+        "accepted": true,
+        "priorPassesPreserved": true,
+        "regressions": 0,
+        "falseAccepts": 0,
+        "repairPatchIds": [
+          "repair-frozen-failure-OT-033"
+        ],
+        "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+      }
+    }
+  ],
+  "evaluatorRunId": "eval-20f9f0fc16540cb6",
+  "authority": "official my-pi MCP fs_read/fs_patch/fs_write; independent node test process for evaluation"
+}

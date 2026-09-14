@@ -344,3 +344,290 @@ export function validateGraphSnapshot(snapshot: unknown): { ok: boolean; errors:
     return { ok: false, errors: [error instanceof Error ? error.message : String(error)] };
   }
 }
+
+export const THEATER_FRAME_SCHEMA_VERSION = "my-pi/theater-frame/v1" as const;
+
+export interface TheaterEventActor {
+  kind: string;
+  id?: string;
+  name?: string;
+}
+
+export interface TheaterEvent {
+  projectId: string;
+  sequence: string;
+  eventId: string;
+  eventType: string;
+  occurredAt: string;
+  actor: TheaterEventActor;
+  correlationId?: string;
+  causationId?: string;
+  payload?: Record<string, unknown> | null;
+}
+
+export interface QualityState {
+  degraded: boolean;
+  truncated: boolean;
+  stale: boolean;
+  empty: boolean;
+  reasons: string[];
+  generatedAt: string;
+  asOf?: string;
+}
+
+export interface TheaterCapabilities {
+  live: boolean;
+  replay: boolean;
+  expand: boolean;
+  trace: boolean;
+  renderer3d: boolean;
+}
+
+export interface TheaterScope {
+  projectId: string;
+  worktreeId?: string;
+  kind: GraphKind;
+  subjectId?: string;
+}
+
+export interface TheaterFrame {
+  schemaVersion: typeof THEATER_FRAME_SCHEMA_VERSION;
+  scope: TheaterScope;
+  graph: GraphSnapshot;
+  events: TheaterEvent[];
+  cursor: {
+    firstSequence?: string;
+    lastSequence?: string;
+    nextSequence?: string;
+  };
+  quality: QualityState;
+  capabilities: TheaterCapabilities;
+}
+
+export type MotionCueType = "pulse" | "claim" | "blocked" | "intent" | "settle";
+
+export interface SceneCue {
+  id: string;
+  eventId: string;
+  sequence: string;
+  type: MotionCueType;
+  targetNodeId: string;
+  sourceNodeId?: string;
+  color?: string;
+  durationMs?: number;
+  timestamp: string;
+}
+
+export function eventToMotionCue(
+  event: TheaterEvent | { sequence: string | bigint; eventId: string; eventType: string; occurredAt?: string; actor?: TheaterEventActor; payload?: unknown },
+  graph: GraphSnapshot,
+): SceneCue | null {
+  const sequenceStr = String(event.sequence);
+  const eventType = event.eventType;
+  const payload = (event.payload && typeof event.payload === "object") ? event.payload as Record<string, unknown> : {};
+  const timestamp = event.occurredAt || new Date().toISOString();
+  const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]));
+
+  if (eventType === "AgentHeartbeat") {
+    const actorId = event.actor?.id ?? String(payload.agentSessionId ?? "");
+    let target = actorId ? (nodeMap.get(`agent:session:${actorId}`) || nodeMap.get(actorId)) : undefined;
+    if (!target && actorId) {
+      target = graph.nodes.find((n) => n.kind === "agent_session" && (n.id.includes(actorId) || n.label.includes(actorId)));
+    }
+    if (!target) {
+      target = graph.nodes.find((n) => n.kind === "agent_session");
+    }
+    if (!target) return null;
+    return {
+      id: `cue:pulse:${event.eventId}`,
+      eventId: event.eventId,
+      sequence: sequenceStr,
+      type: "pulse",
+      targetNodeId: target.id,
+      color: "var(--kpmg-cobalt)",
+      durationMs: 800,
+      timestamp,
+    };
+  }
+
+  if (eventType === "WorkItemClaimed") {
+    const workItemId = String(payload.workItemId ?? "");
+    const actorId = event.actor?.id ?? String(payload.agentSessionId ?? "");
+    let target = workItemId ? (nodeMap.get(`work:item:${workItemId}`) || nodeMap.get(workItemId)) : undefined;
+    if (!target && workItemId) {
+      target = graph.nodes.find((n) => n.id.includes(workItemId));
+    }
+    if (!target) return null;
+    let source = actorId ? (nodeMap.get(`agent:session:${actorId}`) || nodeMap.get(actorId)) : undefined;
+    if (!source && actorId) {
+      source = graph.nodes.find((n) => n.kind === "agent_session" && (n.id.includes(actorId) || n.label.includes(actorId)));
+    }
+    return {
+      id: `cue:claim:${event.eventId}`,
+      eventId: event.eventId,
+      sequence: sequenceStr,
+      type: "claim",
+      targetNodeId: target.id,
+      sourceNodeId: source?.id,
+      color: "var(--kpmg-pacific)",
+      durationMs: 1200,
+      timestamp,
+    };
+  }
+
+  if (eventType === "WorkItemBlocked" || eventType === "Blocked") {
+    const workItemId = String(payload.workItemId ?? event.actor?.id ?? "");
+    let target = workItemId ? (nodeMap.get(`work:item:${workItemId}`) || nodeMap.get(workItemId)) : undefined;
+    if (!target && workItemId) {
+      target = graph.nodes.find((n) => n.id.includes(workItemId));
+    }
+    if (!target) return null;
+    return {
+      id: `cue:blocked:${event.eventId}`,
+      eventId: event.eventId,
+      sequence: sequenceStr,
+      type: "blocked",
+      targetNodeId: target.id,
+      color: "var(--status-warning)",
+      durationMs: 1500,
+      timestamp,
+    };
+  }
+
+  if (eventType === "IntentDeclared") {
+    const intentId = String(payload.intentId ?? "");
+    const actorId = event.actor?.id ?? String(payload.agentSessionId ?? "");
+    let target = intentId ? (nodeMap.get(`intent:${intentId}`) || nodeMap.get(intentId)) : undefined;
+    if (!target && intentId) {
+      target = graph.nodes.find((n) => n.kind === "intent" && n.id.includes(intentId));
+    }
+    let source = actorId ? (nodeMap.get(`agent:session:${actorId}`) || nodeMap.get(actorId)) : undefined;
+    if (!target && !source) return null;
+    return {
+      id: `cue:intent:${event.eventId}`,
+      eventId: event.eventId,
+      sequence: sequenceStr,
+      type: "intent",
+      targetNodeId: target?.id ?? source!.id,
+      sourceNodeId: source?.id,
+      color: "var(--kpmg-purple)",
+      durationMs: 1000,
+      timestamp,
+    };
+  }
+
+  if (
+    eventType === "WorkItemCompleted" ||
+    eventType === "Completed" ||
+    eventType === "WorkItemEvaluationAccepted" ||
+    eventType === "EvaluationAccepted"
+  ) {
+    const workItemId = String(payload.workItemId ?? event.actor?.id ?? "");
+    let target = workItemId ? (nodeMap.get(`work:item:${workItemId}`) || nodeMap.get(workItemId)) : undefined;
+    if (!target && workItemId) {
+      target = graph.nodes.find((n) => n.id.includes(workItemId));
+    }
+    if (!target) return null;
+    return {
+      id: `cue:settle:${event.eventId}`,
+      eventId: event.eventId,
+      sequence: sequenceStr,
+      type: "settle",
+      targetNodeId: target.id,
+      color: "var(--status-success)",
+      durationMs: 1500,
+      timestamp,
+    };
+  }
+
+  return null;
+}
+
+export function computeQualityState(
+  graph: GraphSnapshot,
+  events: TheaterEvent[] = [],
+  options?: { asOf?: string; isStale?: boolean; reason?: string }
+): QualityState {
+  const reasons: string[] = [];
+  const degraded = Boolean(graph.degraded);
+  if (graph.degraded) {
+    reasons.push(`Graph degraded: ${graph.degraded.reason}`);
+  }
+  const truncated = Boolean(graph.truncated);
+  if (truncated) {
+    reasons.push("Graph nodes or edges truncated within bounds");
+  }
+  const empty = graph.nodes.length === 0;
+  if (empty) {
+    reasons.push("Graph contains zero nodes");
+  }
+  const stale = Boolean(options?.isStale);
+  if (stale) {
+    reasons.push(options?.reason ?? "Graph data is stale or agent heartbeat expired");
+  }
+
+  return {
+    degraded,
+    truncated,
+    stale,
+    empty,
+    reasons,
+    generatedAt: graph.generatedAt ?? new Date().toISOString(),
+    ...(options?.asOf ? { asOf: options.asOf } : {}),
+  };
+}
+
+export function createTheaterFrame(input: {
+  scope: TheaterScope;
+  graph: GraphSnapshot;
+  events: TheaterEvent[];
+  cursor?: { firstSequence?: string; lastSequence?: string; nextSequence?: string };
+  quality?: Partial<QualityState>;
+  capabilities?: Partial<TheaterCapabilities>;
+}): TheaterFrame {
+  const computedQuality = computeQualityState(input.graph, input.events);
+  const quality: QualityState = {
+    ...computedQuality,
+    ...input.quality,
+    reasons: [...new Set([...computedQuality.reasons, ...(input.quality?.reasons ?? [])])],
+  };
+  const firstSequence = input.cursor?.firstSequence ?? (input.events.length > 0 ? input.events[0]?.sequence : undefined);
+  const lastSequence = input.cursor?.lastSequence ?? (input.events.length > 0 ? input.events[input.events.length - 1]?.sequence : undefined);
+
+  return {
+    schemaVersion: THEATER_FRAME_SCHEMA_VERSION,
+    scope: input.scope,
+    graph: input.graph,
+    events: input.events,
+    cursor: {
+      ...(firstSequence ? { firstSequence } : {}),
+      ...(lastSequence ? { lastSequence } : {}),
+      ...(input.cursor?.nextSequence ? { nextSequence: input.cursor.nextSequence } : {}),
+    },
+    quality,
+    capabilities: {
+      live: input.capabilities?.live ?? true,
+      replay: input.capabilities?.replay ?? true,
+      expand: input.capabilities?.expand ?? true,
+      trace: input.capabilities?.trace ?? true,
+      renderer3d: input.capabilities?.renderer3d ?? true,
+    },
+  };
+}
+
+export function validateTheaterFrame(frame: unknown): { ok: boolean; errors: string[] } {
+  try {
+    if (!frame || typeof frame !== "object" || Array.isArray(frame)) throw new Error("frame must be an object");
+    const value = frame as TheaterFrame;
+    if (value.schemaVersion !== THEATER_FRAME_SCHEMA_VERSION) throw new Error("schemaVersion is invalid");
+    if (!value.scope || typeof value.scope.projectId !== "string") throw new Error("scope.projectId is required");
+    const graphValidation = validateGraphSnapshot(value.graph);
+    if (!graphValidation.ok) throw new Error(`invalid graph: ${graphValidation.errors.join(", ")}`);
+    if (!Array.isArray(value.events)) throw new Error("events must be an array");
+    if (!value.quality || typeof value.quality.degraded !== "boolean") throw new Error("quality state is invalid");
+    if (!value.capabilities || typeof value.capabilities.renderer3d !== "boolean") throw new Error("capabilities are invalid");
+    return { ok: true, errors: [] };
+  } catch (error) {
+    return { ok: false, errors: [error instanceof Error ? error.message : String(error)] };
+  }
+}

@@ -1,0 +1,234 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-result-v2",
+  "taskId": "OT-023",
+  "taskDefinition": "dogfood/observed-tasks/OT-023.json",
+  "taskDefinitionCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+  "runId": "run-a57bfd0965ce90b9",
+  "status": "COMPLETED",
+  "baseCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+  "runStartedAt": "2026-09-14T08:43:41.372Z",
+  "runCompletedAt": "2026-09-14T08:46:27.900Z",
+  "arms": [
+    {
+      "armId": "control",
+      "runId": "run-dd9440b1a1a2f795",
+      "sessionId": "session-fb5c0d1ec124d81e",
+      "worktreeId": "worktree-fb5c0d1ec124d81e",
+      "baseCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+      "sourceStateDigest": "9d23daf91efb1f6e8629396e764c986c9f2ecc8072c73bbdb96d195f2a87efef",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "990c5b168c016c8f59a1c26a881cd54a46174df48ca649005d380d21a9096c5c",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-023.json",
+            "--arm",
+            "control"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "28a472d80152ed2d082cb1faa63aebd8050db9481f00dd602862baa59375b8da",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "downstream",
+          "argv": [
+            "node",
+            "--test",
+            "apps/my-pi-daemon/test/daemon.test.ts"
+          ],
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "c12ea89a9819694a71545f452e3ae3e4de02ed1718ca55c1970f1986c44d78bb",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    },
+    {
+      "armId": "treatment",
+      "runId": "run-dcfe0d33345a19b8",
+      "sessionId": "session-1bcab4a8cc7f054a",
+      "worktreeId": "worktree-1bcab4a8cc7f054a",
+      "baseCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+      "sourceStateDigest": "9d23daf91efb1f6e8629396e764c986c9f2ecc8072c73bbdb96d195f2a87efef",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "4a94cc0bc9117895d13461b46affe46e41c68739d5cd4ece514b364aaba7903f",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-023.json",
+            "--arm",
+            "treatment"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "ed421f4ed880f959d6d82e3791950d81551de493412b7d9a2d89594cdd8c6ecd",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "downstream",
+          "argv": [
+            "node",
+            "--test",
+            "apps/my-pi-daemon/test/daemon.test.ts"
+          ],
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "5280dc619e30ecac67e8a6108e7f383157772d6030249b0e0848afdab71e0015",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    }
+  ],
+  "adjudication": {
+    "independent": true,
+    "evaluatorRunId": "eval-15083cfe209a3887",
+    "recordedAt": "2026-09-14T08:46:27.903Z",
+    "outcome": "accepted",
+    "evidenceRefs": [
+      "paired-run-manifest",
+      "predeclared-command-results",
+      "independent-evaluator-stdout"
+    ]
+  },
+  "taskClass": "PN8",
+  "evidenceKind": "controlled_replay",
+  "observationSource": "controlled_replay_of_recorded_legacy_failure",
+  "measurements": [
+    {
+      "id": "replay_match",
+      "armId": "control",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "repair_yield",
+      "armId": "control",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "repair_iterations",
+      "armId": "control",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "downstream_pass",
+      "armId": "control",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "prior_passes_preserved",
+      "armId": "control",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "replay_match",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "repair_yield",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "repair_iterations",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "count",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "downstream_pass",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-023"
+    },
+    {
+      "id": "prior_passes_preserved",
+      "armId": "treatment",
+      "value": 1,
+      "unit": "ratio",
+      "source": "independent evaluator stdout for OT-023"
+    }
+  ]
+}

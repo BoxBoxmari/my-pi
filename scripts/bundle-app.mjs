@@ -45,4 +45,27 @@ try {
 } catch {
   // ignore on win32
 }
+
+const THEATER_SRC = path.join(ROOT, "apps", "my-pi-ui", "src", "theater-client.ts");
+const THEATER_DIST = path.join(ROOT, "apps", "my-pi-ui", "dist", "theater-client.bundle.js");
+
+try {
+  await fs.access(THEATER_SRC);
+  console.log(`[bundle-app] Bundling theater-client with locked esbuild ${esbuildVersion}...`);
+  await build({
+    absWorkingDir: ROOT,
+    entryPoints: [THEATER_SRC],
+    bundle: true,
+    platform: "browser",
+    format: "iife",
+    target: "es2022",
+    outfile: THEATER_DIST,
+    minify: true,
+    sourcemap: false,
+  });
+  console.log("[bundle-app] Theater bundle completed successfully.");
+} catch (e) {
+  console.warn("[bundle-app] Skipping theater client bundling:", e && e.message);
+}
+
 console.log("[bundle-app] Bundling completed successfully.");

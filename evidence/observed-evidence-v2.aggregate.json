@@ -1,0 +1,1382 @@
+{
+  "schemaVersion": "1",
+  "recordType": "observed-evidence-aggregate-v2",
+  "generatedAt": "2026-09-14T14:09:26.258Z",
+  "status": "WITHHELD",
+  "promotionEligible": false,
+  "promotionVerdict": "candidate_only_requires_independent_promotion_verifier",
+  "reasons": [
+    "one or more pairs failed schema or identity validation",
+    "candidate aggregate is not an admission authority"
+  ],
+  "sample": {
+    "minQualifiedPerHypothesis": 3,
+    "totalPairs": 22,
+    "qualifiedPairs": 6,
+    "byHypothesis": {
+      "PN6": {
+        "registered": 6,
+        "qualified": 3,
+        "target": 3,
+        "heterogeneityKeys": [
+          "context-router-string-impact",
+          "impact-engine-package-scope",
+          "host-profile-workspace-binding"
+        ],
+        "heterogeneous": true,
+        "targetMet": true,
+        "taskIds": [
+          "OT-034",
+          "OT-035",
+          "OT-036"
+        ]
+      },
+      "PN8": {
+        "registered": 6,
+        "qualified": 3,
+        "target": 3,
+        "heterogeneityKeys": [
+          "code-state-healthy-watcher-reconciliation",
+          "code-state-late-backend-error-containment",
+          "daemon-join-latency-registration-bound"
+        ],
+        "heterogeneous": true,
+        "targetMet": true,
+        "taskIds": [
+          "OT-031",
+          "OT-032",
+          "OT-033"
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "downstream_pass": {
+      "observations": 3,
+      "meanControl": 1,
+      "meanTreatment": 1,
+      "meanDelta": 0
+    },
+    "false_accepts": {
+      "observations": 3,
+      "meanControl": 0,
+      "meanTreatment": 0,
+      "meanDelta": 0
+    },
+    "prior_passes_preserved": {
+      "observations": 3,
+      "meanControl": 1,
+      "meanTreatment": 1,
+      "meanDelta": 0
+    },
+    "regressions": {
+      "observations": 3,
+      "meanControl": 0,
+      "meanTreatment": 0,
+      "meanDelta": 0
+    },
+    "repair_attempts": {
+      "observations": 3,
+      "meanControl": 1,
+      "meanTreatment": 1,
+      "meanDelta": 0
+    },
+    "repair_iterations": {
+      "observations": 3,
+      "meanControl": 1,
+      "meanTreatment": 0,
+      "meanDelta": -1
+    },
+    "repair_yield": {
+      "observations": 3,
+      "meanControl": 1,
+      "meanTreatment": 1,
+      "meanDelta": 0
+    },
+    "routing_precision": {
+      "observations": 3,
+      "meanControl": 1,
+      "meanTreatment": 1,
+      "meanDelta": 0
+    },
+    "routing_recall": {
+      "observations": 3,
+      "meanControl": 0.5,
+      "meanTreatment": 1,
+      "meanDelta": 0.5
+    },
+    "selected_items": {
+      "observations": 3,
+      "meanControl": 1,
+      "meanTreatment": 2,
+      "meanDelta": 1
+    }
+  },
+  "pairs": [
+    {
+      "taskId": "OT-001",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-002",
+      "resultStatus": "PARTIAL_OBSERVATION",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is PARTIAL_OBSERVATION",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-003",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-004",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-005",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-006",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-007",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-008",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-009",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-010",
+      "resultStatus": "RECORDED",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "taskDefinitionCommit is not a full commit SHA",
+          "Git registration receipt is required",
+          "taskDefinitionPath must be a non-empty path",
+          "result.taskDefinitionCommit must match the registered task binding",
+          "result.taskDefinition must match the registered task path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-task-v2",
+        "taskDefinitionPath must be a non-empty string",
+        "taskDefinitionCommit must be a 40-character commit SHA",
+        "registration must be an object",
+        "registeredAt must be an ISO-8601 timestamp",
+        "taskClass must be PN6, PN8, or research",
+        "primaryHypothesis must be PN6, PN8, or none",
+        "baseCommit must be a 40-character commit SHA",
+        "targetScope must be an object",
+        "primaryVariable must be an object",
+        "arms must be an object",
+        "requiredTests must not be empty",
+        "environment must be an object",
+        "adjudication must be an object",
+        "metrics must not be empty",
+        "contaminationControls must be an object",
+        "schemaVersion must be \"2\"",
+        "recordType must be observed-result-v2",
+        "runId has an invalid format",
+        "status is invalid",
+        "baseCommit must be a 40-character commit SHA",
+        "runStartedAt must be an ISO-8601 timestamp",
+        "runCompletedAt must be an ISO-8601 timestamp",
+        "result.arms must contain exactly two arms",
+        "adjudication must be an object",
+        "taskDefinitionCommit is not a full commit SHA",
+        "Git registration receipt is required",
+        "taskDefinitionPath must be a non-empty path",
+        "result.taskDefinitionCommit must match the registered task binding",
+        "result.taskDefinition must match the registered task path",
+        "undefined requires a predeclared heterogeneityKey",
+        "a predeclared command did not pass in every arm",
+        "result status is RECORDED",
+        "independent adjudication is required",
+        "adjudication outcome is missing"
+      ],
+      "independentAdjudication": false,
+      "measurements": {},
+      "runIds": []
+    },
+    {
+      "taskId": "OT-011",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-13T18:47:33.856Z",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "Git registration receipt is required",
+          "registration.receiptPath must be a non-empty path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "registration must be an object",
+        "PN6 workload.evidenceKind must be observed_source_change",
+        "PN6 workload.heterogeneityKey must be a non-empty string",
+        "Git registration receipt is required",
+        "registration.receiptPath must be a non-empty path",
+        "PN6 requires a predeclared heterogeneityKey",
+        "PN6 requires observed_source_change evidence",
+        "PN6 result must identify observed_source_change evidence",
+        "PN6 repair metrics require independent command-output evidence",
+        "PN6 measurement evidence must bind each arm to its independent evaluator run",
+        "PN6 measurement evidence must bind each arm to its independent evaluator run"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-18d496cabfc74595",
+        "run-0a8dedc85369114f"
+      ],
+      "evaluatorRunId": "eval-9bd05146f6434f26"
+    },
+    {
+      "taskId": "OT-012",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-13T18:51:11.125Z",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "Git registration receipt is required",
+          "registration.receiptPath must be a non-empty path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "registration must be an object",
+        "PN6 workload.evidenceKind must be observed_source_change",
+        "PN6 workload.heterogeneityKey must be a non-empty string",
+        "Git registration receipt is required",
+        "registration.receiptPath must be a non-empty path",
+        "PN6 requires a predeclared heterogeneityKey",
+        "PN6 requires observed_source_change evidence",
+        "PN6 result must identify observed_source_change evidence",
+        "PN6 repair metrics require independent command-output evidence",
+        "PN6 measurement evidence must bind each arm to its independent evaluator run",
+        "PN6 measurement evidence must bind each arm to its independent evaluator run"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-643b9d68ac8df674",
+        "run-5d2208aa1be09090"
+      ],
+      "evaluatorRunId": "eval-99dba84cd64a991e"
+    },
+    {
+      "taskId": "OT-013",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-13T18:55:25.853Z",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "Git registration receipt is required",
+          "registration.receiptPath must be a non-empty path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "registration must be an object",
+        "PN6 workload.evidenceKind must be observed_source_change",
+        "PN6 workload.heterogeneityKey must be a non-empty string",
+        "Git registration receipt is required",
+        "registration.receiptPath must be a non-empty path",
+        "PN6 requires a predeclared heterogeneityKey",
+        "PN6 requires observed_source_change evidence",
+        "PN6 result must identify observed_source_change evidence",
+        "PN6 repair metrics require independent command-output evidence",
+        "PN6 measurement evidence must bind each arm to its independent evaluator run",
+        "PN6 measurement evidence must bind each arm to its independent evaluator run"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-c2c0a6d59c6f0245",
+        "run-260f72f3f28a0008"
+      ],
+      "evaluatorRunId": "eval-dc659add20352485"
+    },
+    {
+      "taskId": "OT-021",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T08:43:06.202Z",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "Git registration receipt is required",
+          "registration.receiptPath must be a non-empty path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "registration must be an object",
+        "Git registration receipt is required",
+        "registration.receiptPath must be a non-empty path",
+        "PN8 requires a predeclared heterogeneityKey",
+        "PN8 requires live_repair evidence; controlled replay is diagnostic only",
+        "PN8 result must identify live_repair evidence",
+        "PN8 requires two independent repair sessions"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "replay_match": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_yield": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 2,
+          "treatment": 2,
+          "delta": 0
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-859f4822d4c7f305",
+        "run-8fbc8ee22192c7b2"
+      ],
+      "evaluatorRunId": "eval-d755ba605f0728f1"
+    },
+    {
+      "taskId": "OT-022",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T08:50:14.163Z",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "Git registration receipt is required",
+          "registration.receiptPath must be a non-empty path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "registration must be an object",
+        "Git registration receipt is required",
+        "registration.receiptPath must be a non-empty path",
+        "PN8 requires a predeclared heterogeneityKey",
+        "PN8 requires live_repair evidence; controlled replay is diagnostic only",
+        "PN8 result must identify live_repair evidence",
+        "PN8 requires two independent repair sessions"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "replay_match": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_yield": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-4a14eeeb11b72d48",
+        "run-fad2e16db1442d4f"
+      ],
+      "evaluatorRunId": "eval-0715802b6b2b5f11"
+    },
+    {
+      "taskId": "OT-023",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T08:46:27.900Z",
+      "validPair": false,
+      "registration": {
+        "ok": false,
+        "errors": [
+          "Git registration receipt is required",
+          "registration.receiptPath must be a non-empty path"
+        ],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5"
+      },
+      "qualified": false,
+      "reasons": [
+        "registration must be an object",
+        "Git registration receipt is required",
+        "registration.receiptPath must be a non-empty path",
+        "PN8 requires a predeclared heterogeneityKey",
+        "PN8 requires live_repair evidence; controlled replay is diagnostic only",
+        "PN8 result must identify live_repair evidence",
+        "PN8 requires two independent repair sessions"
+      ],
+      "independentAdjudication": true,
+      "measurements": {
+        "replay_match": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_yield": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-dd9440b1a1a2f795",
+        "run-dcfe0d33345a19b8"
+      ],
+      "evaluatorRunId": "eval-15083cfe209a3887"
+    },
+    {
+      "taskId": "OT-031",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T13:05:55.562Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "registrationCommit": "ac2b6368fae009dd7996eb670b77c75fe3d4e4d7",
+        "registrationTimestamp": "2026-09-14T20:00:41+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-031.json",
+        "taskDigest": "347f11ef7f1b289a68565ce28fe11b876acf23bfb2e7faa8c54a7923da7de162"
+      },
+      "heterogeneityKey": "code-state-healthy-watcher-reconciliation",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-dca223513519ca84",
+        "run-fb8135c5453b5819"
+      ],
+      "evaluatorRunId": "eval-53e1148a78b508a5"
+    },
+    {
+      "taskId": "OT-032",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T13:08:04.878Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "registrationCommit": "ac2b6368fae009dd7996eb670b77c75fe3d4e4d7",
+        "registrationTimestamp": "2026-09-14T20:00:41+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-032.json",
+        "taskDigest": "324df433246bc5cacd2f819d538e0c133927c293981e6d3c37a9539f41e150e2"
+      },
+      "heterogeneityKey": "code-state-late-backend-error-containment",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-9be7c2ad838f25e6",
+        "run-84fa6893fa101b5b"
+      ],
+      "evaluatorRunId": "eval-d97e292164a3426e"
+    },
+    {
+      "taskId": "OT-033",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T13:11:25.643Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "registrationCommit": "ce41a547a74ccbc236ceb2dedaede4a5d33dc0ec",
+        "registrationTimestamp": "2026-09-14T19:51:21+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-033.json",
+        "taskDigest": "4d301f2618845342423aaefe55fd4521d6435feb1ae89aa5a70f7a97269bf1a0"
+      },
+      "heterogeneityKey": "daemon-join-latency-registration-bound",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-e4b0958b4dbbfaa9",
+        "run-fa784fd1663e01cd"
+      ],
+      "evaluatorRunId": "eval-20f9f0fc16540cb6"
+    },
+    {
+      "taskId": "OT-034",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T14:05:24.962Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
+        "registrationTimestamp": "2026-09-14T20:51:05+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-034.json",
+        "taskDigest": "ad43da5dd3eee4129b0e632a96dd15c94ee5950f340ca76b6a950993e470351b"
+      },
+      "heterogeneityKey": "context-router-string-impact",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 0,
+          "delta": -1
+        }
+      },
+      "runIds": [
+        "run-52d017e9b1152838",
+        "run-a520f8e17ff1a98d"
+      ],
+      "evaluatorRunId": "eval-dafca5b3fda8e23d"
+    },
+    {
+      "taskId": "OT-035",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T14:07:25.457Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
+        "registrationTimestamp": "2026-09-14T20:51:05+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-035.json",
+        "taskDigest": "5c485b8794e1261081ed1e1c7c499d67ad94b09580fd57b8f0d51348330eed77"
+      },
+      "heterogeneityKey": "impact-engine-package-scope",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 0,
+          "delta": -1
+        }
+      },
+      "runIds": [
+        "run-834ce7f4eb757346",
+        "run-50e856b20d0e1b50"
+      ],
+      "evaluatorRunId": "eval-91124640b61d0cc3"
+    },
+    {
+      "taskId": "OT-036",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T14:09:26.258Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "0c4e11f6c4af95774f8f3de9c71f591f47c35aa5",
+        "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
+        "registrationTimestamp": "2026-09-14T20:51:05+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-036.json",
+        "taskDigest": "a56a44e7cea5a5ce4093007b4aa0b7a8b0a2110e597b88a10c23845f7932b7f3"
+      },
+      "heterogeneityKey": "host-profile-workspace-binding",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 0,
+          "delta": -1
+        }
+      },
+      "runIds": [
+        "run-1a47b1f843c6527d",
+        "run-600334b6fdd0e866"
+      ],
+      "evaluatorRunId": "eval-46ab833641fd5d98"
+    }
+  ],
+  "loadErrors": []
+}

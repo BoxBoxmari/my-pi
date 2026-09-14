@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "my-pi/track-a-pn8-controlled-replay-evidence/v1",
+  "measurementId": "track-a-pn8-controlled-replay-OT-023-1789375588211",
+  "taskClass": "PN8",
+  "evidenceKind": "controlled_replay",
+  "observationSource": "replay of a recorded legacy real failure; not live product-value evidence",
+  "promotionEligible": false,
+  "measuredAt": "2026-09-14T08:46:28.211Z",
+  "sourceSetup": "official my-pi fs_patch with CAS expected_hash for failure replay and repair in isolated arm worktrees",
+  "evidenceWriter": "official my-pi fs_write followed by fs_read",
+  "taskId": "OT-023",
+  "taskDefinition": "dogfood/observed-tasks/OT-023.json",
+  "taskDefinitionCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+  "baseCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+  "resultPath": "dogfood/observed-tasks/OT-023.result.json",
+  "resultHash": "sha256:399cb8d0123255207b0a9e80df771edee167b5778279f0b6fdff768935cdb525",
+  "commandStatus": [
+    {
+      "armId": "control",
+      "commands": [
+        {
+          "id": "build-before",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "990c5b168c016c8f59a1c26a881cd54a46174df48ca649005d380d21a9096c5c",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "28a472d80152ed2d082cb1faa63aebd8050db9481f00dd602862baa59375b8da",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "c12ea89a9819694a71545f452e3ae3e4de02ed1718ca55c1970f1986c44d78bb",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "armId": "treatment",
+      "commands": [
+        {
+          "id": "build-before",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "4a94cc0bc9117895d13461b46affe46e41c68739d5cd4ece514b364aaba7903f",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "ed421f4ed880f959d6d82e3791950d81551de493412b7d9a2d89594cdd8c6ecd",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "5280dc619e30ecac67e8a6108e7f383157772d6030249b0e0848afdab71e0015",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "independentReports": [
+    {
+      "schemaVersion": "my-pi/track-a-evaluator/v2",
+      "taskId": "OT-023",
+      "arm": "control",
+      "accepted": true,
+      "evaluator": "independent node process",
+      "evidenceKind": "controlled_replay",
+      "sourceChangeExpected": true,
+      "sourceChangeObserved": true,
+      "groundTruth": [
+        "recorded-join-failure"
+      ],
+      "selected": [],
+      "guidanceMode": "ordinary_failure_log",
+      "failureReplay": {
+        "id": "legacy-OT-006-recorded-initial-failure",
+        "sourceRecord": "dogfood/observed-tasks/OT-006.result.json#sha256:63dfbfa0a5bee9f24384bf037e3eff599ea83c834592fdb209023fe54a5e0e48; implementation 5d9c69659b90bd4aeccac79bb34703c340037e23"
+      },
+      "metrics": {
+        "replay_match": 1,
+        "repair_yield": 1,
+        "repair_iterations": 1,
+        "downstream_pass": 1,
+        "prior_passes_preserved": 1
+      },
+      "assertion": {
+        "passed": true,
+        "historyMatches": true,
+        "guidanceMatches": true,
+        "sourceChangeObserved": true,
+        "sourceChecks": [
+          {
+            "path": "apps/my-pi-daemon/src/main.ts",
+            "digest": "sha256:6640077bddc13fd3d6c512499932d16178c79c68c0a22fbd57f66b0281f91040",
+            "includes": true,
+            "excludes": true,
+            "hashMatches": true,
+            "passed": true
+          }
+        ],
+        "repairIterations": 1,
+        "expectedRepairIterations": 1
+      }
+    },
+    {
+      "schemaVersion": "my-pi/track-a-evaluator/v2",
+      "taskId": "OT-023",
+      "arm": "treatment",
+      "accepted": true,
+      "evaluator": "independent node process",
+      "evidenceKind": "controlled_replay",
+      "sourceChangeExpected": true,
+      "sourceChangeObserved": true,
+      "groundTruth": [
+        "recorded-join-failure"
+      ],
+      "selected": [],
+      "guidanceMode": "structured_feedback_packet",
+      "failureReplay": {
+        "id": "legacy-OT-006-recorded-initial-failure",
+        "sourceRecord": "dogfood/observed-tasks/OT-006.result.json#sha256:63dfbfa0a5bee9f24384bf037e3eff599ea83c834592fdb209023fe54a5e0e48; implementation 5d9c69659b90bd4aeccac79bb34703c340037e23"
+      },
+      "metrics": {
+        "replay_match": 1,
+        "repair_yield": 1,
+        "repair_iterations": 1,
+        "downstream_pass": 1,
+        "prior_passes_preserved": 1
+      },
+      "assertion": {
+        "passed": true,
+        "historyMatches": true,
+        "guidanceMatches": true,
+        "sourceChangeObserved": true,
+        "sourceChecks": [
+          {
+            "path": "apps/my-pi-daemon/src/main.ts",
+            "digest": "sha256:6640077bddc13fd3d6c512499932d16178c79c68c0a22fbd57f66b0281f91040",
+            "includes": true,
+            "excludes": true,
+            "hashMatches": true,
+            "passed": true
+          }
+        ],
+        "repairIterations": 1,
+        "expectedRepairIterations": 1
+      }
+    }
+  ],
+  "validation": {
+    "pairValid": true,
+    "promotionEligible": false
+  },
+  "interpretation": "Controlled replay of three recorded legacy failures. It measures replay fidelity and repair bookkeeping; it does not establish a live ordinary-versus-structured feedback product effect."
+}

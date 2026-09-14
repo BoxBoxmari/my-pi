@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "my-pi/track-a-real-pn6-evidence/v1",
+  "measurementId": "track-a-real-pn6-OT-012-1789325471510",
+  "measuredAt": "2026-09-13T18:51:11.510Z",
+  "sourceSetup": "official my-pi fs_patch with CAS expected_hash in isolated arm worktrees",
+  "evidenceWriter": "official my-pi fs_write followed by fs_read",
+  "taskId": "OT-012",
+  "taskDefinition": "dogfood/observed-tasks/OT-012.json",
+  "taskDefinitionCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+  "baseCommit": "b97e1f0bd2fa66d3aff10531696210dbafffab24",
+  "resultPath": "dogfood/observed-tasks/OT-012.result.json",
+  "resultHash": "sha256:c8ba6710e019f4bc3d234928ea85d30891692d0d52ea3e14fcf242d16c4b1daf",
+  "commandStatus": [
+    {
+      "armId": "control",
+      "commands": [
+        {
+          "id": "build-before",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "0321a66a3a6f9fd77a88782120a88081d7c5c4292d72161de31400f92ec8eddb",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "6d3505bee5616a992d3f4cd431a4eb4b0bd5b45ae4e75625d1493a2eebbb98ed",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "independent-evaluator",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "88c79f9c88f7d5bbbe885d213f556acdeba220c49ca4cc74f388e0a720e1dea8",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "armId": "treatment",
+      "commands": [
+        {
+          "id": "build-before",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "790b14c876294f8ee6e115c0b5cdacc7ba88ce6dc034076d393ce42ebb12eba6",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "2a9e664624aa2c37d52ec9cacd553384d404719a2332b1375f63e740710622d9",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "independent-evaluator",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "da5dceeead3ec89ae0fc997163e453e0d1fd3326d1cfb070f6af00c70f923b46",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "independentReports": [
+    {
+      "schemaVersion": "my-pi/track-a-evaluator/v1",
+      "taskId": "OT-012",
+      "arm": "control",
+      "accepted": true,
+      "evaluator": "independent node process",
+      "sourceChangeExpected": false,
+      "sourceChangeObserved": false,
+      "groundTruth": [
+        "work-track-a-012",
+        "dependent-test"
+      ],
+      "selected": [
+        "work-track-a-012"
+      ],
+      "metrics": {
+        "routing_recall": 0.5,
+        "routing_precision": 1,
+        "selected_items": 1,
+        "false_positive_items": 0,
+        "missed_items": 1,
+        "downstream_pass": 1,
+        "repair_iterations": 1
+      },
+      "assertion": {
+        "passed": true,
+        "observed": [],
+        "expectedEntityCount": 0,
+        "workItemObserved": true
+      }
+    },
+    {
+      "schemaVersion": "my-pi/track-a-evaluator/v1",
+      "taskId": "OT-012",
+      "arm": "treatment",
+      "accepted": true,
+      "evaluator": "independent node process",
+      "sourceChangeExpected": true,
+      "sourceChangeObserved": true,
+      "groundTruth": [
+        "work-track-a-012",
+        "dependent-test"
+      ],
+      "selected": [
+        "work-track-a-012",
+        "dependent-test"
+      ],
+      "metrics": {
+        "routing_recall": 1,
+        "routing_precision": 1,
+        "selected_items": 2,
+        "false_positive_items": 0,
+        "missed_items": 0,
+        "downstream_pass": 1,
+        "repair_iterations": 1
+      },
+      "assertion": {
+        "passed": true,
+        "observed": [
+          "entity-dependent",
+          "entity-target"
+        ],
+        "expectedEntityCount": 2,
+        "workItemObserved": true
+      }
+    }
+  ],
+  "validation": {
+    "pairValid": true,
+    "promotionEligible": false
+  },
+  "interpretation": "This is a real source-change workload with one declared impact-routing variable; qualification is separate from promotion."
+}

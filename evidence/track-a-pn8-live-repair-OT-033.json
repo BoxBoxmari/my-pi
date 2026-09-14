@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "my-pi/track-a-pn8-live-repair-evidence/v1",
+  "measurementId": "track-a-pn8-live-repair-OT-033-1789391485646",
+  "taskClass": "PN8",
+  "evidenceKind": "live_repair",
+  "observationSource": "naturally occurring frozen failure at the preregistered historical commit",
+  "promotionEligible": false,
+  "measuredAt": "2026-09-14T13:11:25.643Z",
+  "taskId": "OT-033",
+  "taskDefinition": "dogfood/observed-tasks/OT-033.json",
+  "taskDefinitionCommit": "60c06e1e5934f2eccada7a80522d2f14338e19a2",
+  "baseCommit": "1803d2a2ee41f3c01af51c6d25351b172b69e866",
+  "frozenStateId": "git:1803d2a2ee41f3c01af51c6d25351b172b69e866",
+  "frozenStateDigest": "43e0ba9001ba5f25f580fb7d7ddf904afd9f629e44bc5fb9ae63a1af2dd6f5e7",
+  "resultPath": "dogfood/observed-tasks/OT-033.result.json",
+  "repairSessions": [
+    {
+      "armId": "control",
+      "sessionId": "session-dde276476dc6fe8c",
+      "worktreeId": "worktree-dde276476dc6fe8c",
+      "frozenStateDigest": "43e0ba9001ba5f25f580fb7d7ddf904afd9f629e44bc5fb9ae63a1af2dd6f5e7",
+      "feedbackMode": "ordinary_log",
+      "attempts": 1,
+      "initialFailureObserved": true,
+      "accepted": true,
+      "priorPassesPreserved": true,
+      "regressions": 0,
+      "falseAccepts": 0,
+      "repairPatchIds": [
+        "repair-frozen-failure-OT-033"
+      ],
+      "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+    },
+    {
+      "armId": "treatment",
+      "sessionId": "session-7e9c8329d05d2412",
+      "worktreeId": "worktree-7e9c8329d05d2412",
+      "frozenStateDigest": "43e0ba9001ba5f25f580fb7d7ddf904afd9f629e44bc5fb9ae63a1af2dd6f5e7",
+      "feedbackMode": "structured_feedback_packet",
+      "attempts": 1,
+      "initialFailureObserved": true,
+      "accepted": true,
+      "priorPassesPreserved": true,
+      "regressions": 0,
+      "falseAccepts": 0,
+      "repairPatchIds": [
+        "repair-frozen-failure-OT-033"
+      ],
+      "evaluatorEvidence": "independent downstream command output after official my-pi repair"
+    }
+  ],
+  "resultValidation": {
+    "pairValid": true,
+    "promotionEligible": false
+  },
+  "writer": "official my-pi fs_write followed by fs_read",
+  "resultHash": "sha256:aab77d9d75bd0943ed204e9f009ea6364f6235f2968233d3cdd7c55061d7a643"
+}

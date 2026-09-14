@@ -3,12 +3,12 @@
   "recordType": "observed-task-v2",
   "taskId": "OT-022",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-022.json",
-  "taskDefinitionCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
+  "taskDefinitionCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
   "registeredAt": "2026-09-14T07:59:23.310Z",
   "title": "Controlled replay of the recorded watcher-reconciliation repair",
   "taskClass": "PN8",
   "primaryHypothesis": "PN8",
-  "baseCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
+  "baseCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
   "targetScope": {
     "include": [
       "packages/code-state/src/watcher.ts"
@@ -41,7 +41,7 @@
     "control": {
       "profileId": "my-pi-control-ordinary-feedback-replay",
       "description": "Controlled replay with ordinary failure-log guidance.",
-      "baseCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
+      "baseCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
       "worktreeKey": "OT-022-control",
       "sessionKey": "OT-022-control",
       "freshWorktree": true,
@@ -80,7 +80,7 @@
     "treatment": {
       "profileId": "my-pi-treatment-structured-feedback-replay",
       "description": "Controlled replay with the recorded structured FeedbackPacket shape.",
-      "baseCommit": "8dfb18280cd0838d98c3d3c91852956a6f6a1c79",
+      "baseCommit": "0f3a64a44e9a8df216370ebb004a81744730385b",
       "worktreeKey": "OT-022-treatment",
       "sessionKey": "OT-022-treatment",
       "freshWorktree": true,

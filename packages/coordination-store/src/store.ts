@@ -14,6 +14,8 @@ export interface AppendEventInput<T = unknown> {
 export interface EventQuery {
   projectId: ProjectId;
   afterSequence?: bigint;
+  fromSequence?: bigint;
+  toSequence?: bigint;
   limit?: number;
   maxBytes?: number;
 }

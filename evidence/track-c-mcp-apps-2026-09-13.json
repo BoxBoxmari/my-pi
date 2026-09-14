@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "my-pi/track-c-mcp-apps-evidence/v1",
+  "measurementId": "track-c-mcp-apps-2026-09-14",
+  "measuredAt": "2026-09-14T08:55:05.639Z",
+  "method": {
+    "sourceAndEvidenceWriter": "official my-pi MCP stdio server",
+    "basicHostProbe": "official @modelcontextprotocol/client with InMemoryTransport",
+    "stdioProbe": "official @modelcontextprotocol/client with StdioClientTransport",
+    "build": "pnpm build",
+    "focusedTests": "node --test --experimental-strip-types packages/mcp-adapter/test/mcp-integration.test.ts apps/my-pi-ui/test/graph-scale.test.ts apps/my-pi-ui/test/portal.test.ts",
+    "liveStdioProbe": "official @modelcontextprotocol/client StdioClientTransport against apps/my-pi-mcp/dist/main.js --visuals"
+  },
+  "implementation": {
+    "dependency": "@modelcontextprotocol/ext-apps",
+    "dependencyVersion": "2.0.0",
+    "registration": "registerAppResource",
+    "resourceUri": "ui://my-pi/graph",
+    "resourceMimeType": "text/html;profile=mcp-app",
+    "catalogInvariant": 13
+  },
+  "observations": [
+    {
+      "id": "in-memory-basic-host",
+      "status": "passed",
+      "evidence": "MCP Apps visuals test passed",
+      "assertions": [
+        "visual resource is opt-in",
+        "resource is discoverable",
+        "resource reads with the official MCP Apps MIME type",
+        "tool catalog remains exactly 13"
+      ]
+    },
+    {
+      "id": "stdio-without-coordination",
+      "status": "degraded",
+      "negotiatedProtocol": "2025-11-25",
+      "toolCount": 13,
+      "resourceCount": 0,
+      "assertions": [
+        "baseline tools remain available",
+        "visual capability does not silently add tools",
+        "unsupported coordination path does not advertise a live graph resource"
+      ]
+    },
+    {
+      "id": "candidate-focused-suite-2026-09-14",
+      "status": "passed",
+      "testCount": 28,
+      "passed": 28,
+      "failed": 0,
+      "evidence": "MCP adapter, UI portal, graph-scale and MCP Apps resource contract tests"
+    },
+    {
+      "id": "candidate-stdio-probe-2026-09-14",
+      "status": "degraded",
+      "toolCount": 13,
+      "resourceCount": 0,
+      "evidence": "official stdio probe without a live coordination runtime; baseline catalog stayed at 13 and visuals did not advertise a live resource"
+    },
+    {
+      "id": "candidate-graph-scale-2026-09-14",
+      "status": "passed",
+      "edgeDensity": "2:1",
+      "operationBudgetMs": 5000,
+      "responseLimitBytes": 2097152,
+      "measurements": [
+        {
+          "nodeCount": 500,
+          "edgeCount": 1000,
+          "snapshotBytes": 324345,
+          "htmlBytes": 335104,
+          "buildMs": 22.066,
+          "renderMs": 1.993,
+          "responseBytes": 324345,
+          "responseMs": 57.087,
+          "truncated": false,
+          "snapshotDigest": "e3b7deac596d9e0bb45ff201bf641c9e35f9b5c8ecb54b55399186f7d7812731"
+        },
+        {
+          "nodeCount": 1000,
+          "edgeCount": 2000,
+          "snapshotBytes": 653847,
+          "htmlBytes": 664606,
+          "buildMs": 22.184,
+          "renderMs": 3.527,
+          "responseBytes": 653847,
+          "responseMs": 31.676,
+          "truncated": false,
+          "snapshotDigest": "6eb460536ecbd9e8488f426ad85d2e1cb1b1ae7820a82b179e754d1da5c46a6f"
+        },
+        {
+          "nodeCount": 2000,
+          "edgeCount": 4000,
+          "snapshotBytes": 1310847,
+          "htmlBytes": 1321606,
+          "buildMs": 63.93,
+          "renderMs": 11.189,
+          "responseBytes": 1310847,
+          "responseMs": 48.658,
+          "truncated": false,
+          "snapshotDigest": "8b4393fe790e70178e2e0d3da206b49a9385e56e4680fea3c2c10d8216a794ed"
+        }
+      ]
+    }
+  ],
+  "qualification": {
+    "status": "withheld",
+    "reason": "The in-memory MCP Apps contract and bounded graph scale pass, but the current stdio probe has no live coordination runtime and therefore exposes zero live visual resources; a supported real MCP Apps host plus live coordination daemon is still required for host qualification."
+  },
+  "packageManifestHash": "sha256:e27ed621bff3d7ae1c7a6f0b701b01bf38bcb087bb2271492539f5c0e45cf915",
+  "candidate": {
+    "commit": "0f3a64a44e9a8df216370ebb004a81744730385b",
+    "sourceAuthority": "my-pi workspace opened in trusted mode",
+    "sourceWorkspaceDirty": true
+  }
+}

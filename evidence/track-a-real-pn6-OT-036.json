@@ -1,0 +1,290 @@
+{
+  "schemaVersion": "my-pi/track-a-real-pn6-evidence/v1",
+  "measurementId": "track-a-real-pn6-OT-036-1789394966548",
+  "taskClass": "PN6",
+  "evidenceKind": "observed_source_change",
+  "observationSource": "paired source-change workload",
+  "promotionEligible": false,
+  "measuredAt": "2026-09-14T14:09:26.548Z",
+  "sourceSetup": "official my-pi fs_patch with CAS expected_hash in isolated arm worktrees",
+  "evidenceWriter": "official my-pi fs_write followed by fs_read",
+  "taskId": "OT-036",
+  "taskDefinition": "dogfood/observed-tasks/OT-036.json",
+  "taskDefinitionCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+  "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+  "resultPath": "dogfood/observed-tasks/OT-036.result.json",
+  "resultHash": "sha256:593846dbf6e95680310d885139aa36bc79b0bbfb83cf59140dd4f83fe75b68d7",
+  "commandStatus": [
+    {
+      "armId": "control",
+      "commands": [
+        {
+          "id": "build-before",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "6d29470bcb1e5fdca13b100898d3e6a76a9c711023b6d0ed330de88f426c000e",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "a33707df8f31171b1088dd61463dc4c49e316e05cf0e812c6f11c7a3f070e175",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "independent-evaluator",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "fec2f22f0db54c48ff9b552cde08f9f5e11b6972a8d0e2fa65821fd3a606c901",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "armId": "treatment",
+      "commands": [
+        {
+          "id": "build-before",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "88b3f26fbacb1721d4348029d5f8ef0a94b5e47e50280496b6268a95841a0f02",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "arm-setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "3c0d8e0a103ec2565ffbc7c8dbe4add8bbea84468775168ea16d6ebb0da2870d",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "id": "build-after",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+        },
+        {
+          "id": "independent-evaluator",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "c28e3aba2a05f2449456c2d29837e7e5d2286c57e73713a1aebbadec54fe1e53",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "independentReports": [
+    {
+      "schemaVersion": "my-pi/track-a-evaluator/v3",
+      "taskId": "OT-036",
+      "arm": "control",
+      "accepted": true,
+      "evaluator": "independent node process with official my-pi repair patches",
+      "evidenceKind": "observed_source_change",
+      "sourceChangeExpected": true,
+      "sourceChangeObserved": true,
+      "groundTruth": [
+        "host-profile",
+        "config-consumer"
+      ],
+      "selected": [
+        "host-profile"
+      ],
+      "metrics": {
+        "routing_recall": 0.5,
+        "routing_precision": 1,
+        "selected_items": 1,
+        "false_positive_items": 0,
+        "missed_items": 1,
+        "downstream_pass": 1,
+        "repair_iterations": 1
+      },
+      "measurementGaps": [],
+      "repairTrace": {
+        "attempts": [
+          {
+            "stage": "initial",
+            "sourceCheck": {
+              "path": "packages/host-profiles/test/host-profiles.test.ts",
+              "digest": "sha256:ad75b149bc498c0969e2ebcd080fc6bc20cd0b605d65051947c7da84d7daf93d",
+              "includes": false,
+              "excludes": true,
+              "hashMatches": true,
+              "passed": false
+            },
+            "routeCheck": {
+              "required": [
+                "host-profile"
+              ],
+              "selected": [
+                "host-profile"
+              ],
+              "missing": [],
+              "passed": true
+            },
+            "passed": false
+          },
+          {
+            "stage": "after_repair",
+            "sourceCheck": {
+              "path": "packages/host-profiles/test/host-profiles.test.ts",
+              "digest": "sha256:277f40d1aaa020cacfbe508b5efaf26604c415be21a07ec958efe0dbd0fce625",
+              "includes": true,
+              "excludes": true,
+              "hashMatches": true,
+              "passed": true
+            },
+            "routeCheck": {
+              "required": [
+                "host-profile"
+              ],
+              "selected": [
+                "host-profile"
+              ],
+              "missing": [],
+              "passed": true
+            },
+            "passed": true
+          }
+        ],
+        "repairIterations": 1,
+        "repairHistory": [
+          {
+            "id": "repair-source-change-OT-036",
+            "path": "packages/host-profiles/test/host-profiles.test.ts",
+            "lineEndingMode": "lf",
+            "sourceBefore": "sha256:1f2a1c77765d04a2d0dae97ae90047e1ee8c3b2088f147796dddda9fef611b74",
+            "sourceAfter": "sha256:f31d33a80aecb4f254add3153f3c55feee86ae6c5641020573d98dd290b96e1c",
+            "patchResponseHash": "sha256:f31d33a80aecb4f254add3153f3c55feee86ae6c5641020573d98dd290b96e1c",
+            "mutationTool": "official my-pi fs_patch",
+            "casExpectedHash": "sha256:1f2a1c77765d04a2d0dae97ae90047e1ee8c3b2088f147796dddda9fef611b74"
+          }
+        ]
+      },
+      "assertion": {
+        "passed": true,
+        "finalAttempt": {
+          "stage": "after_repair",
+          "sourceCheck": {
+            "path": "packages/host-profiles/test/host-profiles.test.ts",
+            "digest": "sha256:277f40d1aaa020cacfbe508b5efaf26604c415be21a07ec958efe0dbd0fce625",
+            "includes": true,
+            "excludes": true,
+            "hashMatches": true,
+            "passed": true
+          },
+          "routeCheck": {
+            "required": [
+              "host-profile"
+            ],
+            "selected": [
+              "host-profile"
+            ],
+            "missing": [],
+            "passed": true
+          },
+          "passed": true
+        }
+      }
+    },
+    {
+      "schemaVersion": "my-pi/track-a-evaluator/v3",
+      "taskId": "OT-036",
+      "arm": "treatment",
+      "accepted": true,
+      "evaluator": "independent node process with official my-pi repair patches",
+      "evidenceKind": "observed_source_change",
+      "sourceChangeExpected": true,
+      "sourceChangeObserved": true,
+      "groundTruth": [
+        "host-profile",
+        "config-consumer"
+      ],
+      "selected": [
+        "host-profile",
+        "config-consumer"
+      ],
+      "metrics": {
+        "routing_recall": 1,
+        "routing_precision": 1,
+        "selected_items": 2,
+        "false_positive_items": 0,
+        "missed_items": 0,
+        "downstream_pass": 1,
+        "repair_iterations": 0
+      },
+      "measurementGaps": [],
+      "repairTrace": {
+        "attempts": [
+          {
+            "stage": "initial",
+            "sourceCheck": {
+              "path": "packages/host-profiles/src/render.ts",
+              "digest": "sha256:95ed88ea8bb75cd5771e616c444c0439575738a226d205e7da2339f805b0669c",
+              "includes": true,
+              "excludes": true,
+              "hashMatches": true,
+              "passed": true
+            },
+            "routeCheck": {
+              "required": [
+                "host-profile",
+                "config-consumer"
+              ],
+              "selected": [
+                "host-profile",
+                "config-consumer"
+              ],
+              "missing": [],
+              "passed": true
+            },
+            "passed": true
+          }
+        ],
+        "repairIterations": 0,
+        "repairHistory": []
+      },
+      "assertion": {
+        "passed": true,
+        "finalAttempt": {
+          "stage": "initial",
+          "sourceCheck": {
+            "path": "packages/host-profiles/src/render.ts",
+            "digest": "sha256:95ed88ea8bb75cd5771e616c444c0439575738a226d205e7da2339f805b0669c",
+            "includes": true,
+            "excludes": true,
+            "hashMatches": true,
+            "passed": true
+          },
+          "routeCheck": {
+            "required": [
+              "host-profile",
+              "config-consumer"
+            ],
+            "selected": [
+              "host-profile",
+              "config-consumer"
+            ],
+            "missing": [],
+            "passed": true
+          },
+          "passed": true
+        }
+      }
+    }
+  ],
+  "validation": {
+    "pairValid": true,
+    "promotionEligible": false
+  },
+  "interpretation": "This is a real source-change workload with one declared impact-routing variable; qualification is separate from promotion."
+}

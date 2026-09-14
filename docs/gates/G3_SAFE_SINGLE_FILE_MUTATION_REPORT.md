@@ -23,7 +23,7 @@ Status: **PASS (re-earned)** — with two explicitly documented environment BLOC
 | 15 | binary rejection | `mcp-integration.test.ts` "binary fixture typed ERR_BINARY_FILE" + `g3-matrix.test.ts` | PASS |
 | 16 | unsupported encoding | typed `ERR_UNSUPPORTED_ENCODING` path in fs_read/fs_patch (decode fatal path); classification proven for BOM encodings | PASS |
 | 17 | empty file | `g3-matrix.test.ts` "empty file — typed behavior, not crash" (`ERR_PARSE_FAILED`) | PASS |
-| 18 | large file | committed-byte verification covers unbounded size; no explicit oversized fixture | PARTIAL (no dedicated large-file timing fixture; correctness path identical) |
+| 18 | oversized file | committed-byte verification covers unbounded size; no explicit oversized fixture | PARTIAL (no dedicated oversized-file timing fixture; correctness path identical) |
 | 19 | Windows locked file | read-only target -> `ERR_FILE_BUSY` fail-closed (no truncate) — `workspace-runtime.test.ts` "read-only target fails CLOSED" | PASS (win32-verifiable semantics) |
 | 20 | failure before replace | stale/missing expected_hash rejected BEFORE any write (P0.8 tests prove file unchanged) | PASS |
 | 21 | atomic replace failure | `ERR_ATOMIC_REPLACE_FAILED` / `ERR_FILE_BUSY` paths in `atomic-replace.ts`; retry exhaustion typed | PASS |

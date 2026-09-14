@@ -42,6 +42,36 @@ export interface GraphTraceRequest extends GraphSnapshotRequest {
   maxDepth?: number;
 }
 
+export interface GraphEventsRequest {
+  projectId: string;
+  kind?: GraphKind;
+  worktreeId?: string;
+  subjectId?: string;
+  mode?: "live" | "replay";
+  afterSequence?: string;
+  fromSequence?: string;
+  toSequence?: string;
+  maxEvents?: number;
+  maxBytes?: number;
+  signal?: AbortSignal;
+}
+
+export interface GraphEventsResponse {
+  events: Array<{
+    projectId: string;
+    sequence: string;
+    eventId: string;
+    eventType: string;
+    occurredAt: string;
+    actor: { kind: string; id?: string; name?: string };
+    correlationId?: string;
+    causationId?: string;
+    payload?: unknown;
+  }>;
+  throughSequence: string;
+  hasMore: boolean;
+}
+
 export interface ProvenanceReportRequest {
   projectId: string;
   worktreeId: string;
@@ -125,6 +155,11 @@ export class CoordinationClient {
   async graphTrace(input: GraphTraceRequest): Promise<GraphTrace> {
     const { signal, ...params } = input;
     return this.call<GraphTrace>("graph_trace", params as unknown as Record<string, unknown>, undefined, signal);
+  }
+
+  async graphEvents(input: GraphEventsRequest): Promise<GraphEventsResponse> {
+    const { signal, ...params } = input;
+    return this.call<GraphEventsResponse>("graph_events", params as unknown as Record<string, unknown>, undefined, signal);
   }
 
   async provenanceReport(input: ProvenanceReportRequest): Promise<ProvenanceReport> {

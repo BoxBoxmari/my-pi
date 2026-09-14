@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "my-pi/track-b-host-bypass-evidence/v2",
+  "measurementId": "track-b-bypass-1789411822303-9792",
+  "measuredAt": "2026-09-14T18:50:22.303Z",
+  "method": {
+    "sourceSetup": "official my-pi fs_write/fs_patch with CAS expected_hash",
+    "hostVectors": [
+      "Node direct editor write",
+      "cmd.exe shell redirection",
+      "Node scripted write",
+      "git apply"
+    ],
+    "verifier": "scripts/verify-my-pi-admission.mjs --report-only",
+    "evidenceWriter": "official my-pi fs_write followed by fs_read"
+  },
+  "expectedPolicy": {
+    "managedWithValidAttestation": "allowed",
+    "missingOrUnprovenanced": "rejected",
+    "staleSubjectOrInvalidAttestation": "review_required",
+    "incompleteCoverage": "seal rejected and report review_required"
+  },
+  "cases": [
+    {
+      "label": "valid-managed",
+      "baseCommit": "0a1e6c0cecff8db912a2f7cb87ce39c431170d17",
+      "initialHead": "163bb0cfcbd87074c805ad53316b5cc3363b2297",
+      "currentHead": "163bb0cfcbd87074c805ad53316b5cc3363b2297",
+      "status": "allowed",
+      "localDecision": "allowed",
+      "attestationValid": true,
+      "reasonCodes": [],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "missing-provenance",
+      "baseCommit": "7eaf47a307f6cb096d630d782e12aa4b1811552c",
+      "initialHead": "18faa1b28063a596ac209de66c7cb90d41ce5e88",
+      "currentHead": "18faa1b28063a596ac209de66c7cb90d41ce5e88",
+      "status": "rejected",
+      "localDecision": "rejected",
+      "attestationValid": true,
+      "reasonCodes": [],
+      "localReasonCodes": [
+        "provenance_missing"
+      ],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "tampered-attestation",
+      "baseCommit": "87a6ddca5dc1589718d1c92d37a706447a7895ba",
+      "initialHead": "68ba509b2fe46978690dace4189511decf2ea1fa",
+      "currentHead": "68ba509b2fe46978690dace4189511decf2ea1fa",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "subject_mismatch"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "wrong-authority-key",
+      "baseCommit": "5b3978311af1d07b00b8c73a1729e539529072d5",
+      "initialHead": "21f824798e585df052ba676291eeb42a6863f11c",
+      "currentHead": "21f824798e585df052ba676291eeb42a6863f11c",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "signature_invalid"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "direct-editor-write",
+      "baseCommit": "8ea0952d37cef254a792b070788560d9ab8dd7ac",
+      "initialHead": "875ec1f601ed6ff320071e8854d01d85d8a3e017",
+      "currentHead": "e29fc36b4eddd3e119624aa0e73348fcbaf7d162",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "subject_mismatch",
+        "head_mismatch"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "shell-redirection",
+      "baseCommit": "e5763537db89f21f0fc8634e395865f1178da903",
+      "initialHead": "78ef87829cf5ce10b6696eb8a99da8fa975eed42",
+      "currentHead": "5e22720652e42ad1e347a030de68df334f60aa11",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "subject_mismatch",
+        "head_mismatch"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "scripted-write",
+      "baseCommit": "47565e659162efeb38a99df6042d2eaaf424b56f",
+      "initialHead": "f887e1693d604a5f420960749647227f760cc3a4",
+      "currentHead": "69f083b89fdb7a366ec3f87d070e6f52fd768ed6",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "subject_mismatch",
+        "head_mismatch"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "git-apply-write",
+      "baseCommit": "aed253aa3fc7d3948cdaccb380e3a18145b631ee",
+      "initialHead": "4e49977f06c5fee36c27379a0545ff8a36b29fbf",
+      "currentHead": "f7ad704490d94c2ca0512dd87c405548d9ff4142",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "subject_mismatch",
+        "head_mismatch"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "stale-head",
+      "baseCommit": "81b90359864d8ff6ee69e91b16c63c24cfcd4426",
+      "initialHead": "bb65fccb8377d87e27dc54350d6cf006ea8351f4",
+      "currentHead": "ad18c399aa706f3066d8eadb773171018ddc239a",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "subject_mismatch",
+        "head_mismatch"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": false
+    },
+    {
+      "label": "extra-path",
+      "baseCommit": "e312f643411252eac7b6a18f57e1cefdfe5c3dd6",
+      "initialHead": "88a9ca6ce11fa3c50dd6b3e415fdcf42ca8c45de",
+      "currentHead": "48d9c268aefd4302f52f51b0db760a8d2a0fdef5",
+      "status": "review_required",
+      "localDecision": "allowed",
+      "attestationValid": false,
+      "reasonCodes": [
+        "coverage_paths_mismatch"
+      ],
+      "localReasonCodes": [],
+      "sealCoverageRejected": true
+    },
+    {
+      "label": "direct-host-unprovenanced-add",
+      "baseCommit": "fd8b35349171dff21ce3d1d804179624a640052b",
+      "initialHead": "ef0935ab781dd5b50f29d2660c28b0d35836edcc",
+      "currentHead": "3372b0fec9749fe388944c90fd8e62418cf2d6dd",
+      "status": "rejected",
+      "localDecision": "rejected",
+      "attestationValid": false,
+      "reasonCodes": [
+        "coverage_paths_mismatch"
+      ],
+      "localReasonCodes": [
+        "provenance_missing"
+      ],
+      "sealCoverageRejected": false
+    }
+  ],
+  "interpretation": {
+    "directEditor": "native existing-path mutation changes the Git subject and requires review",
+    "shellRedirection": "shell write changes the Git subject and requires review",
+    "scriptedWrite": "scripted write changes the Git subject and requires review",
+    "gitApply": "git apply changes the Git subject and requires review",
+    "staleHead": "old attestation is rejected against the newer head",
+    "extraPath": "coverage must cover every changed source path",
+    "wrongAuthority": "signature verification failure requires review",
+    "tampered": "subject tampering requires review"
+  }
+}

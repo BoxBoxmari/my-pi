@@ -50,7 +50,7 @@ operation needs one.
 - **Traversal**: 100,000-file validation is a candidate-bound release gate, not a permanent claim until the strict release run passes.
 - **Stdio Protocol Overhead**: Observed per benchmark run; no cross-runner latency threshold is release-blocking for alpha.
 - **Memory Footprint**: Bounded RSS with automatic idle server teardown after 30s.
-- **Spill Artifacts**: VCS diffs and large query responses spill to local artifact store to prevent MCP token exhaustion.
+- **Spill Artifacts**: VCS diffs and high-volume query responses spill to local artifact store to prevent MCP token exhaustion.
 
 ---
 

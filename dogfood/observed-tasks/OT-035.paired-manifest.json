@@ -1,0 +1,366 @@
+{
+  "schemaVersion": "2",
+  "recordType": "paired-run-manifest-v2",
+  "taskId": "OT-035",
+  "taskDefinition": "dogfood/observed-tasks/OT-035.json",
+  "taskDefinitionCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+  "currentCommit": "80c64879a820d1b50b141bc6d7d0ab3f8a8e7afb",
+  "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+  "runAt": "2026-09-14T14:05:55.363Z",
+  "execute": true,
+  "arms": [
+    {
+      "armId": "control",
+      "profileId": "my-pi-control-impact-off",
+      "runId": "run-834ce7f4eb757346",
+      "sessionId": "session-54c78ae2099efdb7",
+      "worktreeId": "worktree-54c78ae2099efdb7",
+      "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "a18f68885023a34b9cd2d96852e5d7593b48dba57b9db304fc395fcf411aaeda",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "Scope: all 30 workspace projects\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +30\n++++++++++++++++++++++++++++++\nProgress: resolved 30, reused 20, downloaded 0, added 0\nProgress: resolved 30, reused 28, downloaded 0, added 24\nProgress: resolved 30, reused 29, downloaded 0, added 28\nProgress: resolved 30, reused 29, downloaded 0, added 29\nProgress: resolved 30, reused 30, downloaded 0, added 29\nProgress: resolved 30, reused 30, downloaded 0, added 30\nProgress: resolved 30, reused 30, downloaded 0, added 30, done\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\control\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\control\\apps\\my-pi-ui\\dist\\main.js.EXE'\n\ndevDependencies:\n+ @modelcontextprotocol/client 2.0.0\n+ @modelcontextprotocol/server 2.0.0\n+ @types/node 26.4.1\n+ esbuild 0.28.2\n+ pyright 1.1.413\n+ typescript 5.9.3\n+ typescript-language-server 6.0.0\n+ yaml 2.9.0\n\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\control\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\control\\apps\\my-pi-mcp\\node_modules\\@my-pi\\ui\\dist\\main.js.EXE'\nDone in 21.2s using pnpm v11.2.2\n[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-035.json",
+            "--arm",
+            "control"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "1185133db4c047f9264284272ffe12ed6d47dfae0c3e43d4876092c284caaf1a",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"ok\": true,\n  \"taskId\": \"OT-035\",\n  \"arm\": \"control\",\n  \"targetPath\": \"packages/impact-engine/src/engine.ts\",\n  \"sourceAfter\": \"sha256:abad0d76b934efaaa1a3577fe302a7a9ca2a271eab9d365bd49db51f293a217a\",\n  \"route\": [\n    \"work-track-a-012\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "independent-evaluator",
+          "argv": [
+            "node",
+            "scripts/evaluate-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-035.json"
+          ],
+          "timeoutMs": 900000,
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "a9f3e838181bbdb38b61f11d8cf4f01fd00ece86e0f2cb75fb9f2f117acc542e",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"schemaVersion\": \"my-pi/track-a-evaluator/v3\",\n  \"taskId\": \"OT-035\",\n  \"arm\": \"control\",\n  \"accepted\": true,\n  \"evaluator\": \"independent node process with official my-pi repair patches\",\n  \"evidenceKind\": \"observed_source_change\",\n  \"sourceChangeExpected\": true,\n  \"sourceChangeObserved\": true,\n  \"groundTruth\": [\n    \"work-track-a-012\",\n    \"dependent-test\"\n  ],\n  \"selected\": [\n    \"work-track-a-012\"\n  ],\n  \"metrics\": {\n    \"routing_recall\": 0.5,\n    \"routing_precision\": 1,\n    \"selected_items\": 1,\n    \"false_positive_items\": 0,\n    \"missed_items\": 1,\n    \"downstream_pass\": 1,\n    \"repair_iterations\": 1\n  },\n  \"measurementGaps\": [],\n  \"repairTrace\": {\n    \"attempts\": [\n      {\n        \"stage\": \"initial\",\n        \"sourceCheck\": {\n          \"path\": \"packages/impact-engine/test/impact.test.ts\",\n          \"digest\": \"sha256:40d3c7e1b00bee5b722d984b5e8e2e397a50735863f4457a50f989de95b38f3d\",\n          \"includes\": false,\n          \"excludes\": true,\n          \"hashMatches\": true,\n          \"passed\": false\n        },\n        \"routeCheck\": {\n          \"required\": [\n            \"work-track-a-012\"\n          ],\n          \"selected\": [\n            \"work-track-a-012\"\n          ],\n          \"missing\": [],\n          \"passed\": true\n        },\n        \"passed\": false\n      },\n      {\n        \"stage\": \"after_repair\",\n        \"sourceCheck\": {\n          \"path\": \"packages/impact-engine/test/impact.test.ts\",\n          \"digest\": \"sha256:a65c0d5c041d376dfc3422cae70d5ebda64de10ae0bb22d8e413d3252dd1bd85\",\n          \"includes\": true,\n          \"excludes\": true,\n          \"hashMatches\": true,\n          \"passed\": true\n        },\n        \"routeCheck\": {\n          \"required\": [\n            \"work-track-a-012\"\n          ],\n          \"selected\": [\n            \"work-track-a-012\"\n          ],\n          \"missing\": [],\n          \"passed\": true\n        },\n        \"passed\": true\n      }\n    ],\n    \"repairIterations\": 1,\n    \"repairHistory\": [\n      {\n        \"id\": \"repair-source-change-OT-035\",\n        \"path\": \"packages/impact-engine/test/impact.test.ts\",\n        \"lineEndingMode\": \"lf\",\n        \"sourceBefore\": \"sha256:09e106805825c3913e49f6d5e4a3c65a467474ae7cd94151696b56ff585497e8\",\n        \"sourceAfter\": \"sha256:0c447514f90a25644cf0b918787b14990f9b0e6925da5755c961bacdda1fa448\",\n        \"patchResponseHash\": \"sha256:0c447514f90a25644cf0b918787b14990f9b0e6925da5755c961bacdda1fa448\",\n        \"mutationTool\": \"official my-pi fs_patch\",\n        \"casExpectedHash\": \"sha256:09e106805825c3913e49f6d5e4a3c65a467474ae7cd94151696b56ff585497e8\"\n      }\n    ]\n  },\n  \"assertion\": {\n    \"passed\": true,\n    \"finalAttempt\": {\n      \"stage\": \"after_repair\",\n      \"sourceCheck\": {\n        \"path\": \"packages/impact-engine/test/impact.test.ts\",\n        \"digest\": \"sha256:a65c0d5c041d376dfc3422cae70d5ebda64de10ae0bb22d8e413d3252dd1bd85\",\n        \"includes\": true,\n        \"excludes\": true,\n        \"hashMatches\": true,\n        \"passed\": true\n      },\n      \"routeCheck\": {\n        \"required\": [\n          \"work-track-a-012\"\n        ],\n        \"selected\": [\n          \"work-track-a-012\"\n        ],\n        \"missing\": [],\n        \"passed\": true\n      },\n      \"passed\": true\n    }\n  }\n}\n",
+          "stderr": ""
+        }
+      ],
+      "worktreePath": ".my-pi/observed-runs/OT-035/control",
+      "sourceStateDigest": "af5501e4b99cef76e67e24c2bcf64cbe8c7ebf9f077a4913e979adc808815a75",
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    },
+    {
+      "armId": "treatment",
+      "profileId": "my-pi-treatment-impact-on",
+      "runId": "run-50e856b20d0e1b50",
+      "sessionId": "session-8df572014a3afb99",
+      "worktreeId": "worktree-8df572014a3afb99",
+      "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "81883c515d5eb0aad05cd52571225ef3b96c027ab7f7b4c1d3287a596ea7ccd6",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "Scope: all 30 workspace projects\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +30\n++++++++++++++++++++++++++++++\nProgress: resolved 30, reused 20, downloaded 0, added 0\nProgress: resolved 30, reused 28, downloaded 0, added 20\nProgress: resolved 30, reused 29, downloaded 0, added 28\nProgress: resolved 30, reused 29, downloaded 0, added 29\nProgress: resolved 30, reused 30, downloaded 0, added 29\nProgress: resolved 30, reused 30, downloaded 0, added 30\nProgress: resolved 30, reused 30, downloaded 0, added 30, done\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\treatment\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\treatment\\apps\\my-pi-ui\\dist\\main.js.EXE'\n\ndevDependencies:\n+ @modelcontextprotocol/client 2.0.0\n+ @modelcontextprotocol/server 2.0.0\n+ @types/node 26.4.1\n+ esbuild 0.28.2\n+ pyright 1.1.413\n+ typescript 5.9.3\n+ typescript-language-server 6.0.0\n+ yaml 2.9.0\n\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\treatment\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-035\\treatment\\apps\\my-pi-mcp\\node_modules\\@my-pi\\ui\\dist\\main.js.EXE'\nDone in 20.7s using pnpm v11.2.2\n[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-035.json",
+            "--arm",
+            "treatment"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "dee1d48ac6fe238dceabc747e70f38ddecc702db0891388d59a5f047501d9b73",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"ok\": true,\n  \"taskId\": \"OT-035\",\n  \"arm\": \"treatment\",\n  \"targetPath\": \"packages/impact-engine/src/engine.ts\",\n  \"sourceAfter\": \"sha256:abad0d76b934efaaa1a3577fe302a7a9ca2a271eab9d365bd49db51f293a217a\",\n  \"route\": [\n    \"work-track-a-012\",\n    \"dependent-test\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "independent-evaluator",
+          "argv": [
+            "node",
+            "scripts/evaluate-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-035.json"
+          ],
+          "timeoutMs": 900000,
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "b01fe3af18a003efa118911aa39f78aa09878c94cac9abda531ccc9b190e9be5",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"schemaVersion\": \"my-pi/track-a-evaluator/v3\",\n  \"taskId\": \"OT-035\",\n  \"arm\": \"treatment\",\n  \"accepted\": true,\n  \"evaluator\": \"independent node process with official my-pi repair patches\",\n  \"evidenceKind\": \"observed_source_change\",\n  \"sourceChangeExpected\": true,\n  \"sourceChangeObserved\": true,\n  \"groundTruth\": [\n    \"work-track-a-012\",\n    \"dependent-test\"\n  ],\n  \"selected\": [\n    \"work-track-a-012\",\n    \"dependent-test\"\n  ],\n  \"metrics\": {\n    \"routing_recall\": 1,\n    \"routing_precision\": 1,\n    \"selected_items\": 2,\n    \"false_positive_items\": 0,\n    \"missed_items\": 0,\n    \"downstream_pass\": 1,\n    \"repair_iterations\": 0\n  },\n  \"measurementGaps\": [],\n  \"repairTrace\": {\n    \"attempts\": [\n      {\n        \"stage\": \"initial\",\n        \"sourceCheck\": {\n          \"path\": \"packages/impact-engine/src/engine.ts\",\n          \"digest\": \"sha256:e72b98aba60ae533631e0cb122157a01d89a9f7921c6ea8742fce26381c66619\",\n          \"includes\": true,\n          \"excludes\": true,\n          \"hashMatches\": true,\n          \"passed\": true\n        },\n        \"routeCheck\": {\n          \"required\": [\n            \"work-track-a-012\",\n            \"dependent-test\"\n          ],\n          \"selected\": [\n            \"work-track-a-012\",\n            \"dependent-test\"\n          ],\n          \"missing\": [],\n          \"passed\": true\n        },\n        \"passed\": true\n      }\n    ],\n    \"repairIterations\": 0,\n    \"repairHistory\": []\n  },\n  \"assertion\": {\n    \"passed\": true,\n    \"finalAttempt\": {\n      \"stage\": \"initial\",\n      \"sourceCheck\": {\n        \"path\": \"packages/impact-engine/src/engine.ts\",\n        \"digest\": \"sha256:e72b98aba60ae533631e0cb122157a01d89a9f7921c6ea8742fce26381c66619\",\n        \"includes\": true,\n        \"excludes\": true,\n        \"hashMatches\": true,\n        \"passed\": true\n      },\n      \"routeCheck\": {\n        \"required\": [\n          \"work-track-a-012\",\n          \"dependent-test\"\n        ],\n        \"selected\": [\n          \"work-track-a-012\",\n          \"dependent-test\"\n        ],\n        \"missing\": [],\n        \"passed\": true\n      },\n      \"passed\": true\n    }\n  }\n}\n",
+          "stderr": ""
+        }
+      ],
+      "worktreePath": ".my-pi/observed-runs/OT-035/treatment",
+      "sourceStateDigest": "af5501e4b99cef76e67e24c2bcf64cbe8c7ebf9f077a4913e979adc808815a75",
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    }
+  ],
+  "independentAdjudication": {
+    "independent": true,
+    "evaluator": "separate node evaluator process with official my-pi repair patches",
+    "groundTruth": "predeclared acceptance behavior plus evaluator assertions",
+    "requiredEvidence": [
+      "arm command exit codes",
+      "independent evaluator stdout",
+      "source mutation hashes",
+      "independent initial/final repair command output",
+      "official my-pi repair patch CAS history"
+    ]
+  },
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json"
+    ]
+  },
+  "authority": {
+    "stableRequired": false,
+    "stableCommit": null
+  },
+  "status": "EXECUTED",
+  "result": {
+    "schemaVersion": "2",
+    "recordType": "observed-result-v2",
+    "taskId": "OT-035",
+    "taskDefinition": "dogfood/observed-tasks/OT-035.json",
+    "taskDefinitionCommit": "9b7e915c83eaeeb44ca39830b0fdf6017801e982",
+    "runId": "run-125b398f10bd038b",
+    "status": "COMPLETED",
+    "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+    "runStartedAt": "2026-09-14T14:05:55.363Z",
+    "runCompletedAt": "2026-09-14T14:07:25.436Z",
+    "arms": [
+      {
+        "armId": "control",
+        "runId": "run-834ce7f4eb757346",
+        "sessionId": "session-54c78ae2099efdb7",
+        "worktreeId": "worktree-54c78ae2099efdb7",
+        "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+        "sourceStateDigest": "af5501e4b99cef76e67e24c2bcf64cbe8c7ebf9f077a4913e979adc808815a75",
+        "commands": [
+          {
+            "id": "build-before",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "a18f68885023a34b9cd2d96852e5d7593b48dba57b9db304fc395fcf411aaeda",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "arm-setup",
+            "argv": [
+              "node",
+              "scripts/real-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-035.json",
+              "--arm",
+              "control"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "1185133db4c047f9264284272ffe12ed6d47dfae0c3e43d4876092c284caaf1a",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "id": "build-after",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "independent-evaluator",
+            "argv": [
+              "node",
+              "scripts/evaluate-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-035.json"
+            ],
+            "phase": "downstream",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "a9f3e838181bbdb38b61f11d8cf4f01fd00ece86e0f2cb75fb9f2f117acc542e",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "contamination": {
+          "detected": false,
+          "reasons": []
+        }
+      },
+      {
+        "armId": "treatment",
+        "runId": "run-50e856b20d0e1b50",
+        "sessionId": "session-8df572014a3afb99",
+        "worktreeId": "worktree-8df572014a3afb99",
+        "baseCommit": "7105ee9680be626ef1a83c7ffabaa05bfc464f96",
+        "sourceStateDigest": "af5501e4b99cef76e67e24c2bcf64cbe8c7ebf9f077a4913e979adc808815a75",
+        "commands": [
+          {
+            "id": "build-before",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "81883c515d5eb0aad05cd52571225ef3b96c027ab7f7b4c1d3287a596ea7ccd6",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "arm-setup",
+            "argv": [
+              "node",
+              "scripts/real-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-035.json",
+              "--arm",
+              "treatment"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "dee1d48ac6fe238dceabc747e70f38ddecc702db0891388d59a5f047501d9b73",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "id": "build-after",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "335f7c41c17dd6863221e5182718098cb0933981d856b2d8d8c4b3a5febe559d",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "independent-evaluator",
+            "argv": [
+              "node",
+              "scripts/evaluate-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-035.json"
+            ],
+            "phase": "downstream",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "b01fe3af18a003efa118911aa39f78aa09878c94cac9abda531ccc9b190e9be5",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "contamination": {
+          "detected": false,
+          "reasons": []
+        }
+      }
+    ],
+    "adjudication": {
+      "independent": false,
+      "evaluatorRunId": "eval-5525b5d318ff4e9a",
+      "recordedAt": "2026-09-14T14:07:25.436Z",
+      "outcome": "inconclusive",
+      "evidenceRefs": [
+        "paired-run-manifest",
+        "predeclared-command-results"
+      ]
+    }
+  }
+}

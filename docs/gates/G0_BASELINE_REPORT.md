@@ -14,7 +14,7 @@ Status: **PARTIAL** — scaffold + provenance complete; several acceptance items
 
 | Acceptance item | Status | Reason |
 |---|---|---|
-| Clean clone resolves exact upstream refs | NOT DONE | Upstream repos not cloned (large); pins recorded from spec, not re-verified against live clones. |
+| Clean clone resolves exact upstream refs | NOT DONE | Upstream repos not cloned (substantial); pins recorded from spec, not re-verified against live clones. |
 | Node 24 native load/call/cancel on 3 platforms | BLOCKED | No Rust/napi-rs build executed; only win32 + Node 26 present; macOS arm64 / Linux x64 not runnable here. |
 | napi-rs primary platform spike | BLOCKED | Requires napi-rs toolchain + multi-platform matrix; `my-pi-native` is scaffold only. |
 | Supply-chain scans (license/advisory/SBOM) | BLOCKED | `cargo-audit`, `cargo-deny`, SBOM generator not run; deps not in a final graph. |

@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
+import { candidateCommit, candidateDirty } from "./candidate-state.mjs";
 
 const ROOT = process.cwd();
 const FIXTURE_PREFIX = ".my-pi/track-b-bypass-";
@@ -270,6 +271,11 @@ try {
     schemaVersion: "my-pi/track-b-host-bypass-evidence/v2",
     measurementId: "track-b-bypass-" + Date.now() + "-" + process.pid,
     measuredAt: new Date().toISOString(),
+    candidate: {
+      commit: candidateCommit(),
+      dirty: candidateDirty(),
+      sourceAuthority: "official my-pi trusted workspace",
+    },
     method: {
       sourceSetup: "official my-pi fs_write/fs_patch with CAS expected_hash",
       hostVectors: ["Node direct editor write", "cmd.exe shell redirection", "Node scripted write", "git apply"],

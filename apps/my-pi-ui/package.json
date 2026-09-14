@@ -16,6 +16,10 @@
   },
   "dependencies": {
     "@my-pi/coordination-client": "workspace:*",
-    "@my-pi/graph-model": "workspace:*"
+    "@my-pi/graph-model": "workspace:*",
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0"
   }
 }

@@ -1,0 +1,28 @@
+/*
+ * KPMG Vietnam design-system color tokens.
+ *
+ * Values are sourced from the checked-in KPMG Vietnam Design System token
+ * registry. Runtime UI code consumes these variables and does not duplicate
+ * palette literals in TypeScript or generated markup.
+ */
+:root {
+  --kpmg-blue: #00338D;
+  --kpmg-cobalt: #1E49E2;
+  --kpmg-light-blue: #ACEAFF;
+  --kpmg-pacific: #00B8F5;
+  --kpmg-dark-blue: #0C233C;
+  --kpmg-purple: #7213EA;
+  --kpmg-pink: #FD349C;
+  --kpmg-white: #FFFFFF;
+
+  --status-success: #269924;
+  --status-warning: #F1C44D;
+  --status-error: #ED2124;
+
+  --color-border-on-dark: color-mix(in srgb, var(--kpmg-white) 10%, transparent);
+  --color-bg-dashboard-shell: var(--kpmg-dark-blue);
+  --color-bg-canvas: var(--kpmg-dark-blue);
+  --color-bg-dashboard: var(--kpmg-dark-blue);
+  --color-bg-shell: var(--kpmg-dark-blue);
+  --color-border: var(--color-border-on-dark);
+}

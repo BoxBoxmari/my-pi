@@ -111,9 +111,9 @@ function actor(params: Record<string, unknown>): ActorRef {
   throw new Error("actor shape is invalid");
 }
 
-function sequenceParam(value: unknown): bigint | undefined {
+function sequenceParam(value: unknown, paramName = "sequence"): bigint | undefined {
   if (value === undefined) return undefined;
-  if (typeof value !== "string" || !/^\d+$/.test(value)) throw new Error("afterSequence must be a decimal string");
+  if (typeof value !== "string" || !/^\d+$/.test(value)) throw new Error(`${paramName} must be a decimal string`);
   return BigInt(value);
 }
 
@@ -203,7 +203,9 @@ async function lineageSnapshot(store: SqliteCoordinationStore, projectId: Projec
 
 async function buildGraphSnapshot(store: SqliteCoordinationStore, projectId: ProjectId, kind: GraphKind, params: Record<string, unknown>, bounds: Partial<GraphBounds>): Promise<GraphSnapshot> {
   if (kind === "code") {
-    const state = await store.getCodeState(projectId, requiredString(params, "worktreeId"));
+    const worktreeId = optionalString(params, "worktreeId");
+    if (!worktreeId) return degradedGraph(kind, bounds, "code graph requires worktreeId");
+    const state = await store.getCodeState(projectId, worktreeId);
     return projectCodeGraph({ entities: state.entities, edges: state.edges, bounds });
   }
   if (kind === "work") {
@@ -229,7 +231,9 @@ async function buildGraphSnapshot(store: SqliteCoordinationStore, projectId: Pro
     ]);
     return projectImpactGraph({ result, intent, entities: codeState?.entities, workItems, sessions, bounds });
   }
-  return lineageSnapshot(store, projectId, requiredString(params, "subjectId"), bounds);
+  const subjectId = optionalString(params, "subjectId");
+  if (!subjectId) return degradedGraph(kind, bounds, "lineage graph requires subjectId");
+  return lineageSnapshot(store, projectId, subjectId, bounds);
 }
 
 function expandGraphSnapshot(snapshot: GraphSnapshot, nodeId: string, depth: number, bounds: Partial<GraphBounds>): GraphSnapshot {
@@ -512,6 +516,31 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
     case "graph_trace": {
       assertProject(params, expectedProjectId);
       return buildGraphTrace(store, expectedProjectId, graphKindParam(params), params, graphBoundsParam(params));
+    }
+    case "graph_events": {
+      assertProject(params, expectedProjectId);
+      const mode = (optionalString(params, "mode") ?? "live") as "live" | "replay";
+      const maxEvents = Math.min(Math.max(params.maxEvents === undefined ? 100 : requiredNumber(params, "maxEvents"), 1), 1000);
+      const maxBytes = Math.min(Math.max(params.maxBytes === undefined ? 256 * 1024 : requiredNumber(params, "maxBytes"), 1024), 1024 * 1024);
+      const afterSequence = sequenceParam(params.afterSequence, "afterSequence");
+      const fromSequence = sequenceParam(params.fromSequence, "fromSequence");
+      const toSequence = sequenceParam(params.toSequence, "toSequence");
+
+      const page = await store.listEvents({
+        projectId: expectedProjectId,
+        afterSequence,
+        fromSequence,
+        toSequence,
+        limit: maxEvents,
+        maxBytes,
+      });
+
+      return {
+        events: page.events.map((event) => jsonEvent(event as unknown as { sequence: bigint; [key: string]: unknown })),
+        throughSequence: page.throughSequence.toString(),
+        hasMore: page.hasMore,
+        mode,
+      };
     }
     case "provenance_report": {
       assertProject(params, expectedProjectId);

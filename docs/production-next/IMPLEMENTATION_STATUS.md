@@ -42,6 +42,10 @@ diagnostic replay and an accepted stable N-1 bootstrap with a rejected first
 attempt, a bounded accepted retry, impact routing, and no autonomous spawning.
 PN10 remains a local policy and audit seam; it is not enterprise authentication.
 
+The 2026-09-13 self-hosted implementation slice is tracked separately in
+`docs/adr/ADR-008-self-hosted-enforcement-visuals.md` and the linked Known
+spec. It does not change any PN6, PN8, PN9, PN12, or PN11 disposition.
+
 ## Qualification evidence
 
 The following are local qualification records, not all of which are promotion
