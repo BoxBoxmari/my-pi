@@ -4,7 +4,7 @@
   "taskId": "OT-063",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-063.json",
   "taskDefinitionCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
-  "registeredAt": "2026-09-15T00:00:00.000Z",
+  "registeredAt": "2026-09-14T20:00:00.000Z",
   "title": "Measure host-profile source repair after duplicate workspace binding detection",
   "taskClass": "PN6",
   "primaryHypothesis": "PN6",

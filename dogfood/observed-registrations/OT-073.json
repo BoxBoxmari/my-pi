@@ -3,6 +3,6 @@
   "recordType": "observed-task-registration-v1",
   "taskId": "OT-073",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-073.json",
-  "taskDigest": "a664ac003e9e9bf71fbbdb69c936ada0630d135663ad4ab9db3e9dc00188da6e",
-  "registeredAt": "2026-09-15T00:00:00.000Z"
-}\n
+  "taskDigest": "fac592399c514eda26f49e33118a7376e1b9129ba516a6150cb9364f5ec693cf",
+  "registeredAt": "2026-09-14T20:00:00.000Z"
+}

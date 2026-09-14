@@ -4,7 +4,7 @@
   "taskId": "OT-062",
   "taskDefinitionPath": "dogfood/observed-tasks/OT-062.json",
   "taskDefinitionCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
-  "registeredAt": "2026-09-15T00:00:00.000Z",
+  "registeredAt": "2026-09-14T20:00:00.000Z",
   "title": "Measure ImpactEngine source repair after bounded package impact routing",
   "taskClass": "PN6",
   "primaryHypothesis": "PN6",

@@ -7,7 +7,7 @@
   "registration": {
     "receiptPath": "dogfood/observed-registrations/OT-072.json"
   },
-  "registeredAt": "2026-09-15T00:00:00.000Z",
+  "registeredAt": "2026-09-14T20:00:00.000Z",
   "title": "Repair the late backend error path after a watcher stops — preregistered structured-feedback contrast",
   "taskClass": "PN8",
   "primaryHypothesis": "PN8",
