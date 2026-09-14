@@ -142,6 +142,7 @@ test("PN8 preserves an independently observed failed control repair for yield me
   const taskRecord = task("OT-031", "PN8");
   const resultRecord = result("OT-031");
   resultRecord.repairSessions[0].accepted = false;
+  resultRecord.arms.find((arm) => arm.armId === "control").commands[1].status = "failed";
   resultRecord.measurements.find((measurement) => measurement.id === "repair_yield" && measurement.armId === "control").value = 0;
   const report = aggregateObservedEvidence([{ task: taskRecord, result: resultRecord, registration: verifiedRegistration() }], { minQualified: 1 });
   assert.equal(report.pairs[0].qualified, true);

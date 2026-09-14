@@ -121,7 +121,7 @@ function assessPair(task, result, registration) {
     }
   }
   const commandsPassed = result.arms?.every((arm) => arm.commands?.every((command) => command.status === "passed")) === true;
-  if (!commandsPassed) reasons.push("a predeclared command did not pass in every arm");
+  if (!commandsPassed && task.primaryHypothesis !== "PN8") reasons.push("a predeclared command did not pass in every arm");
   if (result.status !== "COMPLETED") reasons.push(`result status is ${result.status}`);
   if (result.adjudication?.independent !== true) reasons.push("independent adjudication is required");
   if (result.adjudication?.outcome !== "accepted") reasons.push(`adjudication outcome is ${result.adjudication?.outcome ?? "missing"}`);
