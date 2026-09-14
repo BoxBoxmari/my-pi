@@ -91,17 +91,18 @@ function runDogfood(taskPath, manifestPath, rawResultPath) {
     "--result", rawResultPath,
     "--execute",
     "--keep-worktrees",
+    "--capture-output",
   ], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
 }
 
-function evaluateArm(worktree, taskDefinition) {
-  const stdout = execFileSync(process.execPath, [path.join(worktree, "scripts", "evaluate-track-a-arm.mjs"), "--task", taskDefinition], {
-    cwd: worktree,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-    windowsHide: true,
-  });
-  return JSON.parse(stdout);
+function evaluateArmFromCapturedOutput(arm) {
+  const command = arm.commands.find((value) => value.id === "independent-evaluator");
+  if (!command || typeof command.stdout !== "string") throw new Error("independent evaluator stdout was not captured for " + arm.armId);
+  try {
+    return JSON.parse(command.stdout.trim());
+  } catch (error) {
+    throw new Error("independent evaluator stdout was not valid JSON for " + arm.armId + ": " + error.message);
+  }
 }
 
 async function cleanupRun(taskId, manifest) {
@@ -142,7 +143,7 @@ export async function main(argv = process.argv.slice(2)) {
     runDogfood(taskDefinition, manifestPath, rawResultPath);
     manifest = JSON.parse(await readFile(path.join(ROOT, manifestPath), "utf8"));
     const rawResult = JSON.parse(await readFile(path.join(ROOT, rawResultPath), "utf8"));
-    const reports = manifest.arms.map((arm) => evaluateArm(path.resolve(ROOT, arm.worktreePath), taskDefinition));
+    const reports = manifest.arms.map((arm) => evaluateArmFromCapturedOutput(arm));
     const allCommandsPassed = rawResult.arms.every((arm) => arm.commands.every((command) => command.status === "passed"));
     const allReportsAccepted = reports.every((report) => report.accepted);
     const evaluatorRunId = "eval-" + sha256(JSON.stringify(reports)).slice(0, 16);

@@ -35,7 +35,7 @@ function runId(taskId, armId, baseCommit, runAt) {
 }
 
 function parseArgs(argv) {
-  const values = { root: ROOT, execute: false, keepWorktrees: false };
+  const values = { root: ROOT, execute: false, keepWorktrees: false, captureOutput: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (["--task", "--output", "--result", "--root", "--run-at", "--stable-authority-sha"].includes(arg)) {
@@ -45,8 +45,9 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === "--execute") values.execute = true;
     else if (arg === "--keep-worktrees") values.keepWorktrees = true;
+    else if (arg === "--capture-output") values.captureOutput = true;
     else if (arg === "--help" || arg === "-h") {
-      console.log("node scripts/dogfood-observed-paired-v2.mjs --task <task.json> [--output <manifest.json>] [--result <result.json>] [--run-at <iso>] [--stable-authority-sha <sha>] [--execute]");
+      console.log("node scripts/dogfood-observed-paired-v2.mjs --task <task.json> [--output <manifest.json>] [--result <result.json>] [--run-at <iso>] [--stable-authority-sha <sha>] [--execute] [--capture-output]");
       return undefined;
     } else throw new Error(`unknown argument: ${arg}`);
   }
@@ -188,7 +189,7 @@ function inspectFreshWorktree(worktree, forbiddenPaths) {
   return { detected: reasons.length > 0, reasons };
 }
 
-function execCommand(argv, cwd, timeoutMs) {
+function execCommand(argv, cwd, timeoutMs, { captureOutput = false } = {}) {
   return new Promise((resolve) => {
     const child = spawn(argv[0], argv.slice(1), { cwd, shell: false, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
@@ -202,16 +203,28 @@ function execCommand(argv, cwd, timeoutMs) {
     child.stderr.on("data", (chunk) => { stderr += chunk.toString("utf8"); });
     child.on("close", (exitCode) => {
       clearTimeout(timer);
-      resolve({ status: timedOut ? "timed_out" : exitCode === 0 ? "passed" : "failed", exitCode: timedOut ? null : exitCode, stdoutDigest: sha256(stdout), stderrDigest: sha256(stderr) });
+      resolve({
+        status: timedOut ? "timed_out" : exitCode === 0 ? "passed" : "failed",
+        exitCode: timedOut ? null : exitCode,
+        stdoutDigest: sha256(stdout),
+        stderrDigest: sha256(stderr),
+        ...(captureOutput ? { stdout, stderr } : {}),
+      });
     });
     child.on("error", () => {
       clearTimeout(timer);
-      resolve({ status: "failed", exitCode: null, stdoutDigest: sha256(stdout), stderrDigest: sha256(stderr) });
+      resolve({
+        status: "failed",
+        exitCode: null,
+        stdoutDigest: sha256(stdout),
+        stderrDigest: sha256(stderr),
+        ...(captureOutput ? { stdout, stderr } : {}),
+      });
     });
   });
 }
 
-async function executeManifest(manifest, task, root, keepWorktrees) {
+async function executeManifest(manifest, task, root, keepWorktrees, captureOutput) {
   const runRoot = path.join(root, ".my-pi", "observed-runs", task.taskId);
   await mkdir(runRoot, { recursive: true });
   const created = [];
@@ -231,7 +244,7 @@ async function executeManifest(manifest, task, root, keepWorktrees) {
           command.stderrDigest = sha256("");
           continue;
         }
-        const result = await execCommand(command.argv, worktree, command.timeoutMs);
+        const result = await execCommand(command.argv, worktree, command.timeoutMs, { captureOutput });
         Object.assign(command, result);
       }
     }
@@ -263,7 +276,7 @@ export async function main(argv = process.argv.slice(2)) {
     if (args.stable_authority_sha.toLowerCase() === currentCommit.toLowerCase()) throw new Error("stable authority commit must differ from the current candidate commit");
   }
   const manifest = buildPairedManifest(task, { currentCommit, runAt, execute: args.execute, stableAuthorityCommit: args.stable_authority_sha });
-  if (args.execute) await executeManifest(manifest, task, root, args.keepWorktrees);
+  if (args.execute) await executeManifest(manifest, task, root, args.keepWorktrees, args.captureOutput);
   const output = path.resolve(root, args.output ?? path.join("dogfood", "observed-tasks", `${task.taskId}.paired-manifest.json`));
   const relative = path.relative(root, output);
   if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error("--output must stay inside the repository");
