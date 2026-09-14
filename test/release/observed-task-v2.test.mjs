@@ -14,6 +14,7 @@ function task(overrides = {}) {
     taskId: "OT-011",
     taskDefinitionPath: "dogfood/observed-tasks/OT-011.v2.json",
     taskDefinitionCommit: BASE,
+    registration: { receiptPath: "dogfood/observed-registrations/OT-011.json" },
     registeredAt: "2026-09-13T00:00:00.000Z",
     title: "Receipt-to-code-state provenance observation",
     taskClass: "research",
@@ -61,6 +62,13 @@ test("ObservedTask v2 golden fixture validates", () => {
   assert.deepEqual(validation, { ok: true, errors: [] });
 });
 
+test("validator requires an immutable Git registration receipt reference", () => {
+  const invalid = task({ registration: undefined });
+  const validation = validateObservedTask(invalid);
+  assert.equal(validation.ok, false);
+  assert.match(validation.errors.join("\n"), /registration/);
+});
+
 test("validator rejects a missing preregistration identity and an unregistered command", () => {
   const invalid = task({ taskDefinitionCommit: "short", requiredTests: [{ id: "bad", argv: ["bash", "-lc", "echo unsafe"], timeoutMs: 1_000 }] });
   const validation = validateObservedTask(invalid);
@@ -86,6 +94,7 @@ test("PN6 and PN8 tasks require divergent preregistered arm setup commands", () 
   const valid = task({
     taskClass: "PN6",
     primaryHypothesis: "PN6",
+    workload: { evidenceKind: "observed_source_change", heterogeneityKey: "test-pn6" },
     arms: {
       ...task().arms,
       control: { ...task().arms.control, setupCommands: [{ id: "profile", argv: ["node", "--version"], timeoutMs: 10_000 }] },

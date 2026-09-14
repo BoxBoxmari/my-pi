@@ -92,8 +92,17 @@ function validateWorkload(errors, workload, taskClass) {
   if (workload.patch !== undefined) validateWorkloadPatch(errors, { ...workload.patch, id: workload.patch.id ?? "source-patch", path: workload.targetPath ?? workload.patch.path }, "workload.patch");
   if (workload.groundTruth !== undefined) add(errors, Array.isArray(workload.groundTruth), "workload.groundTruth must be an array");
   for (const routeName of ["controlRoute", "treatmentRoute"]) if (workload[routeName] !== undefined) add(errors, Array.isArray(workload[routeName]), "workload." + routeName + " must be an array");
+  if (taskClass === "PN6") {
+    add(errors, workload.evidenceKind === "observed_source_change", "PN6 workload.evidenceKind must be observed_source_change");
+    string(errors, workload.heterogeneityKey, "PN6 workload.heterogeneityKey");
+  }
   if (taskClass !== "PN8") return;
-  add(errors, workload.evidenceKind === "controlled_replay", "PN8 workload.evidenceKind must be controlled_replay");
+  add(errors, ["controlled_replay", "live_repair"].includes(workload.evidenceKind), "PN8 workload.evidenceKind must be controlled_replay or live_repair");
+  if (workload.evidenceKind === "live_repair") {
+    string(errors, workload.frozenStateId, "PN8 workload.frozenStateId");
+    string(errors, workload.heterogeneityKey, "PN8 workload.heterogeneityKey");
+    return;
+  }
   add(errors, isObject(workload.failureReplay), "PN8 workload.failureReplay must be an object");
   if (isObject(workload.failureReplay)) {
     string(errors, workload.failureReplay.id, "workload.failureReplay.id");
@@ -137,6 +146,8 @@ export function validateObservedTask(task) {
   add(errors, typeof task.taskId === "string" && TASK_ID.test(task.taskId), "taskId must match OT-###");
   string(errors, task.taskDefinitionPath, "taskDefinitionPath");
   hash(errors, task.taskDefinitionCommit, "taskDefinitionCommit");
+  add(errors, isObject(task.registration), "registration must be an object");
+  if (isObject(task.registration)) string(errors, task.registration.receiptPath, "registration.receiptPath");
   date(errors, task.registeredAt, "registeredAt");
   string(errors, task.title, "title");
   add(errors, ["PN6", "PN8", "research"].includes(task.taskClass), "taskClass must be PN6, PN8, or research");
@@ -241,6 +252,7 @@ export function validateObservedTask(task) {
     add(errors, Array.isArray(task.contaminationControls.forbiddenPaths), "contaminationControls.forbiddenPaths must be an array");
   }
 
+  if (["PN6", "PN8"].includes(task.taskClass)) add(errors, isObject(task.workload), "PN6/PN8 workload is required");
   validateWorkload(errors, task.workload, task.taskClass);
   return { ok: errors.length === 0, errors };
 }
@@ -287,6 +299,56 @@ function declaredCommands(task, armId) {
   ];
 }
 
+function validateEvidenceShape(errors, result, task) {
+  const hypothesis = task?.taskClass ?? task?.primaryHypothesis;
+  if (hypothesis === "PN6") {
+    add(errors, result.evidenceKind === "observed_source_change", "PN6 result.evidenceKind must be observed_source_change");
+    add(errors, isObject(result.measurementEvidence), "PN6 measurementEvidence must be an object");
+    if (isObject(result.measurementEvidence)) {
+      add(errors, result.measurementEvidence.evaluatorMode === "independent-command-output", "PN6 measurementEvidence.evaluatorMode must be independent-command-output");
+      add(errors, isObject(result.measurementEvidence.armRuns), "PN6 measurementEvidence.armRuns must be an object");
+      for (const armId of ARM_IDS) {
+        const row = result.measurementEvidence.armRuns?.[armId];
+        add(errors, isObject(row), "PN6 measurementEvidence.armRuns." + armId + " must be an object");
+        if (isObject(row)) {
+          string(errors, row.runId, "PN6 measurementEvidence.armRuns." + armId + ".runId");
+          add(errors, Number.isInteger(row.repairIterations) && row.repairIterations >= 0, "PN6 repairIterations must be a measured non-negative integer");
+          add(errors, typeof row.accepted === "boolean", "PN6 arm acceptance must be independently recorded");
+        }
+      }
+    }
+  }
+  if (hypothesis === "PN8" && task?.workload?.evidenceKind === "live_repair") {
+    add(errors, result.evidenceKind === "live_repair", "PN8 live_repair result.evidenceKind is required");
+    add(errors, Array.isArray(result.repairSessions) && result.repairSessions.length === 2, "PN8 live_repair requires exactly two repairSessions");
+    if (Array.isArray(result.repairSessions)) {
+      const sessionIds = result.repairSessions.map((session) => session?.sessionId);
+      const worktreeIds = result.repairSessions.map((session) => session?.worktreeId);
+      const frozenDigests = result.repairSessions.map((session) => session?.frozenStateDigest);
+      unique(errors, sessionIds, "PN8 repair session ids");
+      unique(errors, worktreeIds, "PN8 repair worktree ids");
+      add(errors, frozenDigests.length === 2 && frozenDigests.every((digestValue) => digestValue === frozenDigests[0]), "PN8 repair sessions must share one frozenStateDigest");
+      for (const [index, session] of result.repairSessions.entries()) {
+        const label = "repairSessions[" + index + "]";
+        add(errors, isObject(session), label + " must be an object");
+        if (!isObject(session)) continue;
+        add(errors, ARM_IDS.includes(session.armId), label + ".armId must be control or treatment");
+        string(errors, session.sessionId, label + ".sessionId");
+        string(errors, session.worktreeId, label + ".worktreeId");
+        digest(errors, session.frozenStateDigest, label + ".frozenStateDigest");
+        add(errors, ["ordinary_log", "structured_feedback_packet"].includes(session.feedbackMode), label + ".feedbackMode is invalid");
+        add(errors, Number.isInteger(session.attempts) && session.attempts >= 1, label + ".attempts must be a positive integer");
+        add(errors, session.accepted === true, label + ".accepted must be true for qualified live repair");
+        add(errors, session.priorPassesPreserved === true, label + ".priorPassesPreserved must be true");
+        add(errors, session.regressions === 0, label + ".regressions must be zero");
+        add(errors, session.falseAccepts === 0, label + ".falseAccepts must be zero");
+      }
+      add(errors, result.repairSessions.some((session) => session?.armId === "control" && session?.feedbackMode === "ordinary_log"), "PN8 control ordinary_log session is required");
+      add(errors, result.repairSessions.some((session) => session?.armId === "treatment" && session?.feedbackMode === "structured_feedback_packet"), "PN8 treatment structured_feedback_packet session is required");
+    }
+  }
+}
+
 function validateMeasurement(errors, measurement, label, task, seen) {
   add(errors, isObject(measurement), `${label} must be an object`);
   if (!isObject(measurement)) return;
@@ -325,6 +387,8 @@ export function validateObservedResult(result, task) {
     add(errors, result.baseCommit === task.baseCommit, "result.baseCommit must match task.baseCommit");
     if (ISO_DATE(task.registeredAt) && ISO_DATE(result.runStartedAt)) add(errors, Date.parse(result.runStartedAt) >= Date.parse(task.registeredAt), "runStartedAt must be after task preregistration");
   }
+
+  if (taskValidation?.ok) validateEvidenceShape(errors, result, task);
 
   const seen = { contaminated: false };
   add(errors, Array.isArray(result.arms) && result.arms.length === 2, "result.arms must contain exactly two arms");
