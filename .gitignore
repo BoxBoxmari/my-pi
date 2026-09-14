@@ -29,6 +29,7 @@ evidence/PN*.json
 .x-harness/
 .my-pi/observed-runs/
 .my-pi/track-a/
+.my-pi/track-b-bypass-*/
 opencode.json
 AGENTS.md
 CLAUDE.md
