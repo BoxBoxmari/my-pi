@@ -68,3 +68,4 @@ evidence/observed-*.json
 dist-release/
 .specify/
 apps/my-pi-ui/theater-live-session.mjs
+PRE_PN11_CLOSEOUT_REPORT.md

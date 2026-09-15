@@ -174,7 +174,10 @@ pnpm bench:evaluation-feedback-arms
 pnpm dogfood:self-host
 pnpm bench:local-reliability
 pnpm verify:production-next
+pnpm verify:production-next-promotion
 ```
+
+`pnpm verify:production-next-promotion` is the read-only promotion verifier; it is the authoritative gate and is never weakened to match available results.
 
 ## Visual Plane (experimental)
 
