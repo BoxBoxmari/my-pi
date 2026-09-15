@@ -276,6 +276,22 @@ async function waitForCodeState(client, projectId, worktreeId) {
   }
 }
 
+async function drainSync(client, projectId, agentSessionId, sinceSequence) {
+  let cursor = String(sinceSequence ?? "0");
+  for (let pageNumber = 0; pageNumber < MAX_EVENT_PAGES; pageNumber++) {
+    const page = await client.call("coord_sync", { projectId, agentSessionId, sinceSequence: cursor, maxEvents: 100, maxBytes: 128 * 1024 });
+    const next = String(page.throughSequence ?? cursor);
+    const hasMore = Array.isArray(page.warnings) && page.warnings.length > 0;
+    if (next === cursor) {
+      if (hasMore) throw new Error("stable N-1 sync drain made no progress");
+      return cursor;
+    }
+    cursor = next;
+    if (!hasMore) return cursor;
+  }
+  throw new Error("stable N-1 sync drain exceeded its bounded page limit");
+}
+
 async function join(client, projectId, root, role, candidateSha) {
   const identity = await discoverProjectIdentity(root);
   const repositoryId = `repo-stable-bootstrap-${role}`;
@@ -407,6 +423,7 @@ try {
     blockedReview = { blocked: true, code: error.code, message: error.message };
   }
   const reviewerIntent = await stableClient.call("coord_intent", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, workItemId: reviewItem.id, kind: "modify", summary: "prepare the downstream stable N-1 review handoff", targets: [{ type: "path", value: "packages/coordination-runtime/src/runtime.ts" }] });
+  const reviewerSetupCursor = await drainSync(stableClient, metadata.projectId, joined.reviewer.agentSessionId, joined.reviewer.currentSequence ?? "0");
 
   async function stableChange(marker, attempt, intentId) {
     const absolute = path.join(candidateRoot, TARGET_PATH);
@@ -461,14 +478,14 @@ try {
   assertCondition(reviewerBefore.state === "ready", `stable N-1 reviewer was not ready: ${reviewerBefore.state}`);
   await stableClient.call("coord_claim", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, workItemId: reviewItem.id, expectedVersion: reviewerBefore.version });
   await stableClient.call("coord_intent", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, workItemId: reviewItem.id, kind: "verify", summary: "stable N-1 review of accepted candidate change", targets: [{ type: "path", value: TARGET_PATH }] });
-  const reviewerSync = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: "0", maxEvents: 100, maxBytes: 128 * 1024 });
+  const reviewerSync = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: reviewerSetupCursor, maxEvents: 100, maxBytes: 128 * 1024 });
   const reviewerCompleted = await stableClient.call("coord_complete", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, workItemId: reviewItem.id });
   assertCondition(reviewerCompleted.workItem.state === "done", "stable N-1 reviewer did not complete");
   const reviewerRoutes = [...(reviewerSync.highPriority ?? []), ...(reviewerSync.normalPriority ?? [])].map((item) => ({ priority: item.priority, reason: item.reason, eventType: item.event?.eventType, eventId: item.event?.eventId, payloadKeys: item.event?.payload && typeof item.event.payload === "object" ? Object.keys(item.event.payload).sort() : [] }));
   assertCondition(reviewerRoutes.some((item) => item.eventType === "ImpactDetected" && item.reason === "impact_result" && item.priority === "high"), `stable N-1 reviewer did not receive impact routing: ${JSON.stringify({ routes: reviewerRoutes, throughSequence: reviewerSync.throughSequence, blockedBy: reviewerSync.blockedBy, warnings: reviewerSync.warnings })}`);
 
-  const replayOne = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: "0", maxEvents: 100, maxBytes: 128 * 1024 });
-  const replayTwo = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: "0", maxEvents: 100, maxBytes: 128 * 1024 });
+  const replayOne = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: reviewerSetupCursor, maxEvents: 100, maxBytes: 128 * 1024 });
+  const replayTwo = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: reviewerSetupCursor, maxEvents: 100, maxBytes: 128 * 1024 });
   const observerSync = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.observer.agentSessionId, sinceSequence: "0", maxEvents: 100, maxBytes: 128 * 1024 });
   const events = await listAllEvents(stableClient, metadata.projectId);
   const eventTypes = [...new Set(events.map((event) => event.eventType))].sort();
