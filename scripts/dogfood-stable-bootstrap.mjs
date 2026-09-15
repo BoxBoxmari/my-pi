@@ -407,11 +407,12 @@ try {
   const stableFingerprintBytes = stableContractsModule.fingerprintBytes;
 
   const joined = {};
+  const codeStateReady = {};
+  // Join then immediately wait for each role so its code-state readiness is
+  // observed before a later worktree's registration can re-key shared rows.
   for (const [role, root] of [["implementation", candidateRoot], ["reviewer", reviewerRoot], ["observer", observerRoot]]) {
     joined[role] = await join(stableClient, metadata.projectId, root, role, candidateSha);
-  }
-  const codeStateReady = {};
-  for (const [role, value] of Object.entries(joined)) {
+    const value = joined[role];
     try {
       codeStateReady[role] = await waitForCodeState(stableClient, metadata.projectId, value.worktreeId);
     } catch (error) {
