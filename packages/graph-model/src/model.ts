@@ -3,6 +3,58 @@ export const GRAPH_SCHEMA_VERSION = "1" as const;
 export const GRAPH_KINDS = ["code", "impact", "work", "lineage"] as const;
 export type GraphKind = (typeof GRAPH_KINDS)[number];
 
+/**
+ * Allowlisted coordination event-type strings per graph kind. Values mirror
+ * COORDINATION_EVENT_TYPES from @my-pi/contracts (repeated as literals to keep
+ * graph-model dependency-free); the test suite asserts membership against the
+ * real exported set.
+ */
+export const GRAPH_EVENT_TYPES_BY_KIND: Record<GraphKind, readonly string[]> = {
+  work: [
+    "AgentJoined",
+    "AgentHeartbeat",
+    "AgentExpired",
+    "WorkItemCreated",
+    "WorkItemClaimed",
+    "WorkItemBlocked",
+    "WorkItemUnblocked",
+    "WorkItemImplementationComplete",
+    "WorkItemAwaitingEvaluation",
+    "WorkItemEvaluationAccepted",
+    "WorkItemEvaluationRejected",
+    "WorkItemEvaluationReviewRequired",
+    "WorkItemCompleted",
+    "IntentDeclared",
+    "IntentSuperseded",
+    "EvaluationRequested",
+    "EvaluationStarted",
+    "EvaluationResultRecorded",
+    "EvaluationCompleted",
+    "AcceptanceDecided",
+    "FeedbackIssued",
+    "RetryRecommended",
+    "RetryScheduled",
+    "RetryExhausted",
+  ],
+  code: [
+    "CodeGraphUpdated",
+    "ContractChanged",
+  ],
+  impact: [
+    "ImpactDetected",
+    "ScopeDeclared",
+    "ScopeReleased",
+  ],
+  lineage: [
+    "ContextPublished",
+    "ChangeProposed",
+    "ChangeApplied",
+    "ChangePartiallyApplied",
+    "ChangeRejected",
+    "VerificationRecorded",
+  ],
+};
+
 export type GraphScalar = string | number | boolean | null;
 export type GraphAttributes = Record<string, GraphScalar>;
 export type GraphProvenance = "authoritative" | "derived";

@@ -70,6 +70,8 @@ export interface GraphEventsResponse {
   }>;
   throughSequence: string;
   hasMore: boolean;
+  kind?: GraphKind;
+  degraded?: { provider: string; reason: string };
 }
 
 export interface ProvenanceReportRequest {

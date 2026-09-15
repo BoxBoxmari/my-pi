@@ -50,6 +50,7 @@
     "verify:production-next-promotion": "node scripts/verify-production-next-promotion.mjs",
     "measure:track-b-report-mode": "node scripts/measure-track-b-report-mode.mjs",
     "measure:track-b-strict-candidate": "node scripts/measure-track-b-strict-candidate.mjs",
+    "measure:track-b-host-bypass": "node scripts/measure-track-b-host-bypass.mjs",
     "release:production-next-manifest": "node scripts/create-production-next-manifest.mjs",
     "bench:boundaries": "node benchmarks/runtime-boundaries.mjs",
     "check:refs": "node scripts/check-project-references.mjs",

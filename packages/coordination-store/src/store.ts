@@ -18,6 +18,8 @@ export interface EventQuery {
   toSequence?: bigint;
   limit?: number;
   maxBytes?: number;
+  /** Optional event-type allowlist filter; undefined = unfiltered, empty = rejected. */
+  eventTypeIn?: readonly string[];
 }
 
 export interface EventPage {

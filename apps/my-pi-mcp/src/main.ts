@@ -10,6 +10,7 @@ import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { createCoordinationCapabilities, createEvaluationCapabilities, createFoundationCapabilities, MyPiServer } from "@my-pi/mcp-adapter";
 import { COORDINATION_PROFILES, REQUIRED_PROFILES, STRICT_CANDIDATE_PROFILES, renderProfile } from "@my-pi/host-profiles";
 import { createTheaterFrame, type TheaterEvent } from "@my-pi/graph-model";
+import { redactEventForWire } from "@my-pi/observability";
 import { renderGraphViewHtml, renderTheaterViewHtml } from "@my-pi/ui";
 
 export interface CliOptions {
@@ -168,7 +169,7 @@ export async function runMcp(
         const frame = createTheaterFrame({
           scope: { projectId: health.projectId, kind: "work" },
           graph,
-          events: eventResult.events as TheaterEvent[],
+          events: eventResult.events.map((event) => redactEventForWire(event)) as TheaterEvent[],
           cursor: { lastSequence: eventResult.throughSequence },
           capabilities: { live: true, replay: true, expand: false, trace: false, renderer3d: true },
         });

@@ -18,6 +18,7 @@
     "@my-pi/graph-model": "workspace:*",
     "@my-pi/graph-projection": "workspace:*",
     "@my-pi/impact-engine": "workspace:*",
+    "@my-pi/observability": "workspace:*",
     "@my-pi/workspace-runtime": "workspace:*"
   }
 }

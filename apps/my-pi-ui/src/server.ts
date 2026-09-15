@@ -10,6 +10,7 @@ import {
   type TheaterEvent,
 } from "@my-pi/graph-model";
 import type { GraphEventsResponse } from "@my-pi/coordination-client";
+import { redactEventForWire } from "@my-pi/observability";
 import { renderGraphViewHtml, renderTheaterViewHtml } from "./view.js";
 
 export interface PortalGraphReader {
@@ -86,7 +87,7 @@ function numberParam(url: URL, name: string, fallback: number, maximum: number):
 }
 
 function csp(nonce: string): string {
-  return `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; img-src 'none'; base-uri 'none'; frame-ancestors 'none'`;
+  return `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; style-src-attr 'unsafe-inline'; connect-src 'self'; img-src 'none'; base-uri 'none'; frame-ancestors 'none'`;
 }
 
 export async function createPortalServer(options: PortalServerOptions): Promise<PortalHandle> {
@@ -102,10 +103,12 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
       const requestUrl = new URL(request.url ?? "/", `http://${request.headers.host ?? "invalid"}`);
       const isEventsApi = requestUrl.pathname === "/api/graph/events";
       const isReplayApi = requestUrl.pathname === "/api/graph/replay";
+      const isStreamApi = requestUrl.pathname === "/api/graph/stream";
       const isGraphApi = requestUrl.pathname === "/api/graph";
       const api = isGraphApi || isEventsApi || isReplayApi;
       const pageTokenValid = requestUrl.pathname !== "/" || requestUrl.searchParams.get("session") === token;
-      if (!pageTokenValid || !authorized(request, host, boundPort, token, api)) {
+      const streamTokenValid = !isStreamApi || requestUrl.searchParams.get("session") === token;
+      if (!pageTokenValid || !streamTokenValid || !authorized(request, host, boundPort, token, api)) {
         send(response, 403, JSON.stringify({ error: "invalid portal host, origin, or session" }), "application/json");
         return;
       }
@@ -114,24 +117,52 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
         if (isTheater) {
           let theaterEvents: TheaterEvent[] = [];
           let throughSeq = "0";
+          let eventsDegraded: { provider: string; reason: string } | undefined;
           if (options.reader.graphEvents) {
             try {
-              const evRes = await options.reader.graphEvents({
-                projectId: options.projectId,
-                kind: "work",
-                worktreeId: options.worktreeId,
-                subjectId: options.subjectId,
-                maxEvents: 200,
-              });
-              theaterEvents = evRes.events.map((e) => ({
-                ...e,
-                sequence: String(e.sequence),
-                payload: typeof e.payload === "object" && e.payload !== null ? (e.payload as Record<string, unknown>) : undefined,
-              }));
-              throughSeq = evRes.throughSequence ?? (theaterEvents.at(-1)?.sequence || "0");
+              const pageSize = 1_000;
+              const maxPages = 100;
+              let after: string | undefined;
+              for (let page = 0; page < maxPages; page++) {
+                const evRes = await options.reader.graphEvents({
+                  projectId: options.projectId,
+                  kind: "work",
+                  worktreeId: options.worktreeId,
+                  subjectId: options.subjectId,
+                  maxEvents: pageSize,
+                  ...(after === undefined ? {} : { afterSequence: after }),
+                });
+                const mapped = evRes.events.map((e) => {
+                  const wireEvent = redactEventForWire(e);
+                  return {
+                    ...wireEvent,
+                    sequence: String(wireEvent.sequence),
+                    payload: typeof wireEvent.payload === "object" && wireEvent.payload !== null ? (wireEvent.payload as Record<string, unknown>) : undefined,
+                  };
+                });
+                theaterEvents = mapped.slice(-200);
+                throughSeq = evRes.throughSequence ?? (mapped.at(-1)?.sequence || after || "0");
+                eventsDegraded = evRes.degraded ?? eventsDegraded;
+                if (after !== undefined && throughSeq === after) break;
+                if (!evRes.hasMore) break;
+                after = throughSeq;
+              }
             } catch {
               // degrade gracefully
             }
+          }
+          let theaterGraph = initial;
+          try {
+            theaterGraph = await options.reader.graphSnapshot({
+              projectId: options.projectId,
+              kind: "work",
+              worktreeId: options.worktreeId,
+              subjectId: options.subjectId,
+              maxNodes: 500,
+              maxEdges: 1000,
+            });
+          } catch {
+            // fallback to initial
           }
           const initialFrame = createTheaterFrame({
             scope: {
@@ -140,9 +171,10 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
               worktreeId: options.worktreeId,
               subjectId: options.subjectId,
             },
-            graph: initial,
+            graph: theaterGraph,
             events: theaterEvents,
             cursor: { lastSequence: throughSeq },
+            ...(eventsDegraded === undefined ? {} : { quality: { degraded: true, reasons: [`Events degraded: ${eventsDegraded.reason}`] } }),
           });
           const html = renderTheaterViewHtml({
             sessionToken: token,
@@ -165,7 +197,11 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
           send(response, 501, JSON.stringify({ error: "graph events are unavailable" }), "application/json");
           return;
         }
-        const kind = requestUrl.searchParams.get("kind") as GraphKind | null;
+        const kind = requestUrl.searchParams.get("kind");
+        if (kind !== null && !GRAPH_KINDS.includes(kind as GraphKind)) {
+          send(response, 400, JSON.stringify({ error: "kind is invalid" }), "application/json");
+          return;
+        }
         const mode = requestUrl.searchParams.get("mode") === "replay" ? "replay" : "live";
         const afterSequence = requestUrl.searchParams.get("afterSequence") ?? undefined;
         const fromSequence = requestUrl.searchParams.get("fromSequence") ?? undefined;
@@ -175,7 +211,7 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
 
         const res = await options.reader.graphEvents({
           projectId: options.projectId,
-          kind: kind && GRAPH_KINDS.includes(kind) ? kind : undefined,
+          kind: kind === null ? undefined : kind as GraphKind,
           worktreeId: options.worktreeId,
           subjectId: options.subjectId,
           mode,
@@ -185,7 +221,8 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
           maxEvents,
           maxBytes,
         });
-        send(response, 200, JSON.stringify(res), "application/json", { "content-security-policy": "default-src 'none'" });
+        const wire = { ...res, events: res.events.map((event) => redactEventForWire(event)) };
+        send(response, 200, JSON.stringify(wire), "application/json", { "content-security-policy": "default-src 'none'" });
         return;
       }
 
@@ -194,7 +231,11 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
           send(response, 501, JSON.stringify({ error: "graph replay are unavailable" }), "application/json");
           return;
         }
-        const kind = requestUrl.searchParams.get("kind") as GraphKind | null;
+        const kind = requestUrl.searchParams.get("kind");
+        if (kind !== null && !GRAPH_KINDS.includes(kind as GraphKind)) {
+          send(response, 400, JSON.stringify({ error: "kind is invalid" }), "application/json");
+          return;
+        }
         const fromSequence = requestUrl.searchParams.get("fromSequence") ?? undefined;
         const toSequence = requestUrl.searchParams.get("toSequence") ?? undefined;
         const maxEvents = numberParam(requestUrl, "maxEvents", 200, 1000);
@@ -202,7 +243,7 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
 
         const res = await options.reader.graphEvents({
           projectId: options.projectId,
-          kind: kind && GRAPH_KINDS.includes(kind) ? kind : undefined,
+          kind: kind === null ? undefined : kind as GraphKind,
           worktreeId: options.worktreeId,
           subjectId: options.subjectId,
           mode: "replay",
@@ -211,7 +252,64 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
           maxEvents,
           maxBytes,
         });
-        send(response, 200, JSON.stringify(res), "application/json", { "content-security-policy": "default-src 'none'" });
+        const wire = { ...res, events: res.events.map((event) => redactEventForWire(event)) };
+        send(response, 200, JSON.stringify(wire), "application/json", { "content-security-policy": "default-src 'none'" });
+        return;
+      }
+
+      if (isStreamApi) {
+        if (!options.reader.graphEvents) {
+          send(response, 501, JSON.stringify({ error: "graph events are unavailable" }), "application/json");
+          return;
+        }
+        const kind = requestUrl.searchParams.get("kind") ?? "work";
+        if (!GRAPH_KINDS.includes(kind as GraphKind)) {
+          send(response, 400, JSON.stringify({ error: "kind is invalid" }), "application/json");
+          return;
+        }
+        let afterSequence = requestUrl.searchParams.get("afterSequence") ?? "0";
+        response.writeHead(200, {
+          "content-type": "text/event-stream; charset=utf-8",
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "x-content-type-options": "nosniff",
+          "content-security-policy": "default-src 'none'",
+        });
+        let closed = false;
+        const onClose = () => { closed = true; };
+        request.on("close", onClose);
+        response.on("close", onClose);
+        const emit = (payload: unknown): void => {
+          if (closed) return;
+          response.write(`data: ${JSON.stringify(payload)}\n\n`);
+        };
+        response.write(": open\n\n");
+        while (!closed) {
+          try {
+            const res = await options.reader.graphEvents({
+              projectId: options.projectId,
+              kind: kind as GraphKind,
+              worktreeId: options.worktreeId,
+              subjectId: options.subjectId,
+              mode: "live",
+              afterSequence,
+              maxEvents: 200,
+              maxBytes: 262144,
+            });
+            const wire = { ...res, events: res.events.map((event) => redactEventForWire(event)) };
+            if (wire.events.length > 0) {
+              afterSequence = wire.throughSequence ?? wire.events.at(-1)?.sequence ?? afterSequence;
+              emit(wire);
+            } else {
+              response.write(": ping\n\n");
+            }
+          } catch (error) {
+            if (!closed) emit({ error: error instanceof Error ? error.message : String(error) });
+          }
+          if (closed) break;
+          await new Promise<void>((resolve) => setTimeout(resolve, 750));
+        }
+        response.end();
         return;
       }
 

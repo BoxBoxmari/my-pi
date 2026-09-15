@@ -128,6 +128,11 @@ export class SqliteCoordinationStore implements CoordinationStore {
         sql += ` AND sequence <= ?`;
         params.push(this.sequenceNumber(query.toSequence));
       }
+      if (query.eventTypeIn !== undefined) {
+        if (query.eventTypeIn.length === 0) throw err.invalidArgument("eventTypeIn must not be empty");
+        sql += ` AND event_type IN (${query.eventTypeIn.map(() => "?").join(",")})`;
+        for (const eventType of query.eventTypeIn) params.push(eventType);
+      }
       sql += ` ORDER BY sequence ASC LIMIT ?`;
       params.push(limit + 1);
 

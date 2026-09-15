@@ -6,6 +6,7 @@ import path from "node:path";
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import { MyPiServer, createFoundationCapabilities } from "@my-pi/mcp-adapter";
+import { redactEventForWire } from "@my-pi/observability";
 import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 
 let dir: string;
@@ -61,6 +62,87 @@ test("MCP Apps theater visual is an opt-in resource ui://my-pi/theater and prese
     const theaterRes = await client.readResource({ uri: "ui://my-pi/theater" });
     assert.equal(theaterRes.contents[0]?.mimeType, RESOURCE_MIME_TYPE);
     assert.match(String(theaterRes.contents[0]?.text), /3D Operations Theater/);
+  } finally {
+    await client.close();
+  }
+});
+
+test("ui://my-pi/theater renders no raw secret material from a secret-laden reader", async () => {
+  const { createTheaterFrame, normalizeGraphSnapshot } = await import("../../graph-model/dist/index.js");
+  const { renderTheaterViewHtml } = await import("../../../apps/my-pi-ui/dist/index.js");
+  const rawReaderEvents = [
+    {
+      projectId: "proj-mcp-theater",
+      sequence: "9",
+      eventId: "ev-mcp-secret-9",
+      eventType: "WorkItemCreated",
+      occurredAt: "2026-09-15T00:00:00.000Z",
+      actor: { kind: "system", name: "runner bearer: MCPBEARER99.abc-123" },
+      payload: {
+        workItemId: "wi-visible",
+        token: "NEVER_MCP_TOKEN_7Q",
+        api_key: "sk-ABCDEFGHIJKLMNOP0123456789",
+        files: [{ path: "/srv/deploy/.npmrc" }],
+        note: "rotate ghp_ABCDEFGHIJKLMNOPQRST1234 next",
+      },
+    },
+  ];
+
+  const theaterServer = new MyPiServer({
+    name: "my-pi-theater-redaction-test",
+    version: "0.0.1",
+    runtime,
+    capabilities: createFoundationCapabilities(runtime),
+    visuals: {
+      enabled: true,
+      readHtml: () => "<html>2D graph</html>",
+      readTheaterHtml: async () => {
+        // Mirrors the apps/my-pi-mcp readTheaterHtml exit: redactEventForWire -> createTheaterFrame -> renderTheaterViewHtml
+        const graph = normalizeGraphSnapshot({
+          graphVersion: "work:v1",
+          kind: "work",
+          nodes: [{ id: "work:item:wi-visible", kind: "work", label: "Visible item" }],
+          edges: [],
+          bounds: { maxNodes: 50, maxEdges: 50, maxAttributeBytes: 1024 },
+        });
+        const frame = createTheaterFrame({
+          scope: { projectId: "proj-mcp-theater", kind: "work" },
+          graph,
+          events: rawReaderEvents.map((event) => redactEventForWire(event)),
+          cursor: { lastSequence: "9" },
+          capabilities: { live: true, replay: true, expand: false, trace: false, renderer3d: true },
+        });
+        return renderTheaterViewHtml({ sessionToken: "mcp-app", nonce: "mcp-app", initialFrame: frame, isMcp: true });
+      },
+    },
+  });
+
+  assert.equal(theaterServer.visualsStatus, "registered");
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  await theaterServer.connect(serverTransport);
+  const client = new Client({ name: "my-pi-theater-redaction-client", version: "0.0.1" });
+  await client.connect(clientTransport);
+
+  try {
+    const tools = await client.listTools();
+    assert.equal(tools.tools.length, 13);
+    const theaterRes = await client.readResource({ uri: "ui://my-pi/theater" });
+    const text = String(theaterRes.contents[0]?.text ?? "");
+    assert.ok(text.length > 0);
+    assert.ok(text.includes("[PATH:REDACTED]"));
+    assert.ok(text.includes("[REDACTED:SECRET]"));
+    assert.ok(text.includes("[REDACTED]"));
+    assert.ok(text.includes("wi-visible"));
+    for (const leak of [
+      "NEVER_MCP_TOKEN_7Q",
+      "sk-ABCDEFGHIJKLMNOP0123456789",
+      "ghp_ABCDEFGHIJKLMNOPQRST1234",
+      "MCPBEARER99",
+      ".npmrc",
+      "api_key\":\"sk-",
+    ]) {
+      assert.ok(!text.includes(leak), `rendered theater must not contain ${leak}`);
+    }
   } finally {
     await client.close();
   }

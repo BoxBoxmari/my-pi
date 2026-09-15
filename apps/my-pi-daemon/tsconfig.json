@@ -17,6 +17,7 @@
     { "path": "../../packages/graph-model" },
     { "path": "../../packages/graph-projection" },
     { "path": "../../packages/impact-engine" },
+    { "path": "../../packages/observability" },
     { "path": "../../packages/workspace-runtime" }
   ]
 }

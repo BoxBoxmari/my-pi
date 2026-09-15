@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "my-pi/track-b-strict-candidate-evidence/v1",
+  "measurementId": "track-b-strict-candidate-1789453305845-16972",
+  "measuredAt": "2026-09-15T06:21:45.845Z",
+  "candidate": {
+    "commit": "84e6e4b623983015503367cb934362c3573e110d",
+    "dirty": false,
+    "sourceStateDigest": "89603e7f9e4c651c398ab8813f22d4214889ca7fc38246c530240daf15a1c075",
+    "sourceAuthority": "official my-pi trusted workspace"
+  },
+  "profile": {
+    "id": "opencode-local-strict",
+    "host": "OpenCode",
+    "hostVersion": "1.18.21",
+    "maturity": "strict-capable",
+    "certification": "candidate",
+    "configResolver": "opencode debug config --pure",
+    "resolvedPermission": {
+      "bash": "deny",
+      "edit": "deny",
+      "externalDirectory": "deny",
+      "webfetch": "deny"
+    },
+    "resolvedConfigSha256": "1667f23418e1ea426e54e3f27fd2b5b101d45f3e44fcb898139f48f4b34836d8"
+  },
+  "policyBundle": {
+    "schemaVersion": "my-pi/host-policy-bundle/v1",
+    "bundleId": "opencode-local-strict:policy-v1",
+    "profileId": "opencode-local-strict",
+    "maturity": "strict-capable",
+    "certification": "candidate",
+    "mcpConfig": {
+      "type": "json",
+      "json": {
+        "$schema": "https://opencode.ai/config.json",
+        "permission": {
+          "bash": "deny",
+          "edit": "deny",
+          "external_directory": {
+            "*": "deny"
+          },
+          "webfetch": "deny"
+        },
+        "mcp": {
+          "my-pi": {
+            "type": "local",
+            "command": [
+              "C:\\Program Files\\nodejs\\node.exe",
+              "C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\apps\\my-pi-mcp\\dist\\main.js",
+              "--security-profile",
+              "trusted",
+              "--workspace",
+              "${workspaceFolder}"
+            ]
+          },
+          "ccr": {
+            "type": "local",
+            "command": [
+              "C:\\Program Files\\nodejs\\node.exe",
+              "C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\apps\\my-pi-mcp\\dist\\main.js",
+              "--security-profile",
+              "trusted",
+              "--workspace",
+              "${workspaceFolder}"
+            ]
+          }
+        }
+      },
+      "pretty": "{\n  \"$schema\": \"https://opencode.ai/config.json\",\n  \"permission\": {\n    \"bash\": \"deny\",\n    \"edit\": \"deny\",\n    \"external_directory\": {\n      \"*\": \"deny\"\n    },\n    \"webfetch\": \"deny\"\n  },\n  \"mcp\": {\n    \"my-pi\": {\n      \"type\": \"local\",\n      \"command\": [\n        \"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\n        \"C:\\\\Users\\\\Admin\\\\Downloads\\\\Compressed\\\\my-pi\\\\apps\\\\my-pi-mcp\\\\dist\\\\main.js\",\n        \"--security-profile\",\n        \"trusted\",\n        \"--workspace\",\n        \"${workspaceFolder}\"\n      ]\n    },\n    \"ccr\": {\n      \"type\": \"local\",\n      \"command\": [\n        \"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\n        \"C:\\\\Users\\\\Admin\\\\Downloads\\\\Compressed\\\\my-pi\\\\apps\\\\my-pi-mcp\\\\dist\\\\main.js\",\n        \"--security-profile\",\n        \"trusted\",\n        \"--workspace\",\n        \"${workspaceFolder}\"\n      ]\n    }\n  }\n}"
+    },
+    "enforcement": {
+      "nativeEdit": "deny",
+      "shellMutation": "deny",
+      "alternateMcpFilesystem": "deny",
+      "directGitPatch": "admission-only"
+    },
+    "knownUnenforcedPaths": [
+      "alternate-mcp-server",
+      "direct-git-patch",
+      "host-native-editor"
+    ],
+    "verificationExceptions": [
+      "read-only verification commands"
+    ],
+    "bypassAssessment": {
+      "passed": false,
+      "missingVectors": [
+        "native-edit",
+        "shell-redirection",
+        "scripted-write",
+        "alternate-mcp-filesystem",
+        "direct-git-patch"
+      ],
+      "residualPaths": [
+        "admission-failure-not-host-block"
+      ]
+    }
+  },
+  "seededBypass": {
+    "sourceEvidence": "evidence/track-b-host-bypass-2026-09-13.json",
+    "requiredVectors": [
+      "native-edit",
+      "shell-redirection",
+      "scripted-write",
+      "alternate-mcp-filesystem",
+      "direct-git-patch"
+    ],
+    "cases": [
+      {
+        "vector": "native-edit",
+        "blocked": false,
+        "evidenceRef": "evidence/track-b-host-bypass-2026-09-13.json#direct-editor-write",
+        "residualPath": "admission-failure-not-host-block"
+      },
+      {
+        "vector": "shell-redirection",
+        "blocked": false,
+        "evidenceRef": "evidence/track-b-host-bypass-2026-09-13.json#shell-redirection",
+        "residualPath": "admission-failure-not-host-block"
+      },
+      {
+        "vector": "scripted-write",
+        "blocked": false,
+        "evidenceRef": "evidence/track-b-host-bypass-2026-09-13.json#scripted-write",
+        "residualPath": "admission-failure-not-host-block"
+      },
+      {
+        "vector": "alternate-mcp-filesystem",
+        "blocked": false,
+        "evidenceRef": "evidence/track-b-host-bypass-2026-09-13.json#alternate-mcp-filesystem",
+        "residualPath": "admission-failure-not-host-block"
+      },
+      {
+        "vector": "direct-git-patch",
+        "blocked": false,
+        "evidenceRef": "evidence/track-b-host-bypass-2026-09-13.json#git-apply-write",
+        "residualPath": "admission-failure-not-host-block"
+      }
+    ],
+    "outcome": "all seeded mutations failed exact admission; host-side blocking was not claimed"
+  },
+  "residualPaths": [
+    "alternate-mcp-server",
+    "direct-git-patch",
+    "host-native-editor"
+  ],
+  "verdict": {
+    "strictCertified": false,
+    "reason": "host permission config resolved, but native editor, alternate MCP, and direct Git paths remain residual until host-session enforcement is empirically proven"
+  }
+}

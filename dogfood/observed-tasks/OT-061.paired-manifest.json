@@ -1,0 +1,376 @@
+{
+  "schemaVersion": "2",
+  "recordType": "paired-run-manifest-v2",
+  "taskId": "OT-061",
+  "taskDefinition": "dogfood/observed-tasks/OT-061.json",
+  "taskDefinitionCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+  "currentCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+  "baseCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+  "runAt": "2026-09-14T21:58:59.240Z",
+  "execute": true,
+  "arms": [
+    {
+      "armId": "control",
+      "profileId": "my-pi-control-impact-off",
+      "runId": "run-caa4305ea349f90f",
+      "sessionId": "session-e8f6ef9aed007535",
+      "worktreeId": "worktree-e8f6ef9aed007535",
+      "baseCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "3cb551fb1a25df64c5b6f9966eeeb6af12e3ea8258973ee9b683e196813d7e42",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "Scope: all 30 workspace projects\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +38\n++++++++++++++++++++++++++++++++++++++\nProgress: resolved 38, reused 18, downloaded 0, added 0\nProgress: resolved 38, reused 33, downloaded 0, added 9\nProgress: resolved 38, reused 34, downloaded 0, added 22\nProgress: resolved 38, reused 35, downloaded 0, added 32\nProgress: resolved 38, reused 36, downloaded 0, added 34\nProgress: resolved 38, reused 37, downloaded 0, added 34\nProgress: resolved 38, reused 37, downloaded 0, added 35\nProgress: resolved 38, reused 37, downloaded 0, added 36\nProgress: resolved 38, reused 37, downloaded 0, added 37\nProgress: resolved 38, reused 38, downloaded 0, added 37\nProgress: resolved 38, reused 38, downloaded 0, added 38\nProgress: resolved 38, reused 38, downloaded 0, added 38, done\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\control\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\control\\apps\\my-pi-ui\\dist\\main.js.EXE'\n\ndevDependencies:\n+ @modelcontextprotocol/client 2.0.0\n+ @modelcontextprotocol/server 2.0.0\n+ @types/node 26.4.1\n+ @types/three 0.186.0\n+ esbuild 0.28.2\n+ pyright 1.1.413\n+ three 0.186.0\n+ typescript 5.9.3\n+ typescript-language-server 6.0.0\n+ yaml 2.9.0\n\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\control\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\control\\apps\\my-pi-mcp\\node_modules\\@my-pi\\ui\\dist\\main.js.EXE'\nDone in 22.9s using pnpm v11.2.2\n[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling theater-client with locked esbuild 0.28.2...\n[bundle-app] Theater bundle completed successfully.\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-061.json",
+            "--arm",
+            "control"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "8d884f3ca29eb7aab3f0f1d074ef8a2a673faa8c65f13686c4b4e06f2dac5029",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"ok\": true,\n  \"taskId\": \"OT-061\",\n  \"arm\": \"control\",\n  \"targetPath\": \"packages/context-router/src/router.ts\",\n  \"sourceAfter\": \"sha256:e878cea2275f1f32ed29b94be2e0c1bae29ac5584772855e3082f61f3651f277\",\n  \"route\": [\n    \"source-work-item\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "6d32263684e6a05b4ecaeae165aa0294d4d895e52696e8342228715b846b7bc4",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling theater-client with locked esbuild 0.28.2...\n[bundle-app] Theater bundle completed successfully.\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "independent-evaluator",
+          "argv": [
+            "node",
+            "scripts/evaluate-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-061.json"
+          ],
+          "timeoutMs": 900000,
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "f3aafe9997751b1b29efbb5f0ed8d8ec0f717073c2ff93118d748a30e8ede114",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"schemaVersion\": \"my-pi/track-a-evaluator/v3\",\n  \"taskId\": \"OT-061\",\n  \"arm\": \"control\",\n  \"accepted\": true,\n  \"evaluator\": \"independent node process with official my-pi repair patches\",\n  \"evidenceKind\": \"observed_source_change\",\n  \"sourceChangeExpected\": true,\n  \"sourceChangeObserved\": true,\n  \"groundTruth\": [\n    \"source-work-item\",\n    \"impact-child\"\n  ],\n  \"selected\": [\n    \"source-work-item\"\n  ],\n  \"metrics\": {\n    \"routing_recall\": 0.5,\n    \"routing_precision\": 1,\n    \"selected_items\": 1,\n    \"false_positive_items\": 0,\n    \"missed_items\": 1,\n    \"downstream_pass\": 1,\n    \"repair_iterations\": 1\n  },\n  \"measurementGaps\": [],\n  \"repairTrace\": {\n    \"attempts\": [\n      {\n        \"stage\": \"initial\",\n        \"sourceCheck\": {\n          \"path\": \"packages/context-router/test/router.test.ts\",\n          \"digest\": \"sha256:530677114dbdd82aa9726c573ebf7eb89385d03d78ca2240ecd543dafd637456\",\n          \"includes\": false,\n          \"excludes\": true,\n          \"hashMatches\": true,\n          \"passed\": false\n        },\n        \"routeCheck\": {\n          \"required\": [\n            \"source-work-item\"\n          ],\n          \"selected\": [\n            \"source-work-item\"\n          ],\n          \"missing\": [],\n          \"passed\": true\n        },\n        \"passed\": false\n      },\n      {\n        \"stage\": \"after_repair\",\n        \"sourceCheck\": {\n          \"path\": \"packages/context-router/test/router.test.ts\",\n          \"digest\": \"sha256:d820964c34963a340c884759d0f412320e020f1fab6ef3fcb552fada80b15247\",\n          \"includes\": true,\n          \"excludes\": true,\n          \"hashMatches\": true,\n          \"passed\": true\n        },\n        \"routeCheck\": {\n          \"required\": [\n            \"source-work-item\"\n          ],\n          \"selected\": [\n            \"source-work-item\"\n          ],\n          \"missing\": [],\n          \"passed\": true\n        },\n        \"passed\": true\n      }\n    ],\n    \"repairIterations\": 1,\n    \"repairHistory\": [\n      {\n        \"id\": \"repair-source-change-OT-061\",\n        \"path\": \"packages/context-router/test/router.test.ts\",\n        \"lineEndingMode\": \"lf\",\n        \"sourceBefore\": \"sha256:08c784099425a6bd344880e397422c16118fd0a7a2314e852eddad2604dcd86a\",\n        \"sourceAfter\": \"sha256:f6d4b21e5c250f2ecef2e717d352b7a136cd090c8644d695ebb75a0e9d52ac88\",\n        \"patchResponseHash\": \"sha256:f6d4b21e5c250f2ecef2e717d352b7a136cd090c8644d695ebb75a0e9d52ac88\",\n        \"mutationTool\": \"official my-pi fs_patch\",\n        \"casExpectedHash\": \"sha256:08c784099425a6bd344880e397422c16118fd0a7a2314e852eddad2604dcd86a\"\n      }\n    ]\n  },\n  \"assertion\": {\n    \"passed\": true,\n    \"finalAttempt\": {\n      \"stage\": \"after_repair\",\n      \"sourceCheck\": {\n        \"path\": \"packages/context-router/test/router.test.ts\",\n        \"digest\": \"sha256:d820964c34963a340c884759d0f412320e020f1fab6ef3fcb552fada80b15247\",\n        \"includes\": true,\n        \"excludes\": true,\n        \"hashMatches\": true,\n        \"passed\": true\n      },\n      \"routeCheck\": {\n        \"required\": [\n          \"source-work-item\"\n        ],\n        \"selected\": [\n          \"source-work-item\"\n        ],\n        \"missing\": [],\n        \"passed\": true\n      },\n      \"passed\": true\n    }\n  }\n}\n",
+          "stderr": ""
+        }
+      ],
+      "worktreePath": ".my-pi/observed-runs/OT-061/control",
+      "sourceStateDigest": "a0c3d9eca037f7b9c0f7d787438317fcf1a4d107e7d166d52fe4aec7437b237b",
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    },
+    {
+      "armId": "treatment",
+      "profileId": "my-pi-treatment-impact-on",
+      "runId": "run-484ec68952270339",
+      "sessionId": "session-f5a0e840b5cf4c03",
+      "worktreeId": "worktree-f5a0e840b5cf4c03",
+      "baseCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+      "commands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "a96d382a7542ffad211ac2f3f8f009d736489f810d08c04ece7e3b3337d8ea08",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "Scope: all 30 workspace projects\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +38\n++++++++++++++++++++++++++++++++++++++\nProgress: resolved 38, reused 27, downloaded 0, added 0\nProgress: resolved 38, reused 34, downloaded 0, added 11\nProgress: resolved 38, reused 35, downloaded 0, added 27\nProgress: resolved 38, reused 36, downloaded 0, added 34\nProgress: resolved 38, reused 37, downloaded 0, added 34\nProgress: resolved 38, reused 37, downloaded 0, added 35\nProgress: resolved 38, reused 37, downloaded 0, added 36\nProgress: resolved 38, reused 37, downloaded 0, added 37\nProgress: resolved 38, reused 38, downloaded 0, added 37\nProgress: resolved 38, reused 38, downloaded 0, added 38\nProgress: resolved 38, reused 38, downloaded 0, added 38, done\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\treatment\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\treatment\\apps\\my-pi-ui\\dist\\main.js.EXE'\n\ndevDependencies:\n+ @modelcontextprotocol/client 2.0.0\n+ @modelcontextprotocol/server 2.0.0\n+ @types/node 26.4.1\n+ @types/three 0.186.0\n+ esbuild 0.28.2\n+ pyright 1.1.413\n+ three 0.186.0\n+ typescript 5.9.3\n+ typescript-language-server 6.0.0\n+ yaml 2.9.0\n\n[WARN] Failed to create bin at C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\treatment\\apps\\my-pi-mcp\\node_modules\\.bin\\my-pi-ui. ENOENT: no such file or directory, stat 'C:\\Users\\Admin\\Downloads\\Compressed\\my-pi\\.my-pi\\observed-runs\\OT-061\\treatment\\apps\\my-pi-mcp\\node_modules\\@my-pi\\ui\\dist\\main.js.EXE'\nDone in 23.1s using pnpm v11.2.2\n[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling theater-client with locked esbuild 0.28.2...\n[bundle-app] Theater bundle completed successfully.\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-061.json",
+            "--arm",
+            "treatment"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "e7aeb11e31f81f600545157c0dce8fd3483994964f2d422bb42d74a1d4b2279c",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"ok\": true,\n  \"taskId\": \"OT-061\",\n  \"arm\": \"treatment\",\n  \"targetPath\": \"packages/context-router/src/router.ts\",\n  \"sourceAfter\": \"sha256:e878cea2275f1f32ed29b94be2e0c1bae29ac5584772855e3082f61f3651f277\",\n  \"route\": [\n    \"source-work-item\",\n    \"impact-child\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000,
+          "phase": "arm_setup",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "6d32263684e6a05b4ecaeae165aa0294d4d895e52696e8342228715b846b7bc4",
+          "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16",
+          "stdout": "[bundle-app] Bundling my-pi-mcp with locked esbuild 0.28.2...\n[bundle-app] Bundling theater-client with locked esbuild 0.28.2...\n[bundle-app] Theater bundle completed successfully.\n[bundle-app] Bundling completed successfully.\n",
+          "stderr": "$ tsc --build && node scripts/bundle-app.mjs\n"
+        },
+        {
+          "id": "independent-evaluator",
+          "argv": [
+            "node",
+            "scripts/evaluate-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-061.json"
+          ],
+          "timeoutMs": 900000,
+          "phase": "downstream",
+          "status": "passed",
+          "exitCode": 0,
+          "stdoutDigest": "100ebaaa4a611686942256fadadb2799ec8a76a2b2544715a2550800235123d4",
+          "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout": "{\n  \"schemaVersion\": \"my-pi/track-a-evaluator/v3\",\n  \"taskId\": \"OT-061\",\n  \"arm\": \"treatment\",\n  \"accepted\": true,\n  \"evaluator\": \"independent node process with official my-pi repair patches\",\n  \"evidenceKind\": \"observed_source_change\",\n  \"sourceChangeExpected\": true,\n  \"sourceChangeObserved\": true,\n  \"groundTruth\": [\n    \"source-work-item\",\n    \"impact-child\"\n  ],\n  \"selected\": [\n    \"source-work-item\",\n    \"impact-child\"\n  ],\n  \"metrics\": {\n    \"routing_recall\": 1,\n    \"routing_precision\": 1,\n    \"selected_items\": 2,\n    \"false_positive_items\": 0,\n    \"missed_items\": 0,\n    \"downstream_pass\": 1,\n    \"repair_iterations\": 0\n  },\n  \"measurementGaps\": [],\n  \"repairTrace\": {\n    \"attempts\": [\n      {\n        \"stage\": \"initial\",\n        \"sourceCheck\": {\n          \"path\": \"packages/context-router/src/router.ts\",\n          \"digest\": \"sha256:b5a1aa0f9080358e1aa009ef167164cbfb87ed850e45618d59f9600cae5fcc4d\",\n          \"includes\": true,\n          \"excludes\": true,\n          \"hashMatches\": true,\n          \"passed\": true\n        },\n        \"routeCheck\": {\n          \"required\": [\n            \"source-work-item\",\n            \"impact-child\"\n          ],\n          \"selected\": [\n            \"source-work-item\",\n            \"impact-child\"\n          ],\n          \"missing\": [],\n          \"passed\": true\n        },\n        \"passed\": true\n      }\n    ],\n    \"repairIterations\": 0,\n    \"repairHistory\": []\n  },\n  \"assertion\": {\n    \"passed\": true,\n    \"finalAttempt\": {\n      \"stage\": \"initial\",\n      \"sourceCheck\": {\n        \"path\": \"packages/context-router/src/router.ts\",\n        \"digest\": \"sha256:b5a1aa0f9080358e1aa009ef167164cbfb87ed850e45618d59f9600cae5fcc4d\",\n        \"includes\": true,\n        \"excludes\": true,\n        \"hashMatches\": true,\n        \"passed\": true\n      },\n      \"routeCheck\": {\n        \"required\": [\n          \"source-work-item\",\n          \"impact-child\"\n        ],\n        \"selected\": [\n          \"source-work-item\",\n          \"impact-child\"\n        ],\n        \"missing\": [],\n        \"passed\": true\n      },\n      \"passed\": true\n    }\n  }\n}\n",
+          "stderr": ""
+        }
+      ],
+      "worktreePath": ".my-pi/observed-runs/OT-061/treatment",
+      "sourceStateDigest": "a0c3d9eca037f7b9c0f7d787438317fcf1a4d107e7d166d52fe4aec7437b237b",
+      "contamination": {
+        "detected": false,
+        "reasons": []
+      }
+    }
+  ],
+  "independentAdjudication": {
+    "independent": true,
+    "evaluator": "separate node evaluator process with official my-pi repair patches",
+    "groundTruth": "predeclared acceptance behavior plus evaluator assertions",
+    "requiredEvidence": [
+      "arm command exit codes",
+      "independent evaluator stdout",
+      "source mutation hashes",
+      "independent initial/final repair command output",
+      "official my-pi repair patch CAS history"
+    ]
+  },
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json"
+    ]
+  },
+  "registration": {
+    "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+    "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+    "taskDefinitionBlob": "6954ecc28c68c632fd846b4b058270d19b24fc4b",
+    "registrationReceiptBlob": "b3bd4284b9ef06fa07a90f2872abfd37dbdc41fe"
+  },
+  "authority": {
+    "stableRequired": false,
+    "stableCommit": null
+  },
+  "status": "EXECUTED",
+  "result": {
+    "schemaVersion": "2",
+    "recordType": "observed-result-v2",
+    "taskId": "OT-061",
+    "taskDefinition": "dogfood/observed-tasks/OT-061.json",
+    "taskDefinitionCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+    "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+    "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+    "taskDefinitionBlob": "6954ecc28c68c632fd846b4b058270d19b24fc4b",
+    "registrationReceiptBlob": "b3bd4284b9ef06fa07a90f2872abfd37dbdc41fe",
+    "runId": "run-6c5c4f8728029e7a",
+    "status": "COMPLETED",
+    "baseCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+    "runStartedAt": "2026-09-14T21:58:59.240Z",
+    "runCompletedAt": "2026-09-14T22:00:37.527Z",
+    "arms": [
+      {
+        "armId": "control",
+        "runId": "run-caa4305ea349f90f",
+        "sessionId": "session-e8f6ef9aed007535",
+        "worktreeId": "worktree-e8f6ef9aed007535",
+        "baseCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+        "sourceStateDigest": "a0c3d9eca037f7b9c0f7d787438317fcf1a4d107e7d166d52fe4aec7437b237b",
+        "commands": [
+          {
+            "id": "build-before",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "3cb551fb1a25df64c5b6f9966eeeb6af12e3ea8258973ee9b683e196813d7e42",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "arm-setup",
+            "argv": [
+              "node",
+              "scripts/real-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-061.json",
+              "--arm",
+              "control"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "8d884f3ca29eb7aab3f0f1d074ef8a2a673faa8c65f13686c4b4e06f2dac5029",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "id": "build-after",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "6d32263684e6a05b4ecaeae165aa0294d4d895e52696e8342228715b846b7bc4",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "independent-evaluator",
+            "argv": [
+              "node",
+              "scripts/evaluate-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-061.json"
+            ],
+            "phase": "downstream",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "f3aafe9997751b1b29efbb5f0ed8d8ec0f717073c2ff93118d748a30e8ede114",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "contamination": {
+          "detected": false,
+          "reasons": []
+        }
+      },
+      {
+        "armId": "treatment",
+        "runId": "run-484ec68952270339",
+        "sessionId": "session-f5a0e840b5cf4c03",
+        "worktreeId": "worktree-f5a0e840b5cf4c03",
+        "baseCommit": "1ad83ff27448e1c7ab57ff1c3c0591e74e6ce39e",
+        "sourceStateDigest": "a0c3d9eca037f7b9c0f7d787438317fcf1a4d107e7d166d52fe4aec7437b237b",
+        "commands": [
+          {
+            "id": "build-before",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "a96d382a7542ffad211ac2f3f8f009d736489f810d08c04ece7e3b3337d8ea08",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "arm-setup",
+            "argv": [
+              "node",
+              "scripts/real-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-061.json",
+              "--arm",
+              "treatment"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "e7aeb11e31f81f600545157c0dce8fd3483994964f2d422bb42d74a1d4b2279c",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "id": "build-after",
+            "argv": [
+              "pnpm",
+              "build"
+            ],
+            "phase": "arm_setup",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "6d32263684e6a05b4ecaeae165aa0294d4d895e52696e8342228715b846b7bc4",
+            "stderrDigest": "6a96bcc19d059808bb261e701012a674d298036e7f1762eb014e622046a91d16"
+          },
+          {
+            "id": "independent-evaluator",
+            "argv": [
+              "node",
+              "scripts/evaluate-track-a-arm.mjs",
+              "--task",
+              "dogfood/observed-tasks/OT-061.json"
+            ],
+            "phase": "downstream",
+            "status": "passed",
+            "exitCode": 0,
+            "stdoutDigest": "100ebaaa4a611686942256fadadb2799ec8a76a2b2544715a2550800235123d4",
+            "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "contamination": {
+          "detected": false,
+          "reasons": []
+        }
+      }
+    ],
+    "adjudication": {
+      "independent": false,
+      "evaluatorRunId": "eval-315e60aef6ec3d6d",
+      "recordedAt": "2026-09-14T22:00:37.527Z",
+      "outcome": "inconclusive",
+      "evidenceRefs": [
+        "paired-run-manifest",
+        "predeclared-command-results"
+      ]
+    }
+  }
+}

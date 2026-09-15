@@ -8,6 +8,7 @@ import {
   type TheaterEvent,
   type TheaterFrame,
 } from "@my-pi/graph-model";
+import { buildInspectorObservation, escapeHtml } from "./inspector.js";
 
 interface WindowWithConfig extends Window {
   __MY_PI_THEATER_CONFIG__?: {
@@ -15,6 +16,7 @@ interface WindowWithConfig extends Window {
     initialFrame: TheaterFrame;
     apiBase?: string;
     isMcp?: boolean;
+    reduceMotion?: boolean;
   };
 }
 
@@ -24,6 +26,12 @@ interface WindowWithConfig extends Window {
   if (!config) return;
 
   const { token, initialFrame, apiBase = "", isMcp = false } = config;
+  try {
+    const persisted = window.sessionStorage.getItem("my-pi.theater.cursor");
+    if (persisted !== null && /^\d+$/.test(persisted) && Number(persisted) > Number(initialFrame.cursor.lastSequence ?? "0")) {
+      initialFrame.cursor.lastSequence = persisted;
+    }
+  } catch {}
   let currentFrame: TheaterFrame = initialFrame;
   let selectedNodeId: string | null = null;
   let isReplayMode = false;
@@ -31,8 +39,7 @@ interface WindowWithConfig extends Window {
   let replayTimer: number | null = null;
   let is2DFallback = false;
 
-  // Reduced motion preference
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = config.reduceMotion === true;
 
   // DOM Elements
   const stage = document.getElementById("stage") as HTMLElement;
@@ -58,6 +65,15 @@ interface WindowWithConfig extends Window {
   const btnResetCam = document.getElementById("btn-reset-cam") as HTMLButtonElement;
   const btnToggleRender = document.getElementById("btn-toggle-render") as HTMLButtonElement;
 
+  // Left Rail Elements
+  const btnRailFit = document.getElementById("btn-rail-fit") as HTMLButtonElement | null;
+  const btnRailReset = document.getElementById("btn-rail-reset") as HTMLButtonElement | null;
+  const btnRailRender = document.getElementById("btn-rail-render") as HTMLButtonElement | null;
+  const btnRailTimeline = document.getElementById("btn-rail-timeline") as HTMLButtonElement | null;
+  const btnRailLegend = document.getElementById("btn-rail-legend") as HTMLButtonElement | null;
+  const legendPopover = document.getElementById("legend-popover") as HTMLElement | null;
+  const railRenderLabel = document.getElementById("rail-render-label") as HTMLElement | null;
+
   const inspIdentity = document.getElementById("inspector-identity") as HTMLElement;
   const inspTrace = document.getElementById("inspector-trace") as HTMLElement;
   const inspEvidence = document.getElementById("inspector-evidence") as HTMLElement;
@@ -72,13 +88,14 @@ interface WindowWithConfig extends Window {
   const timelineSeqDisplay = document.getElementById("timeline-seq-display") as HTMLElement;
 
   const colors = {
-    work: 0x00b8f5,     // KPMG Pacific
+    work: 0x00b8f5,          // KPMG Pacific
+    work_item: 0x00b8f5,     // KPMG Pacific
     agent_session: 0x1e49e6, // KPMG Cobalt
-    intent: 0x7213ea,   // KPMG Purple
-    code: 0x1e49e6,     // KPMG Cobalt
-    file: 0x00338d,     // KPMG Blue
-    impact: 0xfd349c,   // KPMG Pink
-    lineage: 0xf1c44d,  // Warning amber
+    intent: 0x7213ea,        // KPMG Purple
+    code: 0x1e49e6,          // KPMG Cobalt
+    file: 0x00338d,          // KPMG Blue
+    impact: 0xfd349c,        // KPMG Pink
+    lineage: 0xf1c44d,       // Warning amber
     default: 0x00b8f5,
   };
 
@@ -87,7 +104,7 @@ interface WindowWithConfig extends Window {
   const nodeMeshes = new Map<string, THREE.Object3D>();
   const edgeLines: THREE.Line[] = [];
   const overlayLabels = new Map<string, HTMLElement>();
-  const activeCues = new Map<string, { cue: SceneCue; startTime: number; mesh?: THREE.Object3D }>();
+  const activeCues = new Map<string, { cue: SceneCue; startTime: number; mesh?: THREE.Object3D; ripple?: THREE.Mesh; tracer?: THREE.Mesh; endY?: number }>();
 
   // Setup Three.js
   let renderer: THREE.WebGLRenderer | null = null;
@@ -105,7 +122,7 @@ interface WindowWithConfig extends Window {
       renderer.setSize(stage.clientWidth, stage.clientHeight);
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0c233c); // KPMG Dark Blue
+      scene.background = new THREE.Color(0xf4f7fa); // Bright spatial architectural studio
 
       const aspect = stage.clientWidth / stage.clientHeight;
       const d = 520;
@@ -114,22 +131,26 @@ interface WindowWithConfig extends Window {
       camera.lookAt(0, 0, 0);
 
       // Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
-      dirLight.position.set(300, 600, 300);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.15);
+      dirLight.position.set(350, 650, 350);
       scene.add(dirLight);
 
-      // Grid ground helper
-      const grid = new THREE.GridHelper(800, 20, 0x1e49e6, 0x1e49e6);
+      const fillLight = new THREE.DirectionalLight(0x0091da, 0.35);
+      fillLight.position.set(-250, 300, -250);
+      scene.add(fillLight);
+
+      // Grid ground helper (subtle, clean KPMG Navy)
+      const grid = new THREE.GridHelper(1000, 25, 0x00338d, 0x0091da);
       if (Array.isArray(grid.material)) {
-        grid.material.forEach((m) => { m.opacity = 0.22; m.transparent = true; });
+        grid.material.forEach((m) => { m.opacity = 0.12; m.transparent = true; });
       } else {
-        grid.material.opacity = 0.22;
+        grid.material.opacity = 0.12;
         grid.material.transparent = true;
       }
-      grid.position.y = -2;
+      grid.position.y = -1;
       scene.add(grid);
 
       canvas3d.addEventListener("webglcontextlost", (event) => {
@@ -157,6 +178,7 @@ interface WindowWithConfig extends Window {
     canvas3d.style.display = "none";
     fallback2d.style.display = "block";
     btnToggleRender.textContent = "2D Active (Switch 3D)";
+    if (railRenderLabel) railRenderLabel.textContent = "2D";
 
     currentFrame.quality.degraded = true;
     if (reason && !currentFrame.quality.reasons.includes(reason)) {
@@ -173,31 +195,32 @@ interface WindowWithConfig extends Window {
     canvas3d.style.display = "block";
     fallback2d.style.display = "none";
     btnToggleRender.textContent = "3D Active (Switch 2D)";
+    if (railRenderLabel) railRenderLabel.textContent = "3D";
     hideBanner();
     buildScene();
-    startAnimationLoop();
+    requestRender();
   }
 
   function computeLayout(nodes: GraphNode[]): void {
     nodePositions.clear();
-    const workItems = nodes.filter((n) => n.kind === "work");
+    const workItems = nodes.filter((n) => n.kind === "work" || n.kind === "work_item");
     const agents = nodes.filter((n) => n.kind === "agent_session");
     const intents = nodes.filter((n) => n.kind === "intent");
-    const others = nodes.filter((n) => n.kind !== "work" && n.kind !== "agent_session" && n.kind !== "intent");
+    const others = nodes.filter((n) => n.kind !== "work" && n.kind !== "work_item" && n.kind !== "agent_session" && n.kind !== "intent");
 
     // Agents in elevated inner circle
-    const rAgent = Math.max(100, agents.length * 30);
+    const rAgent = Math.max(110, agents.length * 36);
     agents.forEach((node, i) => {
       const theta = (i / Math.max(agents.length, 1)) * Math.PI * 2;
       nodePositions.set(node.id, {
         x: Math.cos(theta) * rAgent,
-        y: 20,
+        y: 22,
         z: Math.sin(theta) * rAgent,
       });
     });
 
     // Work items on ground circle
-    const rWork = Math.max(220, workItems.length * 35);
+    const rWork = Math.max(240, workItems.length * 42);
     workItems.forEach((node, i) => {
       const theta = (i / Math.max(workItems.length, 1)) * Math.PI * 2;
       nodePositions.set(node.id, {
@@ -210,7 +233,7 @@ interface WindowWithConfig extends Window {
     // Intents between agent and work
     const rIntent = (rAgent + rWork) / 2;
     intents.forEach((node, i) => {
-      const theta = (i / Math.max(intents.length, 1)) * Math.PI * 2 + 0.2;
+      const theta = (i / Math.max(intents.length, 1)) * Math.PI * 2 + 0.25;
       nodePositions.set(node.id, {
         x: Math.cos(theta) * rIntent,
         y: 12,
@@ -218,8 +241,8 @@ interface WindowWithConfig extends Window {
       });
     });
 
-    // Others in outer ring
-    const rOuter = rWork + 120;
+    // Others in outer perimeter
+    const rOuter = rWork + 130;
     others.forEach((node, i) => {
       const theta = (i / Math.max(others.length, 1)) * Math.PI * 2 + 0.4;
       nodePositions.set(node.id, {
@@ -232,45 +255,133 @@ interface WindowWithConfig extends Window {
 
   function createAgentTokenMesh(colorHex: number): THREE.Group {
     const group = new THREE.Group();
-    // Cylinder base
-    const baseGeo = new THREE.CylinderGeometry(8, 10, 14, 16);
-    const baseMat = new THREE.MeshLambertMaterial({ color: colorHex });
-    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-    baseMesh.position.y = 7;
-    group.add(baseMesh);
 
-    // Sphere head
-    const headGeo = new THREE.SphereGeometry(6, 16, 12);
-    const headMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    const headMesh = new THREE.Mesh(headGeo, headMat);
-    headMesh.position.y = 18;
-    group.add(headMesh);
+    // Base pedestal plinth in dark architectural navy
+    const plinthGeo = new THREE.CylinderGeometry(14, 16, 4, 32);
+    const plinthMat = new THREE.MeshLambertMaterial({ color: 0x00338d });
+    const plinthMesh = new THREE.Mesh(plinthGeo, plinthMat);
+    plinthMesh.position.y = 2;
+    group.add(plinthMesh);
 
-    // Halo status ring
-    const ringGeo = new THREE.RingGeometry(11, 13, 24);
-    const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide });
+    // Glowing base ring
+    const ringGeo = new THREE.RingGeometry(16, 18.5, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     ringMesh.rotation.x = Math.PI / 2;
     ringMesh.position.y = 0.5;
     group.add(ringMesh);
 
+    // Vertical light pin connector
+    const pinGeo = new THREE.CylinderGeometry(1.5, 1.5, 12, 16);
+    const pinMat = new THREE.MeshBasicMaterial({ color: 0x0091da });
+    const pinMesh = new THREE.Mesh(pinGeo, pinMat);
+    pinMesh.position.y = 9;
+    group.add(pinMesh);
+
+    // Faceted procedural avatar body (Dodecahedron)
+    const avatarGeo = new THREE.DodecahedronGeometry(8.5, 0);
+    const avatarMat = new THREE.MeshLambertMaterial({ color: colorHex });
+    const avatarMesh = new THREE.Mesh(avatarGeo, avatarMat);
+    avatarMesh.position.y = 19;
+    group.add(avatarMesh);
+
+    // Floating crown gem
+    const crownGeo = new THREE.OctahedronGeometry(3.5, 0);
+    const crownMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const crownMesh = new THREE.Mesh(crownGeo, crownMat);
+    crownMesh.position.y = 29;
+    group.add(crownMesh);
+
+    group.userData = {
+      isAgent: true,
+      baseY: 22,
+      phase: Math.random() * Math.PI * 2,
+      avatar: avatarMesh,
+      crown: crownMesh,
+    };
+
     return group;
   }
 
-  function createWorkPlatformMesh(colorHex: number): THREE.Mesh {
-    const geo = new THREE.BoxGeometry(44, 8, 28);
-    const mat = new THREE.MeshLambertMaterial({ color: colorHex });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.y = 4;
-    return mesh;
+  function createWorkPlatformMesh(colorHex: number, state?: string): THREE.Group {
+    const group = new THREE.Group();
+
+    // Bottom structural plinth
+    const plinthGeo = new THREE.CylinderGeometry(24, 26, 6, 32);
+    const plinthMat = new THREE.MeshLambertMaterial({ color: 0x0c233c });
+    const plinthMesh = new THREE.Mesh(plinthGeo, plinthMat);
+    plinthMesh.position.y = 3;
+    group.add(plinthMesh);
+
+    // Upper platform slab
+    const slabGeo = new THREE.CylinderGeometry(22, 22, 3, 32);
+    const slabMat = new THREE.MeshLambertMaterial({ color: colorHex });
+    const slabMesh = new THREE.Mesh(slabGeo, slabMat);
+    slabMesh.position.y = 6.5;
+    group.add(slabMesh);
+
+    // Status beacon indicator pip
+    let gemColor = 0x0091da; // active
+    if (state === "completed") gemColor = 0x10b981;
+    else if (state === "ready") gemColor = 0xf59e0b;
+    else if (state === "blocked") gemColor = 0xef4444;
+
+    const gemGeo = new THREE.SphereGeometry(3.5, 16, 16);
+    const gemMat = new THREE.MeshBasicMaterial({ color: gemColor });
+    const gemMesh = new THREE.Mesh(gemGeo, gemMat);
+    gemMesh.position.set(0, 11, 0);
+    group.add(gemMesh);
+
+    group.userData = {
+      isWork: true,
+      baseY: 4,
+      slab: slabMesh,
+      gem: gemMesh,
+    };
+
+    return group;
   }
 
-  function createIntentBeaconMesh(colorHex: number): THREE.Mesh {
-    const geo = new THREE.CylinderGeometry(5, 5, 42, 16);
-    const mat = new THREE.MeshLambertMaterial({ color: colorHex });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.y = 21;
-    return mesh;
+  function createIntentBeaconMesh(colorHex: number): THREE.Group {
+    const group = new THREE.Group();
+
+    // Base plinth
+    const baseGeo = new THREE.CylinderGeometry(10, 12, 4, 16);
+    const baseMat = new THREE.MeshLambertMaterial({ color: 0x0c233c });
+    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    baseMesh.position.y = 2;
+    group.add(baseMesh);
+
+    // Hexagonal crystal pillar
+    const pillarGeo = new THREE.CylinderGeometry(4.5, 6.5, 36, 6);
+    const pillarMat = new THREE.MeshLambertMaterial({ color: colorHex });
+    const pillarMesh = new THREE.Mesh(pillarGeo, pillarMat);
+    pillarMesh.position.y = 20;
+    group.add(pillarMesh);
+
+    // Holographic rising light shaft
+    const shaftGeo = new THREE.CylinderGeometry(5, 7.5, 60, 16);
+    const shaftMat = new THREE.MeshBasicMaterial({ color: 0x7213ea, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending });
+    const shaftMesh = new THREE.Mesh(shaftGeo, shaftMat);
+    shaftMesh.position.y = 32;
+    group.add(shaftMesh);
+
+    // Orbital ring
+    const ringGeo = new THREE.RingGeometry(10, 12, 24);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00b8f5, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.rotation.x = Math.PI / 3;
+    ringMesh.position.y = 22;
+    group.add(ringMesh);
+
+    group.userData = {
+      isIntent: true,
+      baseY: 12,
+      beam: shaftMesh,
+      orbitalRing: ringMesh,
+    };
+
+    return group;
   }
 
   function createDefaultNodeMesh(colorHex: number): THREE.Mesh {
@@ -302,8 +413,9 @@ interface WindowWithConfig extends Window {
       let obj: THREE.Object3D;
       if (node.kind === "agent_session") {
         obj = createAgentTokenMesh(colorHex);
-      } else if (node.kind === "work") {
-        obj = createWorkPlatformMesh(colorHex);
+      } else if (node.kind === "work" || node.kind === "work_item") {
+        const state = (node.attributes as Record<string, unknown> | undefined)?.state as string | undefined;
+        obj = createWorkPlatformMesh(colorHex, state);
       } else if (node.kind === "intent") {
         obj = createIntentBeaconMesh(colorHex);
       } else {
@@ -341,17 +453,21 @@ interface WindowWithConfig extends Window {
       const p2 = nodePositions.get(edge.target);
       if (!p1 || !p2) return;
 
-      const points = [new THREE.Vector3(p1.x, p1.y + 4, p1.z), new THREE.Vector3(p2.x, p2.y + 4, p2.z)];
+      const v1 = new THREE.Vector3(p1.x, p1.y + 4, p1.z);
+      const v2 = new THREE.Vector3(p2.x, p2.y + 4, p2.z);
+      const points = [v1, v2];
       const geo = new THREE.BufferGeometry().setFromPoints(points);
       const mat = new THREE.LineBasicMaterial({
-        color: edge.kind === "executed_by" ? 0xaceaff : 0x00b8f5,
+        color: edge.kind === "executed_by" ? 0x1e49e6 : 0x0091da,
         transparent: true,
-        opacity: edge.kind === "executed_by" ? 0.9 : 0.45,
+        opacity: edge.kind === "executed_by" ? 0.8 : 0.4,
       });
       const line = new THREE.Line(geo, mat);
       scene?.add(line);
       edgeLines.push(line);
     });
+
+    requestRender();
   }
 
   function filterVisibleNodes(): GraphNode[] {
@@ -388,7 +504,7 @@ interface WindowWithConfig extends Window {
         const p = positions.get(n.id) ?? { x: cx, y: cy };
         const sel = selectedNodeId === n.id ? ' stroke="var(--status-warning)" stroke-width="3"' : ' stroke="var(--kpmg-white)" stroke-width="1.2"';
         const fill = (colors as Record<string, number>)[n.kind] ? `#${(colors as Record<string, number>)[n.kind]!.toString(16).padStart(6, "0")}` : "var(--kpmg-blue)";
-        return `<g data-id="${escapeHtml(n.id)}" style="cursor:pointer;"><circle cx="${p.x}" cy="${p.y}" r="18" fill="${fill}"${sel} /><text x="${p.x}" y="${p.y + 32}" text-anchor="middle" fill="#fff" font-size="11px">${escapeHtml(n.label).slice(0, 32)}</text></g>`;
+        return `<g data-id="${escapeHtml(n.id)}" style="cursor:pointer;"><circle cx="${p.x}" cy="${p.y}" r="18" fill="${fill}"${sel} /><text x="${p.x}" y="${p.y + 32}" text-anchor="middle" fill="#0c233c" font-size="11px" font-weight="600">${escapeHtml(n.label).slice(0, 32)}</text></g>`;
       })
       .join("");
 
@@ -403,43 +519,76 @@ interface WindowWithConfig extends Window {
     });
   }
 
-  function startAnimationLoop(): void {
-    if (animationFrameId !== null) return;
+  function requestRender(): void {
+    if (animationFrameId !== null || !renderer || !scene || !camera) return;
+    animationFrameId = requestAnimationFrame(renderFrame);
+  }
 
-    const renderLoop = (time: number) => {
-      animationFrameId = requestAnimationFrame(renderLoop);
-      if (!renderer || !scene || !camera) return;
+  function renderFrame(time: number): void {
+    animationFrameId = null;
+    if (!renderer || !scene || !camera) return;
 
-      // Update active motion cues
-      activeCues.forEach((active, key) => {
-        const elapsed = time - active.startTime;
-        const cue = active.cue;
-        const duration = cue.durationMs ?? 1000;
-        const progress = Math.min(elapsed / duration, 1);
+    let animating = false;
+    activeCues.forEach((active, key) => {
+      const elapsed = time - active.startTime;
+      const cue = active.cue;
+      const duration = cue.durationMs ?? 1000;
+      const progress = Math.min(elapsed / duration, 1);
 
-        if (active.mesh && !prefersReducedMotion) {
-          if (cue.type === "pulse") {
-            const scale = 1 + Math.sin(progress * Math.PI) * 0.35;
+      if (!prefersReducedMotion) {
+        if (cue.type === "pulse") {
+          if (active.mesh) {
+            const scale = 1 + Math.sin(progress * Math.PI) * 0.32;
             active.mesh.scale.set(scale, scale, scale);
-          } else if (cue.type === "settle") {
-            const bounce = 1 + (1 - progress) * 0.2 * Math.sin(progress * Math.PI * 4);
+          }
+          if (active.ripple) {
+            active.ripple.scale.set(1 + progress * 3.8, 1 + progress * 3.8, 1);
+            (active.ripple.material as THREE.MeshBasicMaterial).opacity = (1 - progress) * 0.85;
+          }
+        } else if (cue.type === "claim") {
+          if (active.tracer && (active as unknown as { sourcePos?: THREE.Vector3; targetPos?: THREE.Vector3 }).sourcePos) {
+            const { sourcePos, targetPos } = active as unknown as { sourcePos: THREE.Vector3; targetPos: THREE.Vector3 };
+            active.tracer.position.lerpVectors(sourcePos, targetPos, progress);
+            active.tracer.position.y += Math.sin(progress * Math.PI) * 36;
+          }
+          if (progress > 0.6 && active.mesh) {
+            const b = 1 + Math.sin(progress * Math.PI) * 0.18;
+            active.mesh.scale.set(b, b, b);
+          }
+        } else if (cue.type === "blocked") {
+          if (active.ripple) {
+            (active.ripple.material as THREE.MeshBasicMaterial).opacity = Math.sin(progress * Math.PI * 6) * 0.45 + 0.45;
+          }
+        } else if (cue.type === "intent") {
+          if (active.mesh && active.mesh.userData?.beam) {
+            const s = 1 + Math.sin(progress * Math.PI) * 0.5;
+            active.mesh.userData.beam.scale.set(s, 1, s);
+          }
+        } else if (cue.type === "settle") {
+          if (active.mesh) {
+            const bounce = 1 + (1 - progress) * 0.22 * Math.sin(progress * Math.PI * 4);
             active.mesh.scale.set(bounce, bounce, bounce);
           }
+          if (active.ripple) {
+            active.ripple.scale.set(1 + progress * 3.2, 1 + progress * 3.2, 1);
+            (active.ripple.material as THREE.MeshBasicMaterial).opacity = (1 - progress) * 0.8;
+          }
         }
+      }
 
-        if (progress >= 1) {
-          if (active.mesh) active.mesh.scale.set(1, 1, 1);
-          activeCues.delete(key);
-        }
-      });
+      if (progress >= 1) {
+        if (active.mesh) active.mesh.scale.set(1, 1, 1);
+        if (active.ripple) scene?.remove(active.ripple);
+        if (active.tracer) scene?.remove(active.tracer);
+        activeCues.delete(key);
+      } else {
+        animating = true;
+      }
+    });
 
-      renderer.render(scene, camera);
-
-      // Project DOM labels
-      updateDomOverlayPositions();
-    };
-
-    animationFrameId = requestAnimationFrame(renderLoop);
+    renderer.render(scene, camera);
+    updateDomOverlayPositions();
+    if (animating) requestRender();
   }
 
   function updateDomOverlayPositions(): void {
@@ -453,7 +602,7 @@ interface WindowWithConfig extends Window {
       if (!mesh) return;
 
       mesh.getWorldPosition(pos);
-      pos.y += 18;
+      pos.y += 20;
       pos.project(camera!);
 
       const x = (pos.x * 0.5 + 0.5) * w;
@@ -465,12 +614,58 @@ interface WindowWithConfig extends Window {
   }
 
   function applyCue(cue: SceneCue): void {
-    const mesh = nodeMeshes.get(cue.targetNodeId);
-    activeCues.set(cue.id, {
-      cue,
-      startTime: performance.now(),
-      mesh,
-    });
+    const targetMesh = nodeMeshes.get(cue.targetNodeId);
+    const pos = targetMesh ? targetMesh.position : (nodePositions.get(cue.targetNodeId) ?? { x: 0, y: 0, z: 0 });
+
+    if (cue.type === "pulse") {
+      const ringGeo = new THREE.RingGeometry(12, 15, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x1e49e6, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+      const ripple = new THREE.Mesh(ringGeo, ringMat);
+      ripple.rotation.x = Math.PI / 2;
+      ripple.position.set(pos.x, 0.5, pos.z);
+      scene?.add(ripple);
+      activeCues.set(cue.id, { cue, startTime: performance.now(), mesh: targetMesh, ripple });
+    } else if (cue.type === "claim") {
+      const sourceMesh = cue.sourceNodeId ? nodeMeshes.get(cue.sourceNodeId) : undefined;
+      const sPos = sourceMesh ? sourceMesh.position.clone() : new THREE.Vector3(0, 22, 0);
+      const tPos = targetMesh ? targetMesh.position.clone() : new THREE.Vector3(0, 4, 0);
+      const tracerGeo = new THREE.SphereGeometry(4.5, 12, 12);
+      const tracerMat = new THREE.MeshBasicMaterial({ color: 0x00b8f5 });
+      const tracer = new THREE.Mesh(tracerGeo, tracerMat);
+      tracer.position.copy(sPos);
+      scene?.add(tracer);
+      activeCues.set(cue.id, {
+        cue,
+        startTime: performance.now(),
+        mesh: targetMesh,
+        tracer,
+        sourcePos: sPos,
+        targetPos: tPos,
+      } as never);
+    } else if (cue.type === "settle") {
+      const ringGeo = new THREE.RingGeometry(16, 20, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+      const ripple = new THREE.Mesh(ringGeo, ringMat);
+      ripple.rotation.x = Math.PI / 2;
+      ripple.position.set(pos.x, 0.5, pos.z);
+      scene?.add(ripple);
+      activeCues.set(cue.id, { cue, startTime: performance.now(), mesh: targetMesh, ripple });
+    } else if (cue.type === "blocked") {
+      const ringGeo = new THREE.RingGeometry(22, 25, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+      const ripple = new THREE.Mesh(ringGeo, ringMat);
+      ripple.rotation.x = Math.PI / 2;
+      ripple.position.set(pos.x, 14, pos.z);
+      scene?.add(ripple);
+      activeCues.set(cue.id, { cue, startTime: performance.now(), mesh: targetMesh, ripple });
+    } else {
+      activeCues.set(cue.id, {
+        cue,
+        startTime: performance.now(),
+        mesh: targetMesh,
+      });
+    }
+    requestRender();
   }
 
   function selectNode(id: string): void {
@@ -499,13 +694,15 @@ interface WindowWithConfig extends Window {
       return;
     }
 
+    const observation = buildInspectorObservation(node);
+
     // 1. Identity & Current Status
     inspIdentity.innerHTML = `
       <table class="inspector-table">
         <tr><th>ID</th><td><code>${escapeHtml(node.id)}</code></td></tr>
         <tr><th>Kind</th><td><span class="kind-tag">${escapeHtml(node.kind)}</span></td></tr>
         <tr><th>Label</th><td><strong>${escapeHtml(node.label)}</strong></td></tr>
-        <tr><th>State</th><td><span class="status-indicator status-ok">Observed</span></td></tr>
+        ${observation.stateRowHtml}
       </table>
     `;
 
@@ -549,8 +746,7 @@ interface WindowWithConfig extends Window {
     }
 
     // 4. Provenance
-    const prov = node.provenance || (currentFrame.scope ? `project:${currentFrame.scope.projectId}` : null);
-    inspProvenance.innerHTML = prov ? `<div><span class="kind-tag">${escapeHtml(prov)}</span></div>` : '<p class="muted">Not observed</p>';
+    inspProvenance.innerHTML = observation.provenanceHtml;
 
     // 5. Error
     if (currentFrame.quality.degraded && currentFrame.quality.reasons.length > 0) {
@@ -601,13 +797,61 @@ interface WindowWithConfig extends Window {
       if (res.ok) {
         const data = await res.json();
         if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+          const structuralTypes = [
+            "WorkItemCreated",
+            "WorkItemClaimed",
+            "WorkItemCompleted",
+            "Completed",
+            "WorkItemBlocked",
+            "Blocked",
+            "WorkItemUnblocked",
+            "AgentJoined",
+            "AgentDeparted",
+            "IntentDeclared",
+            "WorkItemEvaluationRequested",
+            "WorkItemEvaluationAccepted",
+            "EvaluationAccepted",
+          ];
+          let hasStructural = false;
+
           data.events.forEach((ev: TheaterEvent) => {
             currentFrame.events.push(ev);
+            const eType = ev.eventType || (ev as unknown as { type?: string }).type || "";
+            if (structuralTypes.includes(eType)) {
+              hasStructural = true;
+            }
             const cue = eventToMotionCue(ev, currentFrame.graph);
             if (cue) applyCue(cue);
           });
           currentFrame.cursor.lastSequence = data.throughSequence || data.events.at(-1)?.sequence;
+          try {
+            if (currentFrame.cursor.lastSequence !== undefined) {
+              window.sessionStorage.setItem("my-pi.theater.cursor", String(currentFrame.cursor.lastSequence));
+            }
+          } catch {}
           updateQualityBadges();
+
+          if (hasStructural) {
+            try {
+              const graphRes = await fetch(`${apiBase}?kind=${encodeURIComponent(currentFrame.scope.kind)}`, {
+                headers: { "x-my-pi-session": token },
+              });
+              if (graphRes.ok) {
+                currentFrame.graph = await graphRes.json();
+                currentFrame.quality.empty = currentFrame.graph.nodes.length === 0;
+                currentFrame.quality.truncated = currentFrame.graph.truncated;
+                currentFrame.quality.degraded = Boolean(currentFrame.graph.degraded);
+                populateFilterOptions();
+                if (is2DFallback) render2D();
+                else buildScene();
+                if (selectedNodeId) {
+                  populateInspector(currentFrame.graph.nodes.find((n) => n.id === selectedNodeId));
+                }
+              }
+            } catch {
+              // Ignore graph refresh failure
+            }
+          }
         }
       }
     } catch {
@@ -622,6 +866,7 @@ interface WindowWithConfig extends Window {
       modeToggle.classList.remove("mode-live");
       modeToggle.classList.add("mode-replay");
       modeText.textContent = "REPLAY";
+      timelineBar.classList.remove("hidden");
       timelineBar.style.display = "flex";
       sliderSeq.max = String(Math.max(currentFrame.events.length - 1, 0));
       sliderSeq.value = "0";
@@ -631,6 +876,7 @@ interface WindowWithConfig extends Window {
       modeToggle.classList.add("mode-live");
       modeToggle.classList.remove("mode-replay");
       modeText.textContent = "LIVE";
+      timelineBar.classList.add("hidden");
       timelineBar.style.display = "none";
       if (replayTimer !== null) {
         clearInterval(replayTimer);
@@ -704,6 +950,7 @@ interface WindowWithConfig extends Window {
       camera.zoom = 1;
       camera.lookAt(0, 0, 0);
       camera.updateProjectionMatrix();
+      requestRender();
     }
   });
 
@@ -711,6 +958,24 @@ interface WindowWithConfig extends Window {
     if (camera) {
       camera.zoom = 0.85;
       camera.updateProjectionMatrix();
+      requestRender();
+    }
+  });
+
+  // Left Rail button bindings
+  btnRailFit?.addEventListener("click", () => btnFit.click());
+  btnRailReset?.addEventListener("click", () => btnResetCam.click());
+  btnRailRender?.addEventListener("click", () => btnToggleRender.click());
+  btnRailTimeline?.addEventListener("click", () => modeToggle.click());
+  btnRailLegend?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (legendPopover) {
+      legendPopover.classList.toggle("hidden");
+    }
+  });
+  window.addEventListener("click", (e) => {
+    if (legendPopover && !legendPopover.classList.contains("hidden") && !legendPopover.contains(e.target as Node) && e.target !== btnRailLegend) {
+      legendPopover.classList.add("hidden");
     }
   });
 
@@ -734,6 +999,7 @@ interface WindowWithConfig extends Window {
 
     camera.position.x -= dx * 0.8;
     camera.position.z += dy * 0.8;
+    requestRender();
   });
 
   window.addEventListener("pointerup", () => {
@@ -799,10 +1065,6 @@ interface WindowWithConfig extends Window {
     if (is2DFallback) render2D();
     else buildScene();
   });
-
-  function escapeHtml(str: string): string {
-    return String(str).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m] || m));
-  }
 
   // Initial setup
   populateFilterOptions();

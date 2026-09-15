@@ -261,20 +261,62 @@ export function renderTheaterViewHtml(options: TheaterViewOptions): string {
     .badge-stale { background: color-mix(in srgb, var(--status-warning) 15%, transparent); color: var(--status-warning); border: 1px dashed var(--status-warning); }
     .badge-empty { background: color-mix(in srgb, var(--kpmg-light-blue) 15%, transparent); color: var(--kpmg-light-blue); border: 1px solid var(--kpmg-light-blue); }
 
-    main { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 24rem; position: relative; }
-    #stage { position: relative; overflow: hidden; background: var(--color-bg-dashboard); outline: none; touch-action: none; }
+    main { min-height: 0; display: grid; grid-template-columns: 4.2rem minmax(0, 1fr) 24rem; position: relative; }
+    
+    #left-rail {
+      background: var(--kpmg-dark-blue);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 0.6rem 0.35rem;
+      align-items: center;
+      z-index: 15;
+    }
+    .rail-group { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; width: 100%; }
+    .rail-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      background: transparent; border: 1px solid transparent; color: var(--kpmg-light-blue);
+      font-size: 9px; font-weight: 600; padding: 6px 2px; border-radius: 6px; width: 100%; cursor: pointer;
+      transition: all 0.15s ease-in-out;
+    }
+    .rail-btn:hover, .rail-btn:focus-visible {
+      background: color-mix(in srgb, var(--kpmg-cobalt) 35%, transparent);
+      border-color: var(--kpmg-cobalt);
+      color: var(--kpmg-white);
+    }
+    .rail-btn.active {
+      background: var(--kpmg-cobalt);
+      border-color: var(--kpmg-light-blue);
+      color: var(--kpmg-white);
+    }
+    .rail-icon { font-size: 14px; line-height: 1; }
+
+    #stage { position: relative; overflow: hidden; background: #f0f4f8; outline: none; touch-action: none; }
     #theater-canvas { display: block; width: 100%; height: 100%; }
     #dom-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
-    .theater-label {
-      position: absolute; transform: translate(-50%, -50%); background: color-mix(in srgb, var(--kpmg-dark-blue) 85%, transparent);
-      border: 1px solid var(--kpmg-cobalt); border-radius: 4px; padding: 2px 6px; font-size: 11px;
-      color: var(--kpmg-white); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 4px;
-      transition: border-color 0.15s, box-shadow 0.15s;
+    .theater-label, .dom-node-pill {
+      position: absolute; transform: translate(-50%, -50%);
+      background: rgba(12, 35, 60, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--kpmg-cobalt);
+      border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 500;
+      color: var(--kpmg-white); white-space: nowrap; pointer-events: auto; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
     }
-    .theater-label:hover, .theater-label.selected {
-      border-color: var(--status-warning); box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 50%, transparent);
+    .theater-label:hover, .theater-label.selected, .dom-node-pill:hover, .dom-node-pill.selected {
+      border-color: var(--status-warning);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--status-warning) 60%, transparent), 0 4px 16px rgba(0,0,0,0.3);
+      transform: translate(-50%, -55%) scale(1.04);
     }
+    .pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--kpmg-light-blue); display: inline-block; box-shadow: 0 0 6px currentColor; }
+    .pill-agent_session .pill-dot { background: var(--kpmg-cobalt); color: var(--kpmg-cobalt); }
+    .pill-work_item .pill-dot, .pill-work .pill-dot { background: var(--kpmg-pacific); color: var(--kpmg-pacific); }
+    .pill-intent .pill-dot { background: var(--kpmg-purple); color: var(--kpmg-purple); }
 
     #fallback-2d { position: absolute; inset: 0; background: var(--color-bg-dashboard); display: none; }
     #svg-stage { width: 100%; height: 100%; display: block; cursor: grab; }
@@ -287,13 +329,28 @@ export function renderTheaterViewHtml(options: TheaterViewOptions): string {
     }
 
     #timeline-bar {
-      position: absolute; bottom: 12px; left: 12px; right: 12px;
-      background: color-mix(in srgb, var(--kpmg-dark-blue) 92%, transparent); border: 1px solid var(--color-border);
-      border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;
-      backdrop-filter: blur(4px); z-index: 10;
+      position: absolute; bottom: 14px; left: 14px; right: 14px;
+      background: rgba(12, 35, 60, 0.94);
+      border: 1px solid var(--kpmg-cobalt);
+      border-radius: 8px; padding: 8px 14px; display: flex; align-items: center; gap: 12px;
+      backdrop-filter: blur(8px); z-index: 20;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
     }
     #slider-sequence { flex: 1; cursor: pointer; accent-color: var(--kpmg-pacific); }
-    #timeline-seq-display { font-size: 0.8rem; color: var(--kpmg-light-blue); white-space: nowrap; }
+    #timeline-seq-display { font-size: 0.8rem; font-weight: 600; color: var(--kpmg-light-blue); white-space: nowrap; }
+
+    #legend-popover {
+      position: absolute; bottom: 16px; left: 4.8rem;
+      background: rgba(12, 35, 60, 0.95);
+      border: 1px solid var(--kpmg-cobalt);
+      border-radius: 8px; padding: 10px 14px; font-size: 11px;
+      color: var(--kpmg-white); z-index: 30; display: block;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+    }
+    #legend-popover h4 { font-size: 11px; text-transform: uppercase; color: var(--kpmg-light-blue); margin-bottom: 6px; letter-spacing: 0.05em; }
+    .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .legend-chip { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
     aside {
       overflow-y: auto; padding: 1rem; border-left: 1px solid var(--color-border);
@@ -323,6 +380,12 @@ export function renderTheaterViewHtml(options: TheaterViewOptions): string {
     .error-item { color: var(--status-error); font-size: 11px; margin-bottom: 4px; }
     .muted { color: var(--color-text-muted); font-size: 0.8rem; }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .hidden { display: none !important; }
+    .chip-agent { background: #1e49e6; }
+    .chip-work { background: #00b8f5; }
+    .chip-intent { background: #7213ea; }
+    .chip-settle { background: #00a3a6; }
+    .chip-hazard { background: #f1c44d; }
   </style>
 </head>
 <body>
@@ -340,15 +403,49 @@ export function renderTheaterViewHtml(options: TheaterViewOptions): string {
       <button id="btn-toggle-render" type="button" title="Toggle between 3D isometric and 2D fallback view">2D View</button>
     </div>
     <div class="header-group">
-      <span id="badge-degraded" class="badge badge-degraded" style="display:none;">DEGRADED</span>
-      <span id="badge-truncated" class="badge badge-truncated" style="display:none;">TRUNCATED</span>
-      <span id="badge-stale" class="badge badge-stale" style="display:none;">STALE</span>
-      <span id="badge-empty" class="badge badge-empty" style="display:none;">EMPTY</span>
+      <span id="badge-degraded" class="badge badge-degraded hidden">DEGRADED</span>
+      <span id="badge-truncated" class="badge badge-truncated hidden">TRUNCATED</span>
+      <span id="badge-stale" class="badge badge-stale hidden">STALE</span>
+      <span id="badge-empty" class="badge badge-empty hidden">EMPTY</span>
       <span id="cursor-info" class="muted"></span>
       <span id="freshness" class="muted"></span>
     </div>
   </header>
   <main>
+    <nav id="left-rail" aria-label="Theater controls">
+      <div class="rail-group">
+        <button id="btn-rail-fit" class="rail-btn" type="button" title="Fit Camera to Scene">
+          <span class="rail-icon">⛶</span>
+          <span>Fit</span>
+        </button>
+        <button id="btn-rail-reset" class="rail-btn" type="button" title="Reset Camera View">
+          <span class="rail-icon">⟲</span>
+          <span>Reset</span>
+        </button>
+        <button id="btn-rail-render" class="rail-btn" type="button" title="Toggle 2D / 3D Mode">
+          <span class="rail-icon">◈</span>
+          <span id="rail-render-label">3D/2D</span>
+        </button>
+        <button id="btn-rail-timeline" class="rail-btn" type="button" title="Toggle History Timeline">
+          <span class="rail-icon">⏱</span>
+          <span>Timeline</span>
+        </button>
+      </div>
+      <div class="rail-group">
+        <button id="btn-rail-legend" class="rail-btn" type="button" title="Toggle Legend">
+          <span class="rail-icon">ℹ</span>
+          <span>Legend</span>
+        </button>
+      </div>
+    </nav>
+    <div id="legend-popover" class="hidden">
+      <h4>Visual Semantics</h4>
+      <div class="legend-row"><span class="legend-chip chip-agent"></span> <span>Agent Session (Procedural Avatar)</span></div>
+      <div class="legend-row"><span class="legend-chip chip-work"></span> <span>Work Item (Platform / Card)</span></div>
+      <div class="legend-row"><span class="legend-chip chip-intent"></span> <span>Intent (Beacon / Pillar)</span></div>
+      <div class="legend-row"><span class="legend-chip chip-settle"></span> <span>Completed / Settle</span></div>
+      <div class="legend-row"><span class="legend-chip chip-hazard"></span> <span>Blocked / Hazard Warning</span></div>
+    </div>
     <section id="stage" aria-label="Operations Theater Canvas" tabindex="0">
       <div id="stage-banner"></div>
       <canvas id="theater-canvas"></canvas>
@@ -356,7 +453,7 @@ export function renderTheaterViewHtml(options: TheaterViewOptions): string {
       <div id="fallback-2d">
         <svg id="svg-stage" role="img" aria-label="2D fallback graph"></svg>
       </div>
-      <div id="timeline-bar" style="display:none;">
+      <div id="timeline-bar" class="hidden">
         <button id="btn-play-pause" type="button">▶ Play</button>
         <button id="btn-step" type="button">Step ⏭</button>
         <input type="range" id="slider-sequence" min="0" max="0" value="0" aria-label="Replay sequence scrubber">

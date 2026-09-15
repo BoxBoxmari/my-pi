@@ -31,6 +31,7 @@ import { acquireProjectLock, ProjectAlreadyRunningError } from "./project-lock.j
 import { CodeStateManager } from "./code-state-manager.js";
 import { WorkspaceRuntime } from "@my-pi/workspace-runtime";
 import {
+  GRAPH_EVENT_TYPES_BY_KIND,
   GRAPH_KINDS,
   normalizeGraphSnapshot,
   traceGraphSnapshot,
@@ -38,6 +39,8 @@ import {
   type GraphKind,
   type GraphSnapshot,
 } from "@my-pi/graph-model";
+import { redactEventForWire } from "@my-pi/observability";
+import { applyPayloadSubjectFilter, resolveGraphEventsScope } from "./graph-events.js";
 import {
   projectCodeGraph,
   projectImpactGraph,
@@ -519,6 +522,19 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
     }
     case "graph_events": {
       assertProject(params, expectedProjectId);
+      const kindParam = optionalString(params, "kind");
+      const scope = resolveGraphEventsScope({
+        kind: kindParam,
+        mode: optionalString(params, "mode"),
+        worktreeId: optionalString(params, "worktreeId"),
+        subjectId: optionalString(params, "subjectId"),
+        eventTypeByKind: GRAPH_EVENT_TYPES_BY_KIND,
+      });
+      if (!scope.ok) {
+        throw scope.error === "invalid-mode"
+          ? err.invalidArgument("mode must be live or replay")
+          : err.invalidArgument("kind is invalid");
+      }
       const mode = (optionalString(params, "mode") ?? "live") as "live" | "replay";
       const maxEvents = Math.min(Math.max(params.maxEvents === undefined ? 100 : requiredNumber(params, "maxEvents"), 1), 1000);
       const maxBytes = Math.min(Math.max(params.maxBytes === undefined ? 256 * 1024 : requiredNumber(params, "maxBytes"), 1024), 1024 * 1024);
@@ -533,13 +549,45 @@ async function dispatchRequest(request: IpcRequest, runtime: CoordinationRuntime
         toSequence,
         limit: maxEvents,
         maxBytes,
+        ...(scope.eventTypeIn === undefined ? {} : { eventTypeIn: scope.eventTypeIn }),
       });
+      let events = page.events;
+      let degraded = scope.degraded;
+      if (scope.payloadWorktreeFilter !== undefined) {
+        const kept: typeof events = [];
+        let filteringIncomplete = false;
+        for (const event of events) {
+          const payload = event.payload;
+          const eventWorktreeId = payload !== null && typeof payload === "object" && !Array.isArray(payload)
+            ? (payload as { worktreeId?: unknown }).worktreeId
+            : undefined;
+          if (typeof eventWorktreeId === "string") {
+            if (eventWorktreeId === scope.payloadWorktreeFilter) kept.push(event);
+          } else {
+            kept.push(event);
+            filteringIncomplete = true;
+          }
+        }
+        events = kept;
+        if (filteringIncomplete && degraded === undefined) {
+          degraded = { provider: "graph-events", reason: "scope filtering incomplete" };
+        }
+      }
+      if (scope.payloadSubjectFilter !== undefined) {
+        const subject = applyPayloadSubjectFilter(events, scope.payloadSubjectFilter);
+        events = subject.events;
+        if (subject.filteringIncomplete && degraded === undefined) {
+          degraded = { provider: "graph-events", reason: "scope filtering incomplete" };
+        }
+      }
 
       return {
-        events: page.events.map((event) => jsonEvent(event as unknown as { sequence: bigint; [key: string]: unknown })),
+        events: events.map((event) => jsonEvent(redactEventForWire(event) as unknown as { sequence: bigint; [key: string]: unknown })),
         throughSequence: page.throughSequence.toString(),
         hasMore: page.hasMore,
         mode,
+        ...(kindParam === undefined ? {} : { kind: kindParam }),
+        ...(degraded === undefined ? {} : { degraded }),
       };
     }
     case "provenance_report": {

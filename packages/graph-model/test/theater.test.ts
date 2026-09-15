@@ -6,10 +6,13 @@ import {
   createTheaterFrame,
   validateTheaterFrame,
   normalizeGraphSnapshot,
+  GRAPH_KINDS,
+  GRAPH_EVENT_TYPES_BY_KIND,
   type GraphSnapshot,
   type TheaterEvent,
   type TheaterFrame,
 } from "../dist/index.js";
+import { COORDINATION_EVENT_TYPES } from "../../coordination-runtime/dist/event-types.js";
 
 function makeSnapshot(nodes: Array<{ id: string; kind: string; label: string }>): GraphSnapshot {
   return normalizeGraphSnapshot({
@@ -201,4 +204,18 @@ test("createTheaterFrame and validateTheaterFrame guarantee canonical contract",
   const invalidResult = validateTheaterFrame(invalidFrame);
   assert.equal(invalidResult.ok, false);
   assert.ok(invalidResult.errors.some((e) => e.includes("schemaVersion")));
+});
+
+test("GRAPH_EVENT_TYPES_BY_KIND covers GRAPH_KINDS with valid CoordinationEventTypes only", () => {
+  const realTypes = new Set<string>(COORDINATION_EVENT_TYPES);
+  assert.ok(realTypes.size > 0);
+  assert.deepEqual(Object.keys(GRAPH_EVENT_TYPES_BY_KIND).slice().sort(), [...GRAPH_KINDS].slice().sort());
+  for (const kind of GRAPH_KINDS) {
+    const types = GRAPH_EVENT_TYPES_BY_KIND[kind];
+    assert.ok(Array.isArray(types), `${kind} event types must be an array`);
+    assert.ok(types.length > 0, `${kind} event types must be non-empty`);
+    for (const value of types) {
+      assert.ok(realTypes.has(value), `${kind} contains "${value}" which is not a real CoordinationEventType`);
+    }
+  }
 });

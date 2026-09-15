@@ -13,6 +13,7 @@
     { "path": "../../packages/workspace-runtime" },
     { "path": "../../packages/mcp-adapter" },
     { "path": "../../packages/host-profiles" },
+    { "path": "../../packages/observability" },
     { "path": "../my-pi-ui" }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1",
   "recordType": "observed-evidence-aggregate-v2",
-  "generatedAt": "2026-09-14T20:15:59.239Z",
+  "generatedAt": "2026-09-14T22:12:35.185Z",
   "status": "WITHHELD",
   "promotionEligible": false,
   "promotionVerdict": "candidate_only_requires_independent_promotion_verifier",
@@ -12,11 +12,11 @@
   ],
   "sample": {
     "minQualifiedPerHypothesis": 3,
-    "totalPairs": 31,
+    "totalPairs": 37,
     "qualifiedPairs": 6,
     "byHypothesis": {
       "PN6": {
-        "registered": 6,
+        "registered": 9,
         "qualified": 3,
         "target": 3,
         "heterogeneityKeys": [
@@ -27,13 +27,13 @@
         "heterogeneous": true,
         "targetMet": true,
         "taskIds": [
-          "OT-034",
-          "OT-035",
-          "OT-036"
+          "OT-061",
+          "OT-062",
+          "OT-063"
         ]
       },
       "PN8": {
-        "registered": 9,
+        "registered": 12,
         "qualified": 3,
         "target": 3,
         "heterogeneityKeys": [
@@ -44,9 +44,9 @@
         "heterogeneous": true,
         "targetMet": true,
         "taskIds": [
-          "OT-031",
-          "OT-032",
-          "OT-033"
+          "OT-071",
+          "OT-072",
+          "OT-073"
         ]
       }
     }
@@ -90,9 +90,9 @@
     },
     "repair_yield": {
       "observations": 3,
-      "meanControl": 1,
+      "meanControl": 0,
       "meanTreatment": 1,
-      "meanDelta": 0
+      "meanDelta": 1
     },
     "routing_precision": {
       "observations": 3,
@@ -125,9 +125,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -150,6 +152,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -162,6 +168,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -183,9 +191,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -208,6 +218,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -220,6 +234,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is PARTIAL_OBSERVATION",
@@ -241,9 +257,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -266,6 +284,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -278,6 +300,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -299,9 +323,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -324,6 +350,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -336,6 +366,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -357,9 +389,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -382,6 +416,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -394,6 +432,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -415,9 +455,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -440,6 +482,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -452,6 +498,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -473,9 +521,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -498,6 +548,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -510,6 +564,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -531,9 +587,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -556,6 +614,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -568,6 +630,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -589,9 +653,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -614,6 +680,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -626,6 +696,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -647,9 +719,11 @@
           "Git registration receipt is required",
           "taskDefinitionPath must be a non-empty path",
           "result.taskDefinitionCommit must match the registered task binding",
-          "result.taskDefinition must match the registered task path"
+          "result.taskDefinition must match the registered task path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
@@ -672,6 +746,10 @@
         "contaminationControls must be an object",
         "schemaVersion must be \"2\"",
         "recordType must be observed-result-v2",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "status is invalid",
         "baseCommit must be a 40-character commit SHA",
@@ -684,6 +762,8 @@
         "taskDefinitionPath must be a non-empty path",
         "result.taskDefinitionCommit must match the registered task binding",
         "result.taskDefinition must match the registered task path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "undefined requires a predeclared heterogeneityKey",
         "a predeclared command did not pass in every arm",
         "result status is RECORDED",
@@ -705,17 +785,25 @@
         "ok": false,
         "errors": [
           "Git registration receipt is required",
-          "registration.receiptPath must be a non-empty path"
+          "registration.receiptPath must be a non-empty path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
         "registration must be an object",
         "PN6 workload.evidenceKind must be observed_source_change",
         "PN6 workload.heterogeneityKey must be a non-empty string",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "Git registration receipt is required",
         "registration.receiptPath must be a non-empty path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "PN6 requires a predeclared heterogeneityKey",
         "PN6 requires observed_source_change evidence",
         "PN6 result must identify observed_source_change evidence",
@@ -768,17 +856,25 @@
         "ok": false,
         "errors": [
           "Git registration receipt is required",
-          "registration.receiptPath must be a non-empty path"
+          "registration.receiptPath must be a non-empty path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
         "registration must be an object",
         "PN6 workload.evidenceKind must be observed_source_change",
         "PN6 workload.heterogeneityKey must be a non-empty string",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "Git registration receipt is required",
         "registration.receiptPath must be a non-empty path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "PN6 requires a predeclared heterogeneityKey",
         "PN6 requires observed_source_change evidence",
         "PN6 result must identify observed_source_change evidence",
@@ -831,17 +927,25 @@
         "ok": false,
         "errors": [
           "Git registration receipt is required",
-          "registration.receiptPath must be a non-empty path"
+          "registration.receiptPath must be a non-empty path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
         "registration must be an object",
         "PN6 workload.evidenceKind must be observed_source_change",
         "PN6 workload.heterogeneityKey must be a non-empty string",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "Git registration receipt is required",
         "registration.receiptPath must be a non-empty path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "PN6 requires a predeclared heterogeneityKey",
         "PN6 requires observed_source_change evidence",
         "PN6 result must identify observed_source_change evidence",
@@ -894,15 +998,23 @@
         "ok": false,
         "errors": [
           "Git registration receipt is required",
-          "registration.receiptPath must be a non-empty path"
+          "registration.receiptPath must be a non-empty path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
         "registration must be an object",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "Git registration receipt is required",
         "registration.receiptPath must be a non-empty path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "PN8 requires a predeclared heterogeneityKey",
         "PN8 requires live_repair evidence; controlled replay is diagnostic only",
         "PN8 result must identify live_repair evidence",
@@ -953,15 +1065,23 @@
         "ok": false,
         "errors": [
           "Git registration receipt is required",
-          "registration.receiptPath must be a non-empty path"
+          "registration.receiptPath must be a non-empty path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
         "registration must be an object",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "Git registration receipt is required",
         "registration.receiptPath must be a non-empty path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "PN8 requires a predeclared heterogeneityKey",
         "PN8 requires live_repair evidence; controlled replay is diagnostic only",
         "PN8 result must identify live_repair evidence",
@@ -1012,15 +1132,23 @@
         "ok": false,
         "errors": [
           "Git registration receipt is required",
-          "registration.receiptPath must be a non-empty path"
+          "registration.receiptPath must be a non-empty path",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
         ],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b"
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d"
       },
       "qualified": false,
       "reasons": [
         "registration must be an object",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "Git registration receipt is required",
         "registration.receiptPath must be a non-empty path",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob",
         "PN8 requires a predeclared heterogeneityKey",
         "PN8 requires live_repair evidence; controlled replay is diagnostic only",
         "PN8 result must identify live_repair evidence",
@@ -1066,19 +1194,35 @@
       "primaryHypothesis": "PN8",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T13:05:55.562Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "ac2b6368fae009dd7996eb670b77c75fe3d4e4d7",
         "registrationTimestamp": "2026-09-14T20:00:41+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-031.json",
-        "taskDigest": "347f11ef7f1b289a68565ce28fe11b876acf23bfb2e7faa8c54a7923da7de162"
+        "taskDigest": "347f11ef7f1b289a68565ce28fe11b876acf23bfb2e7faa8c54a7923da7de162",
+        "taskDefinitionBlob": "142310b2642cb48528d9bf34d483beee662d4bf8",
+        "registrationReceiptBlob": "665ebde0946d9027b3a082adbd7a4aa9d9036ecb"
       },
       "heterogeneityKey": "code-state-healthy-watcher-reconciliation",
-      "qualified": true,
-      "reasons": [],
+      "qualified": false,
+      "reasons": [
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
+      ],
       "independentAdjudication": true,
       "measurements": {
         "repair_yield": {
@@ -1119,19 +1263,35 @@
       "primaryHypothesis": "PN8",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T13:08:04.878Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "ac2b6368fae009dd7996eb670b77c75fe3d4e4d7",
         "registrationTimestamp": "2026-09-14T20:00:41+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-032.json",
-        "taskDigest": "324df433246bc5cacd2f819d538e0c133927c293981e6d3c37a9539f41e150e2"
+        "taskDigest": "324df433246bc5cacd2f819d538e0c133927c293981e6d3c37a9539f41e150e2",
+        "taskDefinitionBlob": "35f05c7bbddd5d354d54577276521e97ef2a6d4b",
+        "registrationReceiptBlob": "b78873d2b5d3c0f3b0344ae7e786c187cde5d183"
       },
       "heterogeneityKey": "code-state-late-backend-error-containment",
-      "qualified": true,
-      "reasons": [],
+      "qualified": false,
+      "reasons": [
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
+      ],
       "independentAdjudication": true,
       "measurements": {
         "repair_yield": {
@@ -1172,19 +1332,35 @@
       "primaryHypothesis": "PN8",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T13:11:25.643Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "ce41a547a74ccbc236ceb2dedaede4a5d33dc0ec",
         "registrationTimestamp": "2026-09-14T19:51:21+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-033.json",
-        "taskDigest": "4d301f2618845342423aaefe55fd4521d6435feb1ae89aa5a70f7a97269bf1a0"
+        "taskDigest": "4d301f2618845342423aaefe55fd4521d6435feb1ae89aa5a70f7a97269bf1a0",
+        "taskDefinitionBlob": "30b4d5a0b8c1fa04c2b9f32043a149e5fa582835",
+        "registrationReceiptBlob": "604777ba127f7dfd8f4873f642e50b12dca8869e"
       },
       "heterogeneityKey": "daemon-join-latency-registration-bound",
-      "qualified": true,
-      "reasons": [],
+      "qualified": false,
+      "reasons": [
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
+      ],
       "independentAdjudication": true,
       "measurements": {
         "repair_yield": {
@@ -1225,19 +1401,35 @@
       "primaryHypothesis": "PN6",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T14:05:24.962Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
         "registrationTimestamp": "2026-09-14T20:51:05+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-034.json",
-        "taskDigest": "ad43da5dd3eee4129b0e632a96dd15c94ee5950f340ca76b6a950993e470351b"
+        "taskDigest": "ad43da5dd3eee4129b0e632a96dd15c94ee5950f340ca76b6a950993e470351b",
+        "taskDefinitionBlob": "6f5e70ade413b2afa9f7d7d8a5412af21013d41d",
+        "registrationReceiptBlob": "9cb421bdbab2302964bf3a054dbca8a3c9b3e253"
       },
       "heterogeneityKey": "context-router-string-impact",
-      "qualified": true,
-      "reasons": [],
+      "qualified": false,
+      "reasons": [
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
+      ],
       "independentAdjudication": true,
       "measurements": {
         "routing_recall": {
@@ -1278,19 +1470,35 @@
       "primaryHypothesis": "PN6",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T14:07:25.457Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
         "registrationTimestamp": "2026-09-14T20:51:05+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-035.json",
-        "taskDigest": "5c485b8794e1261081ed1e1c7c499d67ad94b09580fd57b8f0d51348330eed77"
+        "taskDigest": "5c485b8794e1261081ed1e1c7c499d67ad94b09580fd57b8f0d51348330eed77",
+        "taskDefinitionBlob": "8499e42bc54d6d4a351ccd61b62da1f3968c43e3",
+        "registrationReceiptBlob": "15ded45b70c2095c233b644b7443270102bbecf2"
       },
       "heterogeneityKey": "impact-engine-package-scope",
-      "qualified": true,
-      "reasons": [],
+      "qualified": false,
+      "reasons": [
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
+      ],
       "independentAdjudication": true,
       "measurements": {
         "routing_recall": {
@@ -1331,19 +1539,35 @@
       "primaryHypothesis": "PN6",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T14:09:26.258Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "e7b7a83b9ba68ee9206c7405b164abcd93be47f3",
         "registrationTimestamp": "2026-09-14T20:51:05+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-036.json",
-        "taskDigest": "a56a44e7cea5a5ce4093007b4aa0b7a8b0a2110e597b88a10c23845f7932b7f3"
+        "taskDigest": "a56a44e7cea5a5ce4093007b4aa0b7a8b0a2110e597b88a10c23845f7932b7f3",
+        "taskDefinitionBlob": "70e6ea69d82c0f1a66fe52629ae216681a853b61",
+        "registrationReceiptBlob": "4403a3a024f31352ef325d2509e6db6ec8062110"
       },
       "heterogeneityKey": "host-profile-workspace-binding",
-      "qualified": true,
-      "reasons": [],
+      "qualified": false,
+      "reasons": [
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
+      ],
       "independentAdjudication": true,
       "measurements": {
         "routing_recall": {
@@ -1415,6 +1639,10 @@
         "taskId must match OT-###",
         "taskDefinition must be a non-empty string",
         "taskDefinitionCommit must be a 40-character commit SHA",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "baseCommit must be a 40-character commit SHA",
         "runStartedAt must be an ISO-8601 timestamp",
@@ -1473,6 +1701,10 @@
         "taskId must match OT-###",
         "taskDefinition must be a non-empty string",
         "taskDefinitionCommit must be a 40-character commit SHA",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "baseCommit must be a 40-character commit SHA",
         "runStartedAt must be an ISO-8601 timestamp",
@@ -1531,6 +1763,10 @@
         "taskId must match OT-###",
         "taskDefinition must be a non-empty string",
         "taskDefinitionCommit must be a 40-character commit SHA",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "baseCommit must be a 40-character commit SHA",
         "runStartedAt must be an ISO-8601 timestamp",
@@ -1589,6 +1825,10 @@
         "taskId must match OT-###",
         "taskDefinition must be a non-empty string",
         "taskDefinitionCommit must be a 40-character commit SHA",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "baseCommit must be a 40-character commit SHA",
         "runStartedAt must be an ISO-8601 timestamp",
@@ -1647,6 +1887,10 @@
         "taskId must match OT-###",
         "taskDefinition must be a non-empty string",
         "taskDefinitionCommit must be a 40-character commit SHA",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "baseCommit must be a 40-character commit SHA",
         "runStartedAt must be an ISO-8601 timestamp",
@@ -1705,6 +1949,10 @@
         "taskId must match OT-###",
         "taskDefinition must be a non-empty string",
         "taskDefinitionCommit must be a 40-character commit SHA",
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
         "runId has an invalid format",
         "baseCommit must be a 40-character commit SHA",
         "runStartedAt must be an ISO-8601 timestamp",
@@ -1732,20 +1980,34 @@
       "primaryHypothesis": "PN8",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T20:11:31.879Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationTimestamp": "2026-09-15T03:09:40+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-051.json",
-        "taskDigest": "4d5ddf971046ff2a8c34ae09c3c289497aa70f95b91b5284c49d8510adf93749"
+        "taskDigest": "4d5ddf971046ff2a8c34ae09c3c289497aa70f95b91b5284c49d8510adf93749",
+        "taskDefinitionBlob": "d50cd957e380e88d6225b35230c5a5c0b7d769a0",
+        "registrationReceiptBlob": "c16c859dbfd3d360d2714b2876dcbc91ddcfade6"
       },
       "heterogeneityKey": "code-state-healthy-watcher-reconciliation",
       "qualified": false,
       "reasons": [
-        "a predeclared command did not pass in every arm"
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
       ],
       "independentAdjudication": true,
       "measurements": {
@@ -1787,20 +2049,34 @@
       "primaryHypothesis": "PN8",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T20:14:18.037Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationTimestamp": "2026-09-15T03:09:40+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-052.json",
-        "taskDigest": "4f067cb4e0141fa608e59f1f445c1ec5d9b391ce4125c7e10dd266858048f59b"
+        "taskDigest": "4f067cb4e0141fa608e59f1f445c1ec5d9b391ce4125c7e10dd266858048f59b",
+        "taskDefinitionBlob": "2854255d634cd3b75470bf1eecc44093cced7b4c",
+        "registrationReceiptBlob": "26c9b0a9f6d88faec5faf5adefacecf86d8bfe41"
       },
       "heterogeneityKey": "code-state-late-backend-error-containment",
       "qualified": false,
       "reasons": [
-        "a predeclared command did not pass in every arm"
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
       ],
       "independentAdjudication": true,
       "measurements": {
@@ -1842,20 +2118,34 @@
       "primaryHypothesis": "PN8",
       "resultStatus": "COMPLETED",
       "runCompletedAt": "2026-09-14T20:15:59.239Z",
-      "validPair": true,
+      "validPair": false,
       "registration": {
-        "ok": true,
-        "errors": [],
-        "currentCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
+        "ok": false,
+        "errors": [
+          "result.registrationCommit must match the Git registration commit observed before the run",
+          "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+          "result.taskDefinitionBlob must match the committed task-definition blob",
+          "result.registrationReceiptBlob must match the committed registration-receipt blob"
+        ],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
         "registrationCommit": "c6deaf5eeff1f405676296cf014a8b4da37f7b1b",
         "registrationTimestamp": "2026-09-15T03:09:40+07:00",
         "receiptPath": "dogfood/observed-registrations/OT-053.json",
-        "taskDigest": "f673f1abc1e76c0fb738e2cc0c371d5280982a9c21c6891232cd29aa01b1eb9a"
+        "taskDigest": "f673f1abc1e76c0fb738e2cc0c371d5280982a9c21c6891232cd29aa01b1eb9a",
+        "taskDefinitionBlob": "250d7ffc40480d06922c51252a724d70f933a4a8",
+        "registrationReceiptBlob": "19b64f0f69377b57f8ddfd4e6acd1b822e274877"
       },
       "heterogeneityKey": "daemon-join-latency-registration-bound",
       "qualified": false,
       "reasons": [
-        "a predeclared command did not pass in every arm"
+        "registrationCommit must be a 40-character commit SHA",
+        "registrationTimestamp must be an ISO-8601 timestamp",
+        "taskDefinitionBlob must be a 40-character commit SHA",
+        "registrationReceiptBlob must be a 40-character commit SHA",
+        "result.registrationCommit must match the Git registration commit observed before the run",
+        "result.registrationTimestamp must match the Git registration timestamp observed before the run",
+        "result.taskDefinitionBlob must match the committed task-definition blob",
+        "result.registrationReceiptBlob must match the committed registration-receipt blob"
       ],
       "independentAdjudication": true,
       "measurements": {
@@ -1890,6 +2180,336 @@
         "run-ba1f494ecbafba93"
       ],
       "evaluatorRunId": "eval-aabf71f04709a744"
+    },
+    {
+      "taskId": "OT-061",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T22:00:37.554Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
+        "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+        "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-061.json",
+        "taskDigest": "85c5f975c4e340741a9e393d5d46f1a931f908cb2d461c890497b85eb1a9e78d",
+        "taskDefinitionBlob": "6954ecc28c68c632fd846b4b058270d19b24fc4b",
+        "registrationReceiptBlob": "b3bd4284b9ef06fa07a90f2872abfd37dbdc41fe"
+      },
+      "heterogeneityKey": "context-router-string-impact",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 0,
+          "delta": -1
+        }
+      },
+      "runIds": [
+        "run-caa4305ea349f90f",
+        "run-484ec68952270339"
+      ],
+      "evaluatorRunId": "eval-cb2600dda5435b6b"
+    },
+    {
+      "taskId": "OT-062",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T22:02:41.981Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
+        "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+        "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-062.json",
+        "taskDigest": "a1e90ce39e192893ba7935df1e512e213d403e116fe9e8f7eddcab5ff9740429",
+        "taskDefinitionBlob": "9deb46fb4be05bf90958ab1c6faae4ddb71233b9",
+        "registrationReceiptBlob": "37ec12080793f0f35e1261ad19a55d57a29376f8"
+      },
+      "heterogeneityKey": "impact-engine-package-scope",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 0,
+          "delta": -1
+        }
+      },
+      "runIds": [
+        "run-b29dec7c998fe376",
+        "run-52b63901c8b085ea"
+      ],
+      "evaluatorRunId": "eval-229cb1306be15200"
+    },
+    {
+      "taskId": "OT-063",
+      "taskClass": "PN6",
+      "primaryHypothesis": "PN6",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T22:04:44.903Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
+        "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+        "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-063.json",
+        "taskDigest": "f82dc1482c543e89e514d1f0fcbb977def8e1044f0095eb70e8d2977d815f5de",
+        "taskDefinitionBlob": "03fbc9d633a38479510fca0351d75bafbedb039f",
+        "registrationReceiptBlob": "900e2a180685b60976c242a3dd96930fcb98aaf0"
+      },
+      "heterogeneityKey": "host-profile-workspace-binding",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "routing_recall": {
+          "control": 0.5,
+          "treatment": 1,
+          "delta": 0.5
+        },
+        "routing_precision": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "selected_items": {
+          "control": 1,
+          "treatment": 2,
+          "delta": 1
+        },
+        "downstream_pass": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "repair_iterations": {
+          "control": 1,
+          "treatment": 0,
+          "delta": -1
+        }
+      },
+      "runIds": [
+        "run-2865c88097ac7f7d",
+        "run-5fabf8e7d805ee3d"
+      ],
+      "evaluatorRunId": "eval-3007e417a3c51324"
+    },
+    {
+      "taskId": "OT-071",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T22:07:05.491Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
+        "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+        "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-071.json",
+        "taskDigest": "4f4363b142b5b1c1aac107d248e95bacecdaf30fe41678c5c92f937bee15629a",
+        "taskDefinitionBlob": "f84fd23a4978cdcc50263e395b220d5b9877b188",
+        "registrationReceiptBlob": "f60616750695af4ea4272c0c971deb64d41da9ec"
+      },
+      "heterogeneityKey": "code-state-healthy-watcher-reconciliation",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 0,
+          "treatment": 1,
+          "delta": 1
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-5e443945712226fa",
+        "run-42c26314f4a65a63"
+      ],
+      "evaluatorRunId": "eval-ba2445e38801eab5"
+    },
+    {
+      "taskId": "OT-072",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T22:09:08.008Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
+        "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+        "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-072.json",
+        "taskDigest": "bdf05fc4cd48fa5db5bf1fda4c8ac7d20cac0500bf724c0490864b193b21074a",
+        "taskDefinitionBlob": "d3590e8d68a134bbd015c91116ca5a833edc8c6b",
+        "registrationReceiptBlob": "004f5bff0731a1c18d64c5021f3af040632031ba"
+      },
+      "heterogeneityKey": "code-state-late-backend-error-containment",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 0,
+          "treatment": 1,
+          "delta": 1
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-0775b7c21f6ebe51",
+        "run-8bd7c2da4a43b5a7"
+      ],
+      "evaluatorRunId": "eval-3835a6fcd6e6e0b8"
+    },
+    {
+      "taskId": "OT-073",
+      "taskClass": "PN8",
+      "primaryHypothesis": "PN8",
+      "resultStatus": "COMPLETED",
+      "runCompletedAt": "2026-09-14T22:12:35.185Z",
+      "validPair": true,
+      "registration": {
+        "ok": true,
+        "errors": [],
+        "currentCommit": "84e6e4b623983015503367cb934362c3573e110d",
+        "registrationCommit": "38c0108486c255e5dc5f4f5103cb0917f1c2c12d",
+        "registrationTimestamp": "2026-09-15T04:58:28+07:00",
+        "receiptPath": "dogfood/observed-registrations/OT-073.json",
+        "taskDigest": "fac592399c514eda26f49e33118a7376e1b9129ba516a6150cb9364f5ec693cf",
+        "taskDefinitionBlob": "f0acf473008bfca66259ddfe67d64e090d59d0a3",
+        "registrationReceiptBlob": "c6e57589d36024e512c85fdd6a5990d6383f68ef"
+      },
+      "heterogeneityKey": "daemon-join-latency-registration-bound",
+      "qualified": true,
+      "reasons": [],
+      "independentAdjudication": true,
+      "measurements": {
+        "repair_yield": {
+          "control": 0,
+          "treatment": 1,
+          "delta": 1
+        },
+        "repair_attempts": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "prior_passes_preserved": {
+          "control": 1,
+          "treatment": 1,
+          "delta": 0
+        },
+        "regressions": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        },
+        "false_accepts": {
+          "control": 0,
+          "treatment": 0,
+          "delta": 0
+        }
+      },
+      "runIds": [
+        "run-a621ca21ff7de509",
+        "run-6febc19b34a997de"
+      ],
+      "evaluatorRunId": "eval-752171aa3508670c"
     }
   ],
   "loadErrors": [

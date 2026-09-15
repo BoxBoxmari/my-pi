@@ -74,6 +74,9 @@ importers:
       '@my-pi/impact-engine':
         specifier: workspace:*
         version: link:../../packages/impact-engine
+      '@my-pi/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       '@my-pi/workspace-runtime':
         specifier: workspace:*
         version: link:../../packages/workspace-runtime
@@ -111,6 +114,9 @@ importers:
       '@my-pi/mcp-adapter':
         specifier: workspace:*
         version: link:../../packages/mcp-adapter
+      '@my-pi/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       '@my-pi/ui':
         specifier: workspace:*
         version: link:../my-pi-ui
@@ -126,6 +132,9 @@ importers:
       '@my-pi/graph-model':
         specifier: workspace:*
         version: link:../../packages/graph-model
+      '@my-pi/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       three:
         specifier: ^0.186.0
         version: 0.186.0

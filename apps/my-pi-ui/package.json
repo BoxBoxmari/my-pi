@@ -17,6 +17,7 @@
   "dependencies": {
     "@my-pi/coordination-client": "workspace:*",
     "@my-pi/graph-model": "workspace:*",
+    "@my-pi/observability": "workspace:*",
     "three": "^0.186.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-04T18:10:19.081Z",
-  "commit": "2934b9ddd3be3df787eb2aad80319ba7f1185962",
+  "generatedAt": "2026-09-14T23:26:46.357Z",
+  "commit": "7ae2337f8d744ddc8e5c513b5771a0df3b8f6c66",
   "sdk": {
     "serverPackage": "2.0.0",
     "clientPackage": "2.0.0",
@@ -13,21 +13,12 @@
     ]
   },
   "observed": {
-    "clientNegotiatedEra": "2025-11-25",
-    "transport": "stdio",
-    "platform": "win32",
-    "nodeVersion": "v26.7.0"
+    "clientNegotiatedEra": "2025-11-25"
   },
   "hostProbe": {
-    "claudeCode": {
-      "installed": true,
-      "version": "2.1.224 (Claude Code)"
-    },
-    "openCode": {
-      "installed": true,
-      "version": "1.18.21"
-    },
-    "verificationStatus": "ERA_NEGOTIATION_CAPTURED",
-    "note": "Live host CLI invocation is performed in CI lanes where hosts are pre-installed; stdio protocol handshake is verified locally."
-  }
+    "claudeCode": "NOT-CAPTURED",
+    "openCode": "NOT-CAPTURED"
+  },
+  "nodeVersion": "v26.7.0",
+  "platform": "win32"
 }

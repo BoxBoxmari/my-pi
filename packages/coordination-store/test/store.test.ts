@@ -261,3 +261,76 @@ test("evaluation query migration backfills projection records from schema versio
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("listEvents filters by eventTypeIn and fails closed on empty array", async () => {
+  const { dir, file } = await makeDatabase();
+  const projectId = createProjectId();
+  const store = new SqliteCoordinationStore(file);
+  try {
+    await store.init();
+    await store.appendEvent({ projectId, eventType: "WorkItemCreated", actor: actor(), payload: { workItemId: "wi-1" } });
+    await store.appendEvent({ projectId, eventType: "CodeGraphUpdated", actor: actor(), payload: { worktreeId: "wt-1" } });
+    await store.appendEvent({ projectId, eventType: "IntentDeclared", actor: actor(), payload: { intentId: "in-1" } });
+
+    const filtered = await store.listEvents({ projectId, eventTypeIn: ["WorkItemCreated", "IntentDeclared"] });
+    assert.deepEqual(filtered.events.map((event) => event.eventType), ["WorkItemCreated", "IntentDeclared"]);
+    assert.deepEqual(filtered.events.map((event) => event.sequence), [1n, 3n]);
+    assert.equal(filtered.hasMore, false);
+
+    const unfiltered = await store.listEvents({ projectId });
+    assert.deepEqual(unfiltered.events.map((event) => event.eventType), ["WorkItemCreated", "CodeGraphUpdated", "IntentDeclared"]);
+
+    const otherFilter = await store.listEvents({ projectId, eventTypeIn: ["CodeGraphUpdated"] });
+    assert.deepEqual(otherFilter.events.map((event) => event.eventType), ["CodeGraphUpdated"]);
+
+    await assert.rejects(store.listEvents({ projectId, eventTypeIn: [] }), (error: unknown) => codeIs("ERR_INVALID_ARGUMENT")(error) && /eventTypeIn must not be empty/.test((error as Error).message));
+  } finally {
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("eventTypeIn preserves string sequences, hasMore windowing, byte-break cursor", async () => {
+  const { dir, file } = await makeDatabase();
+  const projectId = createProjectId();
+  const store = new SqliteCoordinationStore(file);
+  try {
+    await store.init();
+    for (let index = 0; index < 12; index++) {
+      await store.appendEvent({
+        projectId,
+        eventType: index % 2 === 0 ? "AgentHeartbeat" : "CodeGraphUpdated",
+        occurredAt: "2026-09-04T00:00:00.000Z",
+        actor: actor(),
+        payload: { index, filler: "x".repeat(2_000) },
+      });
+    }
+    const heartbeatTypes: readonly string[] = ["AgentHeartbeat"];
+
+    const all = await store.listEvents({ projectId, eventTypeIn: heartbeatTypes });
+    assert.equal(all.events.length, 6);
+    for (const event of all.events) assert.equal(typeof event.sequence, "bigint");
+    const wire = all.events.map((event) => ({ ...event, sequence: event.sequence.toString() }));
+    for (const event of wire) assert.equal(typeof event.sequence, "string");
+    assert.deepEqual(wire.map((event) => event.sequence), ["1", "3", "5", "7", "9", "11"]);
+
+    const pageOne = await store.listEvents({ projectId, eventTypeIn: heartbeatTypes, limit: 2 });
+    assert.deepEqual(pageOne.events.map((event) => event.sequence), [1n, 3n]);
+    assert.equal(pageOne.hasMore, true);
+    assert.equal(pageOne.throughSequence, 3n);
+    const pageTwo = await store.listEvents({ projectId, eventTypeIn: heartbeatTypes, afterSequence: pageOne.throughSequence, limit: 2 });
+    assert.deepEqual(pageTwo.events.map((event) => event.sequence), [5n, 7n]);
+    assert.equal(new Set([...pageOne.events, ...pageTwo.events].map((event) => String(event.sequence))).size, 4);
+
+    const bytePage = await store.listEvents({ projectId, eventTypeIn: heartbeatTypes, limit: 10, maxBytes: 5_000 });
+    assert.equal(bytePage.events.length, 2);
+    assert.equal(bytePage.hasMore, true);
+    assert.equal(bytePage.throughSequence, 3n);
+    const byteResume = await store.listEvents({ projectId, eventTypeIn: heartbeatTypes, afterSequence: bytePage.throughSequence, maxBytes: 5_000 });
+    assert.deepEqual(byteResume.events.map((event) => event.sequence), [5n, 7n]);
+    assert.equal(new Set([...bytePage.events, ...byteResume.events].map((event) => String(event.sequence))).size, 4);
+  } finally {
+    await store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});

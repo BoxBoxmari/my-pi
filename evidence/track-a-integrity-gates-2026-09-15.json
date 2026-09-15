@@ -1,0 +1,294 @@
+{
+  "schemaVersion": "1",
+  "recordType": "track-a-integrity-gates-evidence",
+  "observedAt": "2026-09-15T06:32:42.926Z",
+  "authority": {
+    "tool": "my-pi",
+    "workspaceRoot": "C:/Users/Admin/Downloads/Compressed/my-pi",
+    "policyMode": "workspace-write",
+    "evidenceWriter": "my-pi.fs_write",
+    "readback": "my-pi.fs_read(max_bytes=1MiB)"
+  },
+  "candidate": {
+    "head": "84e6e4b623983015503367cb934362c3573e110d",
+    "sourceStateDigest": "89603e7f9e4c651c398ab8813f22d4214889ca7fc38246c530240daf15a1c075",
+    "sourceClean": true,
+    "candidateDirtyPaths": []
+  },
+  "artifactHashes": {
+    "evidence/observed-evidence-v2.aggregate.json": "sha256:dbf8893ea0b5f600a7c9b804ca1924d063a81b47a9cc0fcfc28d78bea7b9acfe",
+    "evidence/PN6.json": "sha256:2f2df8e460ca716ebec4e17835e804ca146cb37716ab17d656ece2e18e5c9e17",
+    "evidence/PN8.json": "sha256:946b9b3d0e60f0f1e602966c281912f5422a22b58578057324d28504108815d2",
+    "evidence/PN9.json": "sha256:dd741dc2310ae85819fab144a219f993cfa9131fdc6f02673c6ef6b86beba28b",
+    "evidence/PN12.json": "sha256:48b475a5d1238f1faeeae2ca1a990dbba26a21e3d0e3792630811098d80a7d93",
+    "evidence/track-a-xh-verify-2026-09-15.json": "sha256:03fce37ddfe19db1e392578983796ff0c11242050794b7adc189aa168a4b82e0",
+    "evidence/track-b-host-bypass-2026-09-13.json": "sha256:119f88ad3a850edd8657e7622eea872921229f2bd871134f9d0b0742e7d899fa",
+    "evidence/track-b-report-mode-2026-09-15.json": "sha256:f033c841cf1cb34b2dad6f8cce829f8c4be433708653be3c1252ccf942028a7b",
+    "evidence/track-b-strict-candidate-2026-09-15.json": "sha256:5ec9237c688388045b113aac8101e6cbf7f7667d7dd96322b6e3783bc44adddd",
+    "evidence/track-c-mcp-apps-2026-09-13.json": "sha256:cec3f261eed7899c102b127c5b3efce095911ff9fa1aa43c89385a9d92bc7b39",
+    "evidence/G0.json": "sha256:3c42c0ec4bb740141f968366aa09b0da37531c140f9684089e4369442d538ab8",
+    "evidence/G1.json": "sha256:788ebb7177e7764e0ce706abd590376d86dd7f9243633b2ce8421a6d0e80161d",
+    "evidence/G2.json": "sha256:14f29ddf3df75155b2fd05cd39c91f820b7c622094685647dee39b5c913ef635",
+    "evidence/G3.json": "sha256:2085044a43d15ec7257f886d8faeb31e49fafcd463a2b65aa2d49cc5ff6d716c",
+    "evidence/G4.json": "sha256:28a681e793d683ecb8bde62db406d427a41a7a1544887f47d367968689d957ff",
+    "evidence/G5.json": "sha256:c2d652f13ac31e54244d1b9b1ae6d61d13a4ea2e88ef5691834fdcc8f7e5282d",
+    "evidence/G6.json": "sha256:24f0a758650b3a14b11e58b0e2a6a671461b674e0d3e1347b19423094741645e",
+    "evidence/R0.json": "sha256:ea1eb5eb57158da119f39982c9c4738101147fb517363b5d1b86e9fab00a6897",
+    "dogfood/observed-tasks/OT-061.result.json": "sha256:fc35d59c1fb55e2be6ba75c4e4fbf2f8057d399b0e9cc317ba24b7bea9e90543",
+    "dogfood/observed-tasks/OT-062.result.json": "sha256:f6c5344d90cd3a047f0a64cccf9da5c0f1f6d2715f863fe211e1ca5ef7ae3151",
+    "dogfood/observed-tasks/OT-063.result.json": "sha256:0b4c910e393f84d287c8efaa250f609ddc551152db3d70c35bd3efec3f0a584d",
+    "dogfood/observed-tasks/OT-071.result.json": "sha256:8863a1742d8fdf9a964ef4f321e7789e326ed766c4d7078cbc3794ff1fdfa876",
+    "dogfood/observed-tasks/OT-072.result.json": "sha256:cd32acdd682ed81375cf8a421f9a8c91a261ada5c49b5e8105a7a4d9ec7cc41b",
+    "dogfood/observed-tasks/OT-073.result.json": "sha256:2dffe5aaa9bd9b753962398c87f199b17a3663db1b9cd1b3280f564706ef7571",
+    "evidence/track-a-real-pn6-OT-061.json": "sha256:e1448c37da9f25b9a0bf2e5cdc9c5b36fb1a362b840069d458143b4ab87c6cda",
+    "evidence/track-a-real-pn6-OT-062.json": "sha256:628ca686d49de1f5b726b5430371e19cf47689ea3a545073453d40adc5dea176",
+    "evidence/track-a-real-pn6-OT-063.json": "sha256:7116f99985aec7b436d1630043fd2dd4a434086e41fff54e824795331a273cf9",
+    "evidence/track-a-pn8-live-repair-OT-071.json": "sha256:e27723c21ae3dd56e14e175c9d641ab75ed2c32bef5875b7780c49eb85647682",
+    "evidence/track-a-pn8-live-repair-OT-072.json": "sha256:2fb2e683a315601bcf89a274acda42bbcdaa00c153449c40fc46de259996cb31",
+    "evidence/track-a-pn8-live-repair-OT-073.json": "sha256:24ed8a9ea2a6f8ac4cc5a07744df260aa8d344703fd798a761c711167c75aa0a",
+    "benchmarks/results/traversal-smoke.json": "sha256:0c5ccbddb22aa83d7bdcb19e944d1a92d3f00fb59b668844ec3f7ffbfaa2fb6e",
+    "benchmarks/results/traversal-release.json": "sha256:31b2219e48c85aa84a219da33620bbd26f2c65f022f60312b5efdab2c9283ff1",
+    "benchmarks/results/runtime-boundaries.json": "sha256:46681d58a84bbe383cab3ab0e54e732b4cacd986dbef3a7209ccc59f6210712f",
+    "provenance/SBOM.cdx.json": "sha256:dee45661580cb830229e663aea0e3bdf05555804b262ebaffe39348dc65bf8bb",
+    "dist-release/release-manifest.json": "sha256:3ee1a3c1957152d000d3b4fda64414a7c4d27f6d5dc9d6935960e1628890fd65",
+    ".x-harness/self-hosted-track-a-completion-card.yaml": "sha256:06aaf5ccdf5d17f02af6826b66b78187a53c159c790b2533fd01a8e60369aa67",
+    "dist-release/koonwang03-my-pi-0.1.0-alpha.2.tgz": "sha256:ae3bbb288cfcf013025b7ab094be431bb7af069bd7c545e77d3ad66f6f66eb5f"
+  },
+  "validations": {
+    "typecheck": {
+      "command": "pnpm typecheck",
+      "exitCode": 0
+    },
+    "build": {
+      "command": "pnpm build",
+      "exitCode": 0
+    },
+    "fullTests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "tests": 258,
+      "passed": 257,
+      "skipped": 1,
+      "failed": 0
+    },
+    "releaseTests": {
+      "command": "pnpm test:release",
+      "exitCode": 0,
+      "tests": 83,
+      "passed": 83,
+      "failed": 0
+    },
+    "observedAggregate": {
+      "command": "pnpm exec node scripts/aggregate-observed-evidence-v2.mjs --emit-candidate-evidence",
+      "exitCode": 0,
+      "status": "WITHHELD",
+      "promotionEligible": false
+    },
+    "productionEvidence": {
+      "command": "pnpm verify:production-next-evidence",
+      "exitCode": 0,
+      "status": "PASS",
+      "pn6": "ACCEPTED",
+      "pn8": "ACCEPTED",
+      "pn9": "ACCEPTED",
+      "pn12": "CURRENT_CANDIDATE_BINDING_VALID",
+      "pn9EventCount": 345,
+      "pn9AcceptedRunId": "evalrun_e3cfe8031142",
+      "pn12Scenarios": 0
+    },
+    "promotion": {
+      "command": "pnpm verify:production-next-promotion",
+      "exitCode": 1,
+      "status": "WITHHELD",
+      "reason": "PN12 status is WITHHELD and promotionEligible is false"
+    },
+    "releaseVerifier": {
+      "command": "node scripts/verify-release.mjs --strict",
+      "exitCode": 0,
+      "status": "PASS",
+      "required": 47,
+      "passed": 47,
+      "failed": 0,
+      "releaseCommit": "84e6e4b623983015503367cb934362c3573e110d"
+    },
+    "sbom": {
+      "command": "node scripts/verify-sbom.mjs",
+      "exitCode": 0,
+      "status": "PASS"
+    },
+    "benchmarkSmoke": {
+      "command": "pnpm bench:smoke",
+      "security": "PASS",
+      "performance": "ADVISORY_BREACH_NON_BLOCKING"
+    },
+    "benchmarkRelease": {
+      "command": "pnpm bench:release",
+      "security": "PASS",
+      "performance": "ADVISORY_BREACH_NON_BLOCKING",
+      "grepMs": 231218.97
+    },
+    "runtimeBoundaries": {
+      "command": "pnpm bench:boundaries",
+      "exitCode": 0,
+      "status": "PASS"
+    },
+    "codeGraph": {
+      "command": "codegraph sync",
+      "exitCode": 0,
+      "status": "PASS",
+      "files": 334,
+      "nodes": 4222,
+      "edges": 12111
+    },
+    "kpmgStopHook": {
+      "command": "codex-validate-stop.js",
+      "exitCode": 0,
+      "result": "no validation errors"
+    },
+    "officialMyPiRepublish": {
+      "command": "official my-pi fs_read/fs_write/fs_read",
+      "exitCode": 0,
+      "filesReadBack": 180,
+      "failures": 0
+    },
+    "xhReadOnly": {
+      "command": "C:/Users/Admin/AppData/Local/x-harness/xh.exe verify --card .x-harness/self-hosted-track-a-completion-card.yaml --profile ci-standard --tier deep --json --mutation-guard --strict --strict-withheld-reason --diff-check",
+      "exitCode": 1,
+      "status": "BLOCKED",
+      "admissionOutcome": "blocked",
+      "acceptanceStatus": "withheld",
+      "mutationGuardViolated": false,
+      "cardHash": "sha256:06aaf5ccdf5d17f02af6826b66b78187a53c159c790b2533fd01a8e60369aa67"
+    },
+    "specKit": {
+      "command": "powershell.exe -NoProfile -NonInteractive -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks",
+      "exitCode": 0,
+      "status": "PASS"
+    },
+    "agtIntegrity": {
+      "command": "agt --json integrity",
+      "exitCode": 0,
+      "status": "PASS",
+      "modulesChecked": 15
+    },
+    "agtVerify": {
+      "command": "agt --json verify",
+      "exitCode": 0,
+      "status": "PASS",
+      "coverage": "10/10"
+    },
+    "xhDoctor": {
+      "command": "xh doctor --root . --format json",
+      "exitCode": 0,
+      "status": "PASS",
+      "healthy": true,
+      "criticalAssets": "PASS",
+      "schemasCompile": "PASS",
+      "policiesParse": "PASS"
+    },
+    "agtPolicyLint": {
+      "command": "agt --json lint-policy .agt/policy.json",
+      "exitCode": 1,
+      "status": "BLOCKED",
+      "errors": [
+        "Missing required field 'name'",
+        "Missing required field 'rules'"
+      ],
+      "reason": "legacy JSON policy format is not rewritten without an approved governance schema change"
+    },
+    "latestVerificationAttempt": {
+      "command": "pnpm verify",
+      "exitCode": 1,
+      "status": "FAILED_UNRESOLVED_RUNTIME_TESTS",
+      "fullSuite": {
+        "tests": 258,
+        "passed": 248,
+        "failed": 9,
+        "skipped": 1
+      },
+      "failureSignatures": [
+        "daemon did not become ready within 10 seconds",
+        "coordination IPC request timed out",
+        "Unexpected token in coordination response"
+      ],
+      "interpretation": "This attempt cannot support a clean verify claim. The failure is recorded without attributing root cause to the candidate patch; targeted daemon rerun still had 6/8 pass and Windows EBUSY cleanup in one case."
+    },
+    "latestSmokeProfile": {
+      "command": "pnpm test:fast",
+      "exitCode": 0,
+      "status": "PASS",
+      "tests": 38,
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "trackA": {
+    "aggregateVisiblePairs": 37,
+    "qualifiedCases": 6,
+    "pn6": {
+      "qualified": 3,
+      "target": 3,
+      "heterogeneous": true,
+      "taskIds": [
+        "OT-061",
+        "OT-062",
+        "OT-063"
+      ]
+    },
+    "pn8": {
+      "qualified": 3,
+      "target": 3,
+      "heterogeneous": true,
+      "ordinaryRepairYield": 0,
+      "structuredRepairYield": 1,
+      "falseAccepts": 0,
+      "taskIds": [
+        "OT-071",
+        "OT-072",
+        "OT-073"
+      ]
+    },
+    "pn9": {
+      "status": "ACCEPTED_CURRENT_CANDIDATE",
+      "acceptedRunId": "evalrun_e3cfe8031142",
+      "eventCount": 345
+    },
+    "pn12": {
+      "status": "CURRENT_CANDIDATE_BINDING_VALID",
+      "promotionEligible": false,
+      "scenarios": 6
+    }
+  },
+  "trackB": {
+    "status": "REPORT_ONLY",
+    "vectors": 12,
+    "reportMode": "PASS",
+    "strictHostCertification": "WITHHELD",
+    "residualPaths": [
+      "alternate-mcp-server",
+      "direct-git-patch",
+      "host-native-editor"
+    ],
+    "hostBypassCandidate": "84e6e4b623983015503367cb934362c3573e110d"
+  },
+  "trackC": {
+    "liveDaemon": "PASSED",
+    "officialStdioResources": 2,
+    "liveToolCount": 19,
+    "openCodeConnection": "PASSED",
+    "nativeRendering": "WITHHELD",
+    "candidate": "84e6e4b623983015503367cb934362c3573e110d"
+  },
+  "xHarness": {
+    "command": "C:/Users/Admin/AppData/Local/x-harness/xh.exe verify --card .x-harness/self-hosted-track-a-completion-card.yaml --profile ci-standard --tier deep --json --mutation-guard --strict --strict-withheld-reason --diff-check",
+    "exitCode": 1,
+    "admissionOutcome": "blocked",
+    "acceptanceStatus": "withheld",
+    "admissionChecksPassed": true,
+    "mutationGuardViolated": false,
+    "cardHash": "sha256:06aaf5ccdf5d17f02af6826b66b78187a53c159c790b2533fd01a8e60369aa67",
+    "evidenceHash": "sha256:03fce37ddfe19db1e392578983796ff0c11242050794b7adc189aa168a4b82e0"
+  },
+  "supersedes": "evidence/track-a-integrity-gates-2026-09-14.json"
+}
