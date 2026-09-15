@@ -59,3 +59,12 @@ Thumbs.db
 .idea/
 *.tgz
 *.node
+
+# Generated run artifacts and local-only tooling (kept on disk, not published)
+dogfood/observed-tasks/
+dogfood/observed-registrations/
+evidence/track-*.json
+evidence/observed-*.json
+dist-release/
+.specify/
+apps/my-pi-ui/theater-live-session.mjs

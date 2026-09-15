@@ -112,7 +112,10 @@ MCP-capable coding host
            └── local host workspace
 ```
 
-The stable public claim is the 13-tool MCP capability surface. The repository also contains an opt-in **Production Next** coordination/evaluation candidate; those coordination, code-state, change-receipt, evaluation, and feedback features remain experimental and subject to their promotion gates.
+The stable public claim is the 13-tool MCP capability surface. The repository also contains two opt-in candidates that never change the default mode:
+
+- **Production Next** — coordination, code-state, change-receipt, evaluation, and feedback features, subject to their promotion gates.
+- **Visual Plane** — a read-only graph/theater projection of authoritative local state, plus a mutation-provenance and local-admission path.
 
 ## Build from source
 
@@ -173,30 +176,72 @@ pnpm bench:local-reliability
 pnpm verify:production-next
 ```
 
+## Visual Plane (experimental)
+
+An opt-in, read-only visualization surface renders authoritative local state as a bounded graph. It is a **projection** of the coordination graph snapshot and event log — not an LLM-generated diagram — and it never mutates source state.
+
+```bash
+# 1) Start the local coordination daemon for a project
+my-pi-daemon --workspace /path/to/your/project
+
+# 2) Serve the read-only Agent Operations Theater on loopback (prints its URL)
+node apps/my-pi-ui/dist/main.js /path/to/your/project
+# then open the printed URL with ?view=theater3d
+```
+
+- **Agent Operations Theater** renders a Three.js isometric work graph (agents, work items, intents, dependencies) with live event cues, a replay timeline, an evidence/trace/provenance inspector, and an automatic 2D SVG fallback when WebGL is unavailable.
+- **Honest data states:** `degraded`, `truncated`, `stale`, and `empty` are always surfaced; unknown event types never drive motion; sensitive paths embedded in free-text values are redacted on every wire exit.
+- **Hosts:** the same browser artifact is exposed through MCP Apps as the opt-in `ui://my-pi/theater` resource behind `--visuals`. The default MCP catalog remains exactly 13 tools.
+- **Boundary:** the portal binds to loopback only and requires a per-launch session token; it is read-only in V1.
+
+## Mutation provenance and local admission (experimental)
+
+- **Observe mode** classifies observed code-state transitions as `managed`, `unmanaged`, `stale_lineage`, `unknown`, or `exempt` against verified my-pi change receipts — an external edit never becomes `managed` by observing final bytes.
+- **Local admission** compares a Git change set with verified lineage and returns path-level `allowed` / `rejected` / `review_required` findings.
+- **Portable attestation:** a canonical, cross-platform admission subject digest can be signed with Ed25519 (private key stored outside the workspace) and verified in CI without local SQLite state. The GitHub check runs in **report mode** until its qualification gates pass.
+- **Host policy bundles** declare each host's enforcement maturity (`strict-capable` / `managed` / `monitoring`); a profile is never labeled strict-certified without seeded bypass evidence.
+
+```bash
+pnpm measure:track-b-report-mode
+pnpm measure:track-b-strict-candidate
+pnpm measure:track-b-host-bypass
+```
+
 ## Package topology
 
 ```text
+apps/
+├── my-pi-mcp/             # MCP stdio server entry (stable 13-tool surface)
+├── my-pi-daemon/          # Local per-project coordination/evaluation authority
+└── my-pi-ui/              # Read-only local portal + shared browser graph artifact
+
 packages/
 ├── contracts/             # Core interfaces, error codes, fingerprinting
 ├── workspace-runtime/     # Workspace/path normalization and mutation coordination
 ├── policy/                # Sensitive-path protection
 ├── artifact-store/        # Disk-backed spillover artifacts
-├── observability/         # Tracing and metrics contracts
+├── observability/         # Tracing, metrics, and wire redaction contracts
 ├── fs/                    # Hardened filesystem capabilities
 ├── search/                # Grep/glob traversal
 ├── hashline/              # Hashline-anchored patch engine
 ├── ast/                   # Tree-Sitter structural search
 ├── lsp/                   # Multi-language LSP lifecycle/client
 ├── vcs/                   # Git-backed status and diff
-├── mcp-adapter/           # MCP stdio server adapter
-├── host-profiles/         # Host configuration renderers
-├── change-runtime/        # Content preconditions and change receipts
-├── code-state/            # Filesystem/AST/LSP/VCS code state
+├── mcp-adapter/           # MCP stdio server adapter (incl. opt-in MCP Apps resources)
+├── host-profiles/         # Host configuration renderers and policy bundles
+├── change-runtime/        # Content preconditions, change receipts, admission subject/attestation
+├── code-state/            # Filesystem/AST/LSP/VCS code state and mutation provenance
 ├── coordination-client/   # Local daemon client
 ├── coordination-runtime/  # Work graph, claims, intents, sync
 ├── coordination-store/    # SQLite event/projection store
+├── context-router/        # Bounded context routing
+├── impact-engine/         # Bounded impact/routing decisions
 ├── evaluation-runtime/    # Evaluation and feedback flow
-└── impact-engine/         # Bounded impact/routing decisions
+├── graph-model/           # Protocol/UI-neutral graph contracts (incl. theater frame)
+├── graph-projection/      # Deterministic code/impact/work/lineage projectors
+├── native-loader/         # Deferred native-backend loader
+├── native-ports/          # Deferred native-backend ports
+└── testing/               # Shared test utilities
 ```
 
 Search-ignore behavior is documented in [`docs/SEARCH_IGNORE.md`](docs/SEARCH_IGNORE.md). It is a traversal optimization, not a substitute for sensitive-path policy.
