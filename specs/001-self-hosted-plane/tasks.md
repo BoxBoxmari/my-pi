@@ -100,10 +100,10 @@ fixtures and inspect the named workflow result.
 
 ## Phase 7: Polish, Evidence, and Admission
 
-- [X] T040 [P] Run the current Track A/B/C tests, pnpm build, pnpm typecheck, release tests, and a reliable full verification profile. The current full suite reports 257 tests, 256 pass, 1 Windows platform skip, and 0 failures; Theater/graph/MCP Apps contract and live-connection checks pass, while host-side MCP Apps rendering and strict-host qualification remain withheld.
+- [X] T040 [P] Run the current Track A/B/C tests, pnpm build, pnpm typecheck, release tests, and a reliable full verification profile. The final full suite reports 258 tests, 257 pass, 1 Windows platform skip, and 0 failures; release tests report 83/83, Theater/graph/MCP Apps contract and live-connection checks pass, while host-side MCP Apps rendering and strict-host qualification remain withheld.
 - [X] T041 [P] Run CodeGraph sync/status, AGT integrity/policy checks, Spec Kit prerequisite checks, and official my-pi runtime probes. Current evidence: CodeGraph sync/status pass (334 files, 4,217 nodes, 12,088 edges); AGT integrity pass (15 modules) and verify pass (10/10 controls); Spec Kit prerequisite pass; xh doctor minimal pass; official my-pi stdio probes pass (13-tool catalog with operational read/write/search/AST/LSP/VCS). The legacy JSON `.agt/policy.json` remains incompatible with AGT YAML lint (`name`/`rules` missing) and is intentionally not rewritten.
 - [X] T042 Record the current candidate aggregate and x-harness state as WITHHELD/BLOCKED in `.x-harness/self-hosted-track-a-completion-card.yaml`.
-- [ ] T043 Regenerate candidate-bound evidence, attestation, SBOM/release artifacts, and the completion card after the final authorized code commit.
+- [X] T043 Regenerate candidate-bound Track A/B/C, PN9/PN12, gate, SBOM, benchmark, and release artifacts after the final authorized code commit `818479d12b1005ca10eb745a3870ca65dae33325`; official my-pi read/write readback passed, while PN12 promotion and x-harness admission remain withheld.
 - [ ] T044 Run read-only `xh verify` at deep tier on the final candidate and accept only `admission.outcome: success` plus `acceptance_status: accepted`.
 - [X] T045 Run the unchanged Production Next promotion verifier; keep PN11 closed unless it reports `promotionEligible: true`. The current read-only run reports PN6/PN8/PN9/PN12 as `WITHHELD`, `promotionEligible: false`, and leaves PN11 closed.
 
