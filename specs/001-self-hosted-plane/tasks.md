@@ -24,7 +24,7 @@ task does not imply x-harness admission or Production Next promotion.
 - [X] T008 [P] Add release contract tests for v2 schema, contamination, aggregation, and verification in `test/release/`.
 - [X] T009 Verify the default MCP compatibility surface through `apps/my-pi-mcp/test/main.test.ts` and the official my-pi MCP client probe.
 
-**Checkpoint**: The foundation rejects legacy v1 evidence and post-hoc task rebinding; candidate 64a21b5 includes 37 visible pair files, with three receipt-bound live PN6 source-repair pairs and three receipt-bound live PN8 repair pairs qualifying. The aggregate remains WITHHELD because it is a measurement report, not an admission authority.
+**Checkpoint**: The foundation rejects legacy v1 evidence and post-hoc task rebinding; the current candidate includes 37 visible pair files, with three receipt-bound live PN6 source-repair pairs and three receipt-bound live PN8 repair pairs qualifying. The aggregate remains WITHHELD because it is a measurement report, not an admission authority.
 
 ## Phase 3: User Story 1 - Measure Real Paired Work (Priority: P1)
 
@@ -103,7 +103,7 @@ fixtures and inspect the named workflow result.
 - [X] T040 [P] Run the current Track A/B/C tests, pnpm build, pnpm typecheck, release tests, and a reliable full verification profile. The final full suite reports 258 tests, 257 pass, 1 Windows platform skip, and 0 failures; release tests report 83/83, Theater/graph/MCP Apps contract and live-connection checks pass, while host-side MCP Apps rendering and strict-host qualification remain withheld.
 - [X] T041 [P] Run CodeGraph sync/status, AGT integrity/policy checks, Spec Kit prerequisite checks, and official my-pi runtime probes. Current evidence: CodeGraph sync/status pass (334 files, 4,217 nodes, 12,088 edges); AGT integrity pass (15 modules) and verify pass (10/10 controls); Spec Kit prerequisite pass; xh doctor minimal pass; official my-pi stdio probes pass (13-tool catalog with operational read/write/search/AST/LSP/VCS). The legacy JSON `.agt/policy.json` remains incompatible with AGT YAML lint (`name`/`rules` missing) and is intentionally not rewritten.
 - [X] T042 Record the current candidate aggregate and x-harness state as WITHHELD/BLOCKED in `.x-harness/self-hosted-track-a-completion-card.yaml`.
-- [X] T043 Regenerate candidate-bound Track A/B/C, PN9/PN12, gate, SBOM, benchmark, and release artifacts after the final authorized code commit `64a21b55937623af1e8c4b889bd17ed8969fac2d`; official my-pi read/write readback passed, while PN12 promotion and x-harness admission remain withheld.
+- [X] T043 Regenerate candidate-bound Track A/B/C, PN9/PN12, gate, SBOM, benchmark, and release artifacts after the final authorized candidate commit; official my-pi read/write readback passed, while PN12 promotion and x-harness admission remain withheld.
 - [ ] T044 Run read-only `xh verify` at deep tier on the final candidate and accept only `admission.outcome: success` plus `acceptance_status: accepted`.
 - [X] T045 Run the unchanged Production Next promotion verifier; keep PN11 closed unless it reports `promotionEligible: true`. The current read-only run reports PN6/PN8/PN9 as `ACCEPTED`, PN12 as `WITHHELD`, `promotionEligible: false`, and leaves PN11 closed.
 
