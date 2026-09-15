@@ -84,7 +84,7 @@ export class AstCodeStateProvider implements CodeStateProvider {
     const observedAt = new Date().toISOString();
     if (!resolved.exists) return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [], observedAt, providerHealth: { ast: { status: "ready" } } };
     if (!language) return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [], observedAt, providerHealth: { ast: { status: "unavailable", message: "language is not supported by the existing AST provider" } } };
-    const fileId = stableEntityId(fileStableKey(context.repositoryIdentity, relativePath));
+    const fileId = stableEntityId(fileStableKey(context.worktreeId, relativePath));
     const entities = new Map<string, CodeEntity>();
     const edges = new Map<string, CodeEdge>();
     const queries = QUERY_SETS[language] ?? [];
@@ -100,8 +100,8 @@ export class AstCodeStateProvider implements CodeStateProvider {
           const name = query.kind === "import" ? importSpecifier(String(rawName)) ?? String(rawName) : rawName;
           if (!name) continue;
           const stableKey = query.kind === "import"
-            ? moduleStableKey(context.repositoryIdentity, relativePath, name)
-            : symbolStableKey(context.repositoryIdentity, relativePath, query.kind, name, match.range.start.line);
+            ? moduleStableKey(context.worktreeId, relativePath, name)
+            : symbolStableKey(context.worktreeId, relativePath, query.kind, name, match.range.start.line);
           const id = stableEntityId(stableKey);
           entities.set(stableKey, {
             id,
@@ -128,7 +128,7 @@ export class AstCodeStateProvider implements CodeStateProvider {
           if (query.kind === "import") {
             const resolvedImport = await resolveWorkspaceImport(context, relativePath, name);
             if (resolvedImport && resolvedImport !== relativePath) {
-              const resolvedId = stableEntityId(fileStableKey(context.repositoryIdentity, resolvedImport));
+              const resolvedId = stableEntityId(fileStableKey(context.worktreeId, resolvedImport));
               edges.set(`${fileId}|${resolvedId}|resolved-import`, { ...edge, to: resolvedId, confidence: "strong" });
             }
           }

@@ -20,9 +20,9 @@ export class FileSystemCodeStateProvider implements CodeStateProvider {
     const absolute = resolved.absolute;
     const relativePath = resolved.relPosix;
     if (!resolved.exists) {
-      return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [fileStableKey(context.repositoryIdentity, relativePath)], observedAt: new Date().toISOString(), providerHealth: { fs: { status: "ready" } } };
+      return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [fileStableKey(context.worktreeId, relativePath)], observedAt: new Date().toISOString(), providerHealth: { fs: { status: "ready" } } };
     }
-    const stableKey = fileStableKey(context.repositoryIdentity, relativePath);
+    const stableKey = fileStableKey(context.worktreeId, relativePath);
     const observedAt = new Date().toISOString();
     try {
       const details = await fs.stat(absolute);
@@ -61,7 +61,7 @@ export class FileSystemCodeStateProvider implements CodeStateProvider {
   async invalidate(context: IndexContext, paths: string[]): Promise<CodeGraphDelta[]> {
     return paths.map((filePath) => {
       const relativePath = relativePosix(context.root, path.resolve(context.root, filePath));
-      const stableKey = fileStableKey(context.repositoryIdentity, relativePath);
+      const stableKey = fileStableKey(context.worktreeId, relativePath);
       return { provider: this.name, changedPath: relativePath, entities: [], edges: [], removedStableKeys: [stableKey], observedAt: new Date().toISOString(), providerHealth: { fs: { status: "ready" } } };
     });
   }

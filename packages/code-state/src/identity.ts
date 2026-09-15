@@ -11,14 +11,14 @@ export function relativePosix(root: string, filePath: string): string {
   return path.relative(root, path.resolve(filePath)).replaceAll("\\", "/");
 }
 
-export function fileStableKey(repositoryIdentity: string, relativePath: string): string {
-  return `${repositoryIdentity}|file|${relativePath}`;
+export function fileStableKey(worktreeId: string, relativePath: string): string {
+  return `${worktreeId}|file|${relativePath}`;
 }
 
-export function symbolStableKey(repositoryIdentity: string, relativePath: string, kind: string, name: string, line: number): string {
-  return `${repositoryIdentity}|symbol|${relativePath}|${kind}|${name}|${line}`;
+export function symbolStableKey(worktreeId: string, relativePath: string, kind: string, name: string, line: number): string {
+  return `${worktreeId}|symbol|${relativePath}|${kind}|${name}|${line}`;
 }
 
-export function moduleStableKey(repositoryIdentity: string, relativePath: string, importText: string): string {
-  return `${repositoryIdentity}|module|${relativePath}|${importText}`;
+export function moduleStableKey(worktreeId: string, relativePath: string, importText: string): string {
+  return `${worktreeId}|module|${relativePath}|${importText}`;
 }
