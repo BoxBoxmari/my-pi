@@ -416,15 +416,19 @@ try {
       codeStateReady[role] = await waitForCodeState(stableClient, metadata.projectId, value.worktreeId);
     } catch (error) {
       const { readdir } = await import("node:fs/promises");
-      const entries = await readdir(value.root).catch(() => []);
-      let entityCount = "n/a";
-      try {
-        const snap = await stableClient.call("code_state_snapshot", { projectId: metadata.projectId, worktreeId: value.worktreeId });
-        entityCount = Array.isArray(snap?.entities) ? snap.entities.length : "no-entities-array";
-      } catch (snapshotError) {
-        entityCount = `snapshot-error:${snapshotError?.message ?? snapshotError}`;
+      const table = [];
+      for (const [otherRole, otherValue] of Object.entries(joined)) {
+        const entries = await readdir(otherValue.root).catch(() => []);
+        let entityCount = "n/a";
+        try {
+          const snap = await stableClient.call("code_state_snapshot", { projectId: metadata.projectId, worktreeId: otherValue.worktreeId });
+          entityCount = Array.isArray(snap?.entities) ? snap.entities.length : "no-entities-array";
+        } catch (snapshotError) {
+          entityCount = `snapshot-error:${snapshotError?.message ?? snapshotError}`;
+        }
+        table.push(`${otherRole}:top=${entries.length},entities=${entityCount}`);
       }
-      throw new Error(`${error?.message ?? error}\n--- role=${role} worktreeId=${value.worktreeId} root=${value.root} topLevel=${entries.length} hasPackages=${entries.includes("packages")} entityCount=${entityCount}`);
+      throw new Error(`${error?.message ?? error}\n--- failing=${role} all-roles: ${table.join(" | ")}`);
     }
   }
 
