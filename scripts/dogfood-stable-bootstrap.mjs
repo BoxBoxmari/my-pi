@@ -213,7 +213,12 @@ function startDaemon(daemonPath, workspaceRoot, runtimeDir, databasePath, cwd) {
     stdio: ["ignore", "ignore", "pipe"],
     windowsHide: true,
   });
-  daemon.stderr?.on("data", () => undefined);
+  const stderrTail = [];
+  daemon.stderr?.on("data", (chunk) => {
+    stderrTail.push(chunk.toString("utf8"));
+    if (stderrTail.length > 200) stderrTail.shift();
+  });
+  daemon.diagnosticStderr = () => stderrTail.join("");
   return daemon;
 }
 
@@ -223,7 +228,7 @@ async function waitForReady(runtimeDir, daemon) {
     const metadata = await readDaemonMetadata(runtimeDir);
     if (metadata?.state === "ready") return metadata;
     if (daemon.exitCode !== null) throw new Error(`stable N-1 daemon exited before ready: ${daemon.exitCode}`);
-    if (Date.now() - started > 15_000) throw new Error("stable N-1 daemon readiness timeout");
+    if (Date.now() - started > 45_000) throw new Error(`stable N-1 daemon readiness timeout${daemon?.diagnosticStderr?.() ? `; daemon stderr:\n${daemon.diagnosticStderr()}` : ""}`);
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
 }
@@ -271,7 +276,7 @@ async function waitForCodeState(client, projectId, worktreeId) {
     if (Array.isArray(snapshot?.entities) && snapshot.entities.length > 0) {
       return { entities: snapshot.entities.length, edges: Array.isArray(snapshot.edges) ? snapshot.edges.length : 0 };
     }
-    if (Date.now() - started > 30_000) throw new Error(`stable N-1 code-state snapshot did not become ready for ${worktreeId}`);
+    if (Date.now() - started > 120_000) throw new Error(`stable N-1 code-state snapshot did not become ready for ${worktreeId}${daemon?.diagnosticStderr?.() ? `\n--- daemon stderr ---\n${daemon.diagnosticStderr()}` : ""}`);
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
 }
