@@ -276,7 +276,22 @@ async function waitForCodeState(client, projectId, worktreeId) {
     if (Array.isArray(snapshot?.entities) && snapshot.entities.length > 0) {
       return { entities: snapshot.entities.length, edges: Array.isArray(snapshot.edges) ? snapshot.edges.length : 0 };
     }
-    if (Date.now() - started > 120_000) throw new Error(`stable N-1 code-state snapshot did not become ready for ${worktreeId}${daemon?.diagnosticStderr?.() ? `\n--- daemon stderr ---\n${daemon.diagnosticStderr()}` : ""}`);
+    if (Date.now() - started > 120_000) {
+      let diagnosis = "";
+      try {
+        const health = await client.call("health");
+        diagnosis += `\n--- codeState health ---\n${JSON.stringify(health?.codeState ?? health)}`;
+      } catch (error) {
+        diagnosis += `\n(health read failed: ${error?.message ?? error})`;
+      }
+      try {
+        const failures = (await listAllEvents(client, projectId)).filter((event) => event.eventType === "CodeStateRegistrationFailed");
+        if (failures.length > 0) diagnosis += `\n--- CodeStateRegistrationFailed ---\n${JSON.stringify(failures.slice(-3))}`;
+      } catch (error) {
+        diagnosis += `\n(events read failed: ${error?.message ?? error})`;
+      }
+      throw new Error(`stable N-1 code-state snapshot did not become ready for ${worktreeId}${diagnosis}${daemon?.diagnosticStderr?.() ? `\n--- daemon stderr ---\n${daemon.diagnosticStderr()}` : ""}`);
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
 }
