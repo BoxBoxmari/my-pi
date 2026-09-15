@@ -409,6 +409,7 @@ export function renderTheaterViewHtml(options: TheaterViewOptions): string {
       <span id="badge-empty" class="badge badge-empty hidden">EMPTY</span>
       <span id="cursor-info" class="muted"></span>
       <span id="freshness" class="muted"></span>
+      <span id="stream-status" class="muted"></span>
     </div>
   </header>
   <main>

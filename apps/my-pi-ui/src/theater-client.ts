@@ -55,6 +55,7 @@ interface WindowWithConfig extends Window {
   const modeText = document.getElementById("mode-text") as HTMLElement;
   const cursorInfo = document.getElementById("cursor-info") as HTMLElement;
   const freshnessElem = document.getElementById("freshness") as HTMLElement;
+  const streamStatusElem = document.getElementById("stream-status") as HTMLElement;
 
   const badgeDegraded = document.getElementById("badge-degraded") as HTMLElement;
   const badgeTruncated = document.getElementById("badge-truncated") as HTMLElement;
@@ -788,6 +789,17 @@ interface WindowWithConfig extends Window {
   // Live event stream (SSE)
   let liveSource: EventSource | null = null;
   let liveReconnectTimer: number | null = null;
+  let streamState: "connecting" | "live" | "reconnecting" | "offline" = "connecting";
+
+  function updateStreamStatus(): void {
+    const now = new Date().toLocaleTimeString();
+    if (isMcp || !apiBase || isReplayMode) {
+      streamStatusElem.textContent = now;
+      return;
+    }
+    const label = streamState === "live" ? "● live" : streamState === "connecting" ? "○ connecting" : streamState === "reconnecting" ? "○ reconnecting" : "● offline";
+    streamStatusElem.textContent = `${label} · ${now}`;
+  }
 
   function disconnectLiveStream(): void {
     if (liveSource) {
@@ -806,6 +818,14 @@ interface WindowWithConfig extends Window {
     const url = `${apiBase}/stream?kind=${encodeURIComponent(currentFrame.scope.kind)}&afterSequence=${encodeURIComponent(lastSeq)}&session=${encodeURIComponent(token)}`;
     const source = new EventSource(url);
     liveSource = source;
+    streamState = "connecting";
+    updateStreamStatus();
+
+    source.onopen = () => {
+      if (source !== liveSource) return;
+      streamState = "live";
+      updateStreamStatus();
+    };
 
     source.onmessage = (event) => {
       if (source !== liveSource) return;
@@ -821,6 +841,8 @@ interface WindowWithConfig extends Window {
 
     source.onerror = () => {
       if (source !== liveSource) return;
+      streamState = "reconnecting";
+      updateStreamStatus();
       disconnectLiveStream();
       liveReconnectTimer = window.setTimeout(() => {
         liveReconnectTimer = null;
@@ -1107,5 +1129,7 @@ interface WindowWithConfig extends Window {
   switchTo3D();
 
   // Live event stream
+  updateStreamStatus();
+  setInterval(updateStreamStatus, 1000);
   connectLiveStream();
 })();
