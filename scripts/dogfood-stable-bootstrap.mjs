@@ -264,6 +264,18 @@ async function listAllEvents(client, projectId) {
   throw new Error("stable bootstrap event pagination exceeded its bounded page limit");
 }
 
+async function waitForCodeState(client, projectId, worktreeId) {
+  const started = Date.now();
+  for (;;) {
+    const snapshot = await client.call("code_state_snapshot", { projectId, worktreeId });
+    if (Array.isArray(snapshot?.entities) && snapshot.entities.length > 0) {
+      return { entities: snapshot.entities.length, edges: Array.isArray(snapshot.edges) ? snapshot.edges.length : 0 };
+    }
+    if (Date.now() - started > 30_000) throw new Error(`stable N-1 code-state snapshot did not become ready for ${worktreeId}`);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+}
+
 async function join(client, projectId, root, role, candidateSha) {
   const identity = await discoverProjectIdentity(root);
   const repositoryId = `repo-stable-bootstrap-${role}`;
@@ -361,6 +373,10 @@ try {
   const joined = {};
   for (const [role, root] of [["implementation", candidateRoot], ["reviewer", reviewerRoot], ["observer", observerRoot]]) {
     joined[role] = await join(stableClient, metadata.projectId, root, role, candidateSha);
+  }
+  const codeStateReady = {};
+  for (const [role, value] of Object.entries(joined)) {
+    codeStateReady[role] = await waitForCodeState(stableClient, metadata.projectId, value.worktreeId);
   }
 
   const spec = await stableClient.call("eval_register_spec", {
@@ -492,7 +508,7 @@ try {
       candidateBuild,
       stableWorktree: { head: stableHead, clean: stableClean, artifact: stableArtifact },
       candidateWorktree: { head: candidateWorktreeHead, cleanAtStart: candidateCleanAtStart, initialTree: beforeTree, finalTree: afterTree },
-      runtime: { stableDaemonStarted: Number.isInteger(daemon.pid) && daemon.pid > 0, stableDaemonPid: daemon.pid, stableDaemonProjectId: metadata.projectId, stableMcpConnected: mcpClient !== undefined, stableMcpWorkspaceRoot: mcpWorkspaceInfo.root, candidateDaemonStarted: false },
+      runtime: { stableDaemonStarted: Number.isInteger(daemon.pid) && daemon.pid > 0, stableDaemonPid: daemon.pid, stableDaemonProjectId: metadata.projectId, stableMcpConnected: mcpClient !== undefined, stableMcpWorkspaceRoot: mcpWorkspaceInfo.root, candidateDaemonStarted: false, codeStateReady },
       authority: { stableRuntimeMediated: stableAuthorityUsed, mutationRuntimeSha: bootstrapSha, evaluationRuntimeSha: bootstrapSha, mutationReceiptIds: [firstChange.receipt.id, retryChange.receipt.id], evaluationRunIds: [firstRun.id, secondRun.id], candidateDaemonUsed: false },
       legacyInspection: { tools: mcpTools, beforeContentHash: mcpBefore.content_hash, afterContentHash: mcpAfter.content_hash },
     },
