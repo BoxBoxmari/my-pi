@@ -465,7 +465,7 @@ try {
   const reviewerCompleted = await stableClient.call("coord_complete", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, workItemId: reviewItem.id });
   assertCondition(reviewerCompleted.workItem.state === "done", "stable N-1 reviewer did not complete");
   const reviewerRoutes = [...(reviewerSync.highPriority ?? []), ...(reviewerSync.normalPriority ?? [])].map((item) => ({ priority: item.priority, reason: item.reason, eventType: item.event?.eventType, eventId: item.event?.eventId, payloadKeys: item.event?.payload && typeof item.event.payload === "object" ? Object.keys(item.event.payload).sort() : [] }));
-  assertCondition(reviewerRoutes.some((item) => item.eventType === "ImpactDetected" && item.reason === "impact_result" && item.priority === "high"), `stable N-1 reviewer did not receive impact routing: ${JSON.stringify(reviewerRoutes)}`);
+  assertCondition(reviewerRoutes.some((item) => item.eventType === "ImpactDetected" && item.reason === "impact_result" && item.priority === "high"), `stable N-1 reviewer did not receive impact routing: ${JSON.stringify({ routes: reviewerRoutes, throughSequence: reviewerSync.throughSequence, blockedBy: reviewerSync.blockedBy, warnings: reviewerSync.warnings })}`);
 
   const replayOne = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: "0", maxEvents: 100, maxBytes: 128 * 1024 });
   const replayTwo = await stableClient.call("coord_sync", { projectId: metadata.projectId, agentSessionId: joined.reviewer.agentSessionId, sinceSequence: "0", maxEvents: 100, maxBytes: 128 * 1024 });
