@@ -338,3 +338,62 @@ test("portal /api/graph/events and theater3d frame leak zero free-text sensitive
     await portal.close();
   }
 });
+
+test("portal streams live events over SSE and enforces the session token", async () => {
+  const liveEvent = {
+    projectId: "proj-sse",
+    sequence: "1",
+    eventId: "ev-sse-1",
+    eventType: "WorkItemCreated",
+    occurredAt: "2026-09-15T00:00:00.000Z",
+    actor: { kind: "system", name: "runner" },
+    payload: { workItemId: "wi-sse-1" },
+  };
+  const reader = {
+    graphSnapshot: async () => makeSnapshot("work"),
+    graphEvents: async (input: { afterSequence?: string }) => {
+      const after = Number(input.afterSequence ?? "0");
+      const events = after < 1 ? [structuredClone(liveEvent)] : [];
+      return {
+        events,
+        throughSequence: events.at(-1)?.sequence ?? String(after),
+        hasMore: false,
+        mode: "live",
+        kind: "work",
+      };
+    },
+  };
+  const portal = await createPortalServer({ reader, projectId: "proj-sse" });
+  try {
+    const base = new URL(portal.url);
+
+    const denied = await fetch(`${base.origin}/api/graph/stream?kind=work&afterSequence=0`, {
+      headers: { origin: base.origin },
+    });
+    assert.equal(denied.status, 403);
+
+    const controller = new AbortController();
+    const res = await fetch(`${base.origin}/api/graph/stream?kind=work&afterSequence=0&session=${portal.token}`, {
+      headers: { origin: base.origin },
+      signal: controller.signal,
+    });
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get("content-type") ?? "", /text\/event-stream/);
+
+    const body = res.body!;
+    const streamReader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (!buffer.includes("data:")) {
+      const { value, done } = await streamReader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+    }
+    controller.abort();
+
+    assert.ok(buffer.includes("data:"), "SSE stream must emit a data frame");
+    assert.ok(buffer.includes("ev-sse-1"), "SSE data frame must carry the live event");
+  } finally {
+    await portal.close();
+  }
+});

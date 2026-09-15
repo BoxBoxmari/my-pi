@@ -785,77 +785,107 @@ interface WindowWithConfig extends Window {
     stageBanner.style.display = "none";
   }
 
-  // Live polling
-  async function pollLiveEvents(): Promise<void> {
-    if (isReplayMode || !apiBase || isMcp) return;
+  // Live event stream (SSE)
+  let liveSource: EventSource | null = null;
+  let liveReconnectTimer: number | null = null;
 
+  function disconnectLiveStream(): void {
+    if (liveSource) {
+      liveSource.close();
+      liveSource = null;
+    }
+    if (liveReconnectTimer !== null) {
+      clearTimeout(liveReconnectTimer);
+      liveReconnectTimer = null;
+    }
+  }
+
+  function connectLiveStream(): void {
+    if (isReplayMode || !apiBase || isMcp || liveSource) return;
+    const lastSeq = currentFrame.cursor.lastSequence ?? "0";
+    const url = `${apiBase}/stream?kind=${encodeURIComponent(currentFrame.scope.kind)}&afterSequence=${encodeURIComponent(lastSeq)}&session=${encodeURIComponent(token)}`;
+    const source = new EventSource(url);
+    liveSource = source;
+
+    source.onmessage = (event) => {
+      if (source !== liveSource) return;
+      let data: { events?: TheaterEvent[]; throughSequence?: string; error?: string };
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+      if (data.error || !Array.isArray(data.events) || data.events.length === 0) return;
+      processLiveEvents({ events: data.events, throughSequence: data.throughSequence });
+    };
+
+    source.onerror = () => {
+      if (source !== liveSource) return;
+      disconnectLiveStream();
+      liveReconnectTimer = window.setTimeout(() => {
+        liveReconnectTimer = null;
+        connectLiveStream();
+      }, 1500);
+    };
+  }
+
+  function processLiveEvents(data: { events: TheaterEvent[]; throughSequence?: string }): void {
+    const structuralTypes = [
+      "WorkItemCreated",
+      "WorkItemClaimed",
+      "WorkItemCompleted",
+      "Completed",
+      "WorkItemBlocked",
+      "Blocked",
+      "WorkItemUnblocked",
+      "AgentJoined",
+      "AgentDeparted",
+      "IntentDeclared",
+      "WorkItemEvaluationRequested",
+      "WorkItemEvaluationAccepted",
+      "EvaluationAccepted",
+    ];
+    let hasStructural = false;
+
+    data.events.forEach((ev: TheaterEvent) => {
+      currentFrame.events.push(ev);
+      const eType = ev.eventType || (ev as unknown as { type?: string }).type || "";
+      if (structuralTypes.includes(eType)) {
+        hasStructural = true;
+      }
+      const cue = eventToMotionCue(ev, currentFrame.graph);
+      if (cue) applyCue(cue);
+    });
+    currentFrame.cursor.lastSequence = data.throughSequence || data.events.at(-1)?.sequence;
     try {
-      const lastSeq = currentFrame.cursor.lastSequence ?? "0";
-      const res = await fetch(`${apiBase}/events?kind=${encodeURIComponent(currentFrame.scope.kind)}&afterSequence=${encodeURIComponent(lastSeq)}&mode=live`, {
+      if (currentFrame.cursor.lastSequence !== undefined) {
+        window.sessionStorage.setItem("my-pi.theater.cursor", String(currentFrame.cursor.lastSequence));
+      }
+    } catch {}
+    updateQualityBadges();
+
+    if (hasStructural) void refreshGraph();
+  }
+
+  async function refreshGraph(): Promise<void> {
+    if (!apiBase) return;
+    try {
+      const graphRes = await fetch(`${apiBase}?kind=${encodeURIComponent(currentFrame.scope.kind)}`, {
         headers: { "x-my-pi-session": token },
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.events && Array.isArray(data.events) && data.events.length > 0) {
-          const structuralTypes = [
-            "WorkItemCreated",
-            "WorkItemClaimed",
-            "WorkItemCompleted",
-            "Completed",
-            "WorkItemBlocked",
-            "Blocked",
-            "WorkItemUnblocked",
-            "AgentJoined",
-            "AgentDeparted",
-            "IntentDeclared",
-            "WorkItemEvaluationRequested",
-            "WorkItemEvaluationAccepted",
-            "EvaluationAccepted",
-          ];
-          let hasStructural = false;
-
-          data.events.forEach((ev: TheaterEvent) => {
-            currentFrame.events.push(ev);
-            const eType = ev.eventType || (ev as unknown as { type?: string }).type || "";
-            if (structuralTypes.includes(eType)) {
-              hasStructural = true;
-            }
-            const cue = eventToMotionCue(ev, currentFrame.graph);
-            if (cue) applyCue(cue);
-          });
-          currentFrame.cursor.lastSequence = data.throughSequence || data.events.at(-1)?.sequence;
-          try {
-            if (currentFrame.cursor.lastSequence !== undefined) {
-              window.sessionStorage.setItem("my-pi.theater.cursor", String(currentFrame.cursor.lastSequence));
-            }
-          } catch {}
-          updateQualityBadges();
-
-          if (hasStructural) {
-            try {
-              const graphRes = await fetch(`${apiBase}?kind=${encodeURIComponent(currentFrame.scope.kind)}`, {
-                headers: { "x-my-pi-session": token },
-              });
-              if (graphRes.ok) {
-                currentFrame.graph = await graphRes.json();
-                currentFrame.quality.empty = currentFrame.graph.nodes.length === 0;
-                currentFrame.quality.truncated = currentFrame.graph.truncated;
-                currentFrame.quality.degraded = Boolean(currentFrame.graph.degraded);
-                populateFilterOptions();
-                if (is2DFallback) render2D();
-                else buildScene();
-                if (selectedNodeId) {
-                  populateInspector(currentFrame.graph.nodes.find((n) => n.id === selectedNodeId));
-                }
-              }
-            } catch {
-              // Ignore graph refresh failure
-            }
-          }
-        }
+      if (!graphRes.ok) return;
+      currentFrame.graph = await graphRes.json();
+      currentFrame.quality.empty = currentFrame.graph.nodes.length === 0;
+      currentFrame.quality.truncated = currentFrame.graph.truncated;
+      currentFrame.quality.degraded = Boolean(currentFrame.graph.degraded);
+      populateFilterOptions();
+      if (is2DFallback) render2D();
+      else buildScene();
+      if (selectedNodeId) {
+        populateInspector(currentFrame.graph.nodes.find((n) => n.id === selectedNodeId));
       }
     } catch {
-      // transient network error, retry on next interval
+      // ignore graph refresh failure
     }
   }
 
@@ -863,6 +893,7 @@ interface WindowWithConfig extends Window {
   function setReplayMode(enable: boolean): void {
     isReplayMode = enable;
     if (isReplayMode) {
+      disconnectLiveStream();
       modeToggle.classList.remove("mode-live");
       modeToggle.classList.add("mode-replay");
       modeText.textContent = "REPLAY";
@@ -883,6 +914,7 @@ interface WindowWithConfig extends Window {
         replayTimer = null;
         btnPlayPause.textContent = "▶ Play";
       }
+      connectLiveStream();
     }
   }
 
@@ -1012,6 +1044,7 @@ interface WindowWithConfig extends Window {
     const factor = e.deltaY < 0 ? 1.1 : 0.9;
     camera.zoom = Math.min(4, Math.max(0.2, camera.zoom * factor));
     camera.updateProjectionMatrix();
+    requestRender();
   }, { passive: false });
 
   // Escape key deselects
@@ -1047,6 +1080,8 @@ interface WindowWithConfig extends Window {
             currentFrame.quality.degraded = Boolean(currentFrame.graph.degraded);
             buildScene();
             updateQualityBadges();
+            disconnectLiveStream();
+            connectLiveStream();
           }
         } catch {
           // keep existing
@@ -1071,6 +1106,6 @@ interface WindowWithConfig extends Window {
   updateQualityBadges();
   switchTo3D();
 
-  // Polling timer for live mode
-  setInterval(pollLiveEvents, 750);
+  // Live event stream
+  connectLiveStream();
 })();

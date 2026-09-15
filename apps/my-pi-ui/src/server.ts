@@ -300,7 +300,7 @@ export async function createPortalServer(options: PortalServerOptions): Promise<
             if (wire.events.length > 0) {
               afterSequence = wire.throughSequence ?? wire.events.at(-1)?.sequence ?? afterSequence;
               emit(wire);
-            } else {
+            } else if (!closed) {
               response.write(": ping\n\n");
             }
           } catch (error) {
