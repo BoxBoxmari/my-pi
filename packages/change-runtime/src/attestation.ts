@@ -131,7 +131,13 @@ export async function loadOrCreateAuthorityIdentity(options: AuthorityIdentityOp
     const generated = generateKeyPairSync("ed25519", {
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
-    privateKeyPem = generated.privateKey;
+    // Typed as KeyObject under @types/node 24 and string under 26; at
+    // runtime pem encoding always yields a string. Normalize explicitly so
+    // the code is correct under both type surfaces (Issue #25).
+    const generatedPem = generated.privateKey;
+    privateKeyPem = typeof generatedPem === "string"
+      ? generatedPem
+      : generatedPem.export({ type: "pkcs8", format: "pem" }).toString();
     await writeFile(privateKeyPath, privateKeyPem, { encoding: "utf8", mode: 0o600, flag: "wx" }).catch(async (writeError: unknown) => {
       if ((writeError as NodeJS.ErrnoException).code !== "EEXIST") throw writeError;
       privateKeyPem = await readFile(privateKeyPath, "utf8");
