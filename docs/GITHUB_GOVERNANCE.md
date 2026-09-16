@@ -1,35 +1,118 @@
-# GitHub Governance Required for Beta
+# GitHub Governance Required for Beta (Issue #30)
 
-These controls belong to GitHub repository settings. Source files can document
-them, but cannot enforce branch protection or security-scanning settings by
-themselves.
+Source files document governance; they cannot enforce it. The maintainer must
+apply the ruleset below via the GitHub UI or admin API — repository rulesets
+currently return an empty list and branch-protection state is not verifiable
+through the available integration. Until applied, this document is a
+declarative record, not an enforced policy.
 
-## `main` branch protection
+Objective: the existing CI, CodeQL, SBOM, audit, and release-admission work
+must not be bypassable by an unprotected merge or release path. No new
+workflows, no bureaucracy beyond that.
 
-Configure a ruleset for `main` with the following requirements:
+## `main` ruleset (to be enforced)
 
-- Changes must enter through a pull request; require at least one approving review.
-- Dismiss stale approvals after new commits and require all review conversations to be resolved.
-- Require the branch to be up to date before merge.
-- Require these CI checks: `quality (ubuntu-latest, node 24)`, `quality (ubuntu-latest, node 22)`, `quality (windows-latest, node 24)`, and `quality (macos-latest, node 24)`.
-- Require the CodeQL check once CodeQL is enabled as a required repository check.
-- Require the strict release admission job for release tags, including runtime-boundary performance evidence.
-- Block force-pushes and branch deletion. Apply the rules to administrators as well.
+Target: branch `main`, enforcement `active`, apply to administrators as well,
+bypass list: none.
 
-The exact check names are generated from the matrix in `.github/workflows/ci.yml`;
-update the ruleset if the matrix changes.
+- Changes enter only through pull request.
+- Required approvals: **0** (solo-maintainer exception, explicit and minimal —
+  requiring independent review on a solo repo adds friction without review
+  value; see exceptions below).
+- Require all review conversations resolved before merge.
+- Require branch up to date before merge: **off** (avoid churn; CI runs per PR
+  head and per merge via `pull_request` + `push` triggers).
+- Block force pushes: **on**.
+- Block branch deletion: **on**.
+- Block branch creation outside the ruleset: off (feature branches stay cheap).
 
-## Repository security settings
+### Required status checks (stable names only)
 
-- Enable secret scanning and push protection when available for the repository plan.
-- Allow Dependabot security updates for npm, Cargo, and GitHub Actions.
-- Restrict GitHub Actions to approved actions where organizational policy permits.
-- Protect release tags (`v*.*.*`) and require an environment approval before any future registry publication job.
-- Keep the default `GITHUB_TOKEN` permission at read-only and grant write permissions only to the step that needs them.
+Require exactly:
 
-## Release workflow requirements
+```text
+ci-required
+CodeQL Analysis (javascript-typescript)
+```
 
-The release workflow must pin third-party actions to full commit SHAs, keep
-dependency audits fail-closed, and attach the tested artifact, SBOM, checksum,
-and release manifest to the same candidate commit. A release is not accepted
-merely because a local build or test run is green.
+`ci-required` is the aggregate gate in `.github/workflows/ci.yml`: it is
+fail-closed over every `quality-matrix` lane (Node 24 normative on
+ubuntu/windows/macos + exact-minimum `24.0.0` lane, including build, tests,
+architecture/runtime-contract checks, gates, SBOM, smoke, and Production Next
+local qualification). It exists so governance never depends on
+matrix-generated job names — internal matrix edits must not silently drop
+merge protection.
+
+Do NOT require individual `quality (...)` matrix jobs by name.
+
+`my-pi/admission` remains advisory (report-only) and is not a required check.
+
+### Solo-maintainer exceptions (explicit, minimal)
+
+1. Zero required approvals — compensated by required `ci-required` + CodeQL
+   on every PR and by the release-admission pipeline.
+2. Maintainer-authored PRs follow the same path: no direct pushes to `main`,
+   no admin bypass.
+3. Emergency fix path is the normal PR path. There is no break-glass push
+   role; a broken `main` is repaired by a revert PR, also gated.
+
+## Release authority: Model A (admitted manual release)
+
+The release chain is already well structured and is preserved, not replaced:
+
+```text
+protected main commit
+  -> prepare packs exactly one TGZ (+ SHA256)
+  -> qualify lanes consume that exact TGZ (Node 24 + exact-minimum 24.0.0)
+  -> admit re-verifies exact bytes, SBOM, manifest, evidence
+  -> publish (workflow_dispatch, publish=true, ref refs/heads/main only)
+     creates the matching v* tag + GitHub prerelease if absent
+```
+
+Governance additions:
+
+- Publishing is allowed only when `github.event_name == 'workflow_dispatch'`,
+  `inputs.publish == true`, and `github.ref == 'refs/heads/main'` (already
+  enforced in `release.yml`; document here so tag protection alone is not
+  mistaken for the whole policy).
+- Add a `v*.*.*` tag-protection rule as defense-in-depth so tags cannot be
+  moved or deleted outside the publish job.
+- Keep least-privilege Actions posture: SHA-pinned actions,
+  `persist-credentials: false` except publishing, minimal top-level
+  permissions, `contents: write` + `id-token: write` only on the publish job,
+  npm trusted publishing / OIDC (no long-lived npm tokens).
+
+### Signed commits and tags
+
+- Signed commits: **recommended, not required** (solo project; signatures add
+  identity signal but required-signatures would add friction without
+  independent verification value at this size).
+- Release tags: created by the publish job via `GITHUB_TOKEN` and therefore
+  unsigned. The equivalent provenance mechanism, enforced instead, is:
+  exact artifact SHA binding across prepare/qualify/admit (`SHA256SUMS.txt`),
+  `release-manifest.json` binding TGZ + SBOM digests to the candidate commit,
+  SBOM generation/verification, and OIDC-backed npm/Registry publication.
+  Revisit signed tags only if a consumer explicitly requires them.
+
+## Merge gates vs release gates
+
+- PR merge proves source correctness (`ci-required` + CodeQL).
+- The strict release pipeline (exact-TGZ smoke, cross-lane qualification,
+  admission, SBOM/manifest) runs on release qualification, not on every PR.
+  Do not move full release admission into the merge path unless data shows
+  merge-time regressions escaping to qualification.
+
+## Verification checklist (configuration tests)
+
+After applying the ruleset, prove it with a disposable PR:
+
+1. Failing `ci-required` cannot merge.
+2. Cancelled `quality-matrix` (aggregate `failure`) cannot merge.
+3. Green `ci-required` + green CodeQL can merge.
+4. Direct push to `main` is rejected.
+5. Force push to `main` is rejected.
+6. `release.yml` publish cannot run from an unprotected branch/ref
+   (dispatch guard rejects non-`main` refs).
+
+Record the verification date and results in the PR that closes Issue #30.
+Do not claim Issue #30 complete on documentation alone.

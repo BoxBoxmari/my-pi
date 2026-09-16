@@ -4,7 +4,7 @@
 **CLI Binaries:** `my-pi-mcp` (primary), `ccr-mcp` (deprecated 1-major alias)  
 **Intended Registries:** npm and Official MCP Registry  
 **Publishing model:** release qualification is mandatory; publication is an explicit `workflow_dispatch` action on `main` with `publish=true`. npm and MCP Registry publication use GitHub OIDC after one-time trust configuration.  
-**Supported Node Engine:** `>=22.6.0` (Node 22 and Node 24 qualification lanes are configured; candidate run evidence is retained by the release workflow)
+**Supported Node Engine:** `>=24.0.0` (Node 24 is normative; `node:sqlite` is part of the supported runtime surface and is covered by the exact-minimum smoke test)
 
 ---
 

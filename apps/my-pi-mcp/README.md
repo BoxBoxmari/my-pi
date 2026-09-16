@@ -24,7 +24,7 @@ It combines bounded filesystem operations, content-preconditioned writes, struct
 
 ## Install and run
 
-Requires Node.js `>=22.6.0`.
+Requires Node.js `>=24.0.0`.
 
 ```bash
 npm install -g @koonwang03/my-pi

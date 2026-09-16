@@ -42,7 +42,7 @@ It is aimed at developers who want agentic coding tools to understand and modify
 
 ## Install in under a minute
 
-Requires Node.js `>=22.6.0`.
+Requires Node.js `>=24.0.0` (Node 24 LTS is the normative runtime).
 
 ```bash
 npm install -g @koonwang03/my-pi
@@ -128,7 +128,7 @@ pnpm build
 
 Prerequisites for repository development:
 
-- Node.js `v22.6.0+` or `v24 LTS`
+- Node.js `v24.0.0+` (Node 24 LTS normative; exact-minimum `24.0.0` lane is qualified in CI)
 - pnpm `v11.2.2+`
 - Rust stable is optional and currently relevant only to the deferred native-backend scaffold
 
@@ -150,6 +150,15 @@ pnpm verify:release
 ```
 
 The configured CI matrix covers Ubuntu, Windows, and macOS lanes. See the live workflow badges above for current status rather than relying on static claims in this document.
+
+### Engineering contracts
+
+| Contract | Document | Enforced by |
+| :--- | :--- | :--- |
+| Runtime compatibility (engines/types/CI parity) | [`docs/RUNTIME_CONTRACT.md`](docs/RUNTIME_CONTRACT.md) | `node scripts/check-runtime-contract.mjs` |
+| Test/invariant coverage | [`docs/TEST_CONTRACT.md`](docs/TEST_CONTRACT.md) | `pnpm check:contract` (`scripts/verify-test-contract.mjs`) |
+| Merge/release governance | [`docs/GITHUB_GOVERNANCE.md`](docs/GITHUB_GOVERNANCE.md) | `ci-required` + CodeQL required checks |
+| Worktree identity isolation | [`packages/code-state/IDENTITY.md`](packages/code-state/IDENTITY.md) | ownership guard + invariant suites |
 
 ## Benchmarks
 

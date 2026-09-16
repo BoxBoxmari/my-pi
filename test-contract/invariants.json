@@ -1,0 +1,269 @@
+{
+  "$schema": "test-contract/invariants.schema.json",
+  "version": 1,
+  "policy": {
+    "levels": ["unit", "integration", "process", "artifact"],
+    "gates": {
+      "merge": "Blocks PR merge via ci-required + CodeQL (Issue #30).",
+      "release": "Blocks publish via the release workflow admission chain (Model A).",
+      "evidence": "Must run green on the normative lane; empirical/recorded, not merge-blocking by itself."
+    }
+  },
+  "invariants": [
+    {
+      "id": "runtime.minimum-supported",
+      "title": "Minimum supported Node runtime boots required built-ins (node:sqlite)",
+      "level": "process",
+      "gate": "merge",
+      "proof": {
+        "command": "node --test test/compat/runtime-contract.test.mjs",
+        "files": ["test/compat/runtime-contract.test.mjs", "scripts/check-runtime-contract.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["scripts/check-runtime-contract.mjs", "24.0.0"] }
+    },
+    {
+      "id": "runtime.normative-node24",
+      "title": "Normative Node 24 lane passes the full suite",
+      "level": "process",
+      "gate": "merge",
+      "proof": {
+        "command": "pnpm test",
+        "files": ["package.json"]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["node: [24]", "pnpm test", "ci-required"] }
+    },
+    {
+      "id": "runtime.contract-guard",
+      "title": "Engines/types/CI/release runtime policy cannot drift silently",
+      "level": "process",
+      "gate": "merge",
+      "proof": {
+        "command": "node scripts/check-runtime-contract.mjs",
+        "files": ["scripts/check-runtime-contract.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/release.yml", "anchors": ["node scripts/check-runtime-contract.mjs", "24.0.0"] }
+    },
+    {
+      "id": "architecture.package-boundaries",
+      "title": "Package/import boundaries cannot be bypassed by syntax formatting",
+      "level": "integration",
+      "gate": "merge",
+      "proof": {
+        "command": "node scripts/architecture-check.mjs",
+        "files": ["scripts/architecture-check.mjs", "test/compat/architecture-syntax-parity.test.mjs", "test/compat/architecture-boundary.test.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/release.yml", "anchors": ["node scripts/architecture-check.mjs"] }
+    },
+    {
+      "id": "architecture.public-boundary",
+      "title": "No internal scratch/agent/secret artifacts leak into the public repo",
+      "level": "process",
+      "gate": "merge",
+      "proof": {
+        "command": "node scripts/check-public-boundary.mjs",
+        "files": ["scripts/check-public-boundary.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["node scripts/check-public-boundary.mjs"] }
+    },
+    {
+      "id": "workspace.path-security",
+      "title": "Path containment, symlink escape, and platform locking hold",
+      "level": "unit",
+      "gate": "merge",
+      "proof": {
+        "command": "pnpm test",
+        "files": [
+          "packages/workspace-runtime/test/path-policy-security.test.ts",
+          "packages/workspace-runtime/test/symlink-escape.case.test.ts",
+          "packages/workspace-runtime/test/windows-lock-injection.test.ts",
+          "packages/workspace-runtime/test/g3-matrix.test.ts"
+        ]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["pnpm test"] }
+    },
+    {
+      "id": "policy.secrets-redaction",
+      "title": "Sensitive paths, policy denials, and wire redaction hold",
+      "level": "unit",
+      "gate": "merge",
+      "proof": {
+        "command": "pnpm test",
+        "files": [
+          "packages/policy/test/policy.test.ts",
+          "packages/policy/test/sensitive-paths.case.test.ts",
+          "packages/observability/test/redaction.test.ts",
+          "packages/fs/test/bounded-read.test.ts",
+          "packages/vcs/test/vcs-security.test.ts"
+        ]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["pnpm test"] }
+    },
+    {
+      "id": "change-runtime.cas-atomic",
+      "title": "CAS + atomic publish semantics survive interleaving",
+      "level": "integration",
+      "gate": "merge",
+      "proof": {
+        "command": "pnpm test",
+        "files": [
+          "packages/change-runtime/test/cas-interleaved.case.test.ts",
+          "packages/change-runtime/test/change-runtime.test.ts"
+        ]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["pnpm test"] }
+    },
+    {
+      "id": "coordination.transactions-events",
+      "title": "SQLite transaction integrity and bounded event reads hold",
+      "level": "integration",
+      "gate": "merge",
+      "proof": {
+        "command": "pnpm test",
+        "files": [
+          "packages/coordination-store/test/store.test.ts",
+          "packages/coordination-runtime/test/runtime.test.ts"
+        ]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["pnpm test"] }
+    },
+    {
+      "id": "code-state.worktree-isolation",
+      "title": "Worktrees cannot clobber each other's entity identities or ownership",
+      "level": "integration",
+      "gate": "merge",
+      "proof": {
+        "command": "node --test --experimental-strip-types packages/code-state/test/identity-invariants.test.ts packages/coordination-store/test/code-state-ownership.test.ts apps/my-pi-daemon/test/worktree-identity-invariants.test.ts",
+        "files": [
+          "packages/code-state/test/identity-invariants.test.ts",
+          "packages/coordination-store/test/code-state-ownership.test.ts",
+          "apps/my-pi-daemon/test/worktree-identity-invariants.test.ts",
+          "apps/my-pi-daemon/test/code-state-lifecycle.test.ts"
+        ]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["pnpm test"] }
+    },
+    {
+      "id": "daemon.lifecycle",
+      "title": "Daemon join/sync/leave, readiness sequencing, and request routing hold",
+      "level": "process",
+      "gate": "merge",
+      "proof": {
+        "command": "pnpm test",
+        "files": [
+          "apps/my-pi-daemon/test/daemon.test.ts",
+          "apps/my-pi-daemon/test/evaluation.test.ts",
+          "apps/my-pi-daemon/test/graph-events.test.ts",
+          "apps/my-pi-daemon/test/request-router-inventory.test.ts",
+          "apps/my-pi-daemon/test/request-params.test.ts",
+          "apps/my-pi-daemon/test/graph-service.test.ts"
+        ]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["pnpm test"] }
+    },
+    {
+      "id": "mcp.compatibility",
+      "title": "MCP adapter catalog, host probes, and era negotiation stay compatible",
+      "level": "integration",
+      "gate": "merge",
+      "proof": {
+        "command": "node scripts/probe-hosts.mjs",
+        "files": [
+          "test/compat/legacy-tool-catalog.test.mjs",
+          "test/compat/impact-routing-arms.test.mjs",
+          "scripts/probe-hosts.mjs",
+          "scripts/probe-era.mjs",
+          "packages/mcp-adapter/test/mcp-integration.test.ts"
+        ]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["node scripts/probe-hosts.mjs"] }
+    },
+    {
+      "id": "release.packed-artifact-smoke",
+      "title": "The exact packed TGZ installs and serves in a clean directory",
+      "level": "artifact",
+      "gate": "release",
+      "proof": {
+        "command": "node scripts/pr-smoke.mjs --artifact dist-release/<candidate>.tgz",
+        "files": ["scripts/pr-smoke.mjs", "test/release/pr-smoke.test.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/release.yml", "anchors": ["pr-smoke.mjs --artifact"] }
+    },
+    {
+      "id": "release.artifact-sha-binding",
+      "title": "Artifact SHA survives the qualification handoff byte-identical",
+      "level": "artifact",
+      "gate": "release",
+      "proof": {
+        "command": "node scripts/verify-release.mjs --strict",
+        "files": ["scripts/verify-release.mjs", "test/release/publish-artifact-binding.test.mjs", "test/release/verify-release.test.mjs", "test/release/release-manifest.test.mjs", "test/release/release-identity.test.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/release.yml", "anchors": ["SHA256SUMS", "node scripts/verify-release.mjs"] }
+    },
+    {
+      "id": "release.strict-admission",
+      "title": "Strict release admission (gates + evidence) passes on the candidate",
+      "level": "artifact",
+      "gate": "release",
+      "proof": {
+        "command": "node scripts/verify-gates.mjs --strict",
+        "files": ["scripts/verify-gates.mjs", "test/release/admission-cli.test.mjs", "test/release/admission-coverage.test.mjs", "test/release/build-integrity.test.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/release.yml", "anchors": ["node scripts/verify-gates.mjs --strict"] }
+    },
+    {
+      "id": "release.sbom-validation",
+      "title": "SBOM binds to the admitted candidate and verifies",
+      "level": "artifact",
+      "gate": "release",
+      "proof": {
+        "command": "node scripts/verify-sbom.mjs",
+        "files": ["scripts/generate-sbom.mjs", "scripts/verify-sbom.mjs", "test/release/verify-sbom.test.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/release.yml", "anchors": ["node scripts/verify-sbom.mjs"] }
+    },
+    {
+      "id": "production-next.pn6-impact-routing",
+      "title": "PN6 impact-routing arms evidence (experimental-blocking)",
+      "level": "process",
+      "gate": "evidence",
+      "proof": {
+        "command": "node benchmarks/impact-routing-arms.mjs --evidence-out evidence/PN6.json",
+        "files": ["benchmarks/impact-routing-arms.mjs", "scripts/verify-production-next-evidence.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["impact-routing-arms.mjs --evidence-out evidence/PN6.json"] }
+    },
+    {
+      "id": "production-next.pn8-evaluation-feedback",
+      "title": "PN8 evaluation-feedback arms evidence (experimental-blocking)",
+      "level": "process",
+      "gate": "evidence",
+      "proof": {
+        "command": "node benchmarks/evaluation-feedback-arms.mjs --evidence-out evidence/PN8.json",
+        "files": ["benchmarks/evaluation-feedback-arms.mjs", "scripts/verify-production-next-evidence.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["evaluation-feedback-arms.mjs --evidence-out evidence/PN8.json"] }
+    },
+    {
+      "id": "production-next.pn9-stable-bootstrap",
+      "title": "PN9 stable-bootstrap evidence (experimental-blocking)",
+      "level": "process",
+      "gate": "evidence",
+      "proof": {
+        "command": "node scripts/dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json",
+        "files": ["scripts/dogfood-stable-bootstrap.mjs", "test/release/production-next-stable-bootstrap.test.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["dogfood-stable-bootstrap.mjs --evidence-out evidence/PN9.json"] }
+    },
+    {
+      "id": "production-next.pn12-local-reliability",
+      "title": "PN12 local-reliability evidence (experimental-blocking)",
+      "level": "process",
+      "gate": "evidence",
+      "proof": {
+        "command": "node benchmarks/local-reliability.mjs --evidence-out evidence/PN12.json",
+        "files": ["benchmarks/local-reliability.mjs", "scripts/verify-production-next.mjs"]
+      },
+      "ci": { "workflow": ".github/workflows/ci.yml", "anchors": ["local-reliability.mjs --evidence-out evidence/PN12.json"] }
+    }
+  ]
+}

@@ -25,10 +25,24 @@ const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function resolveWindowsCommand(command) {
   if (process.platform !== "win32") return command;
+  const base = command.replace(/\.(cmd|bat|exe)$/i, "");
   const candidates = [];
-  if (process.env.PNPM_HOME) candidates.push(path.join(process.env.PNPM_HOME, command));
+  if (process.env.PNPM_HOME) {
+    candidates.push(path.join(process.env.PNPM_HOME, command));
+    candidates.push(path.join(process.env.PNPM_HOME, `${base}.exe`));
+    candidates.push(path.join(process.env.PNPM_HOME, `${base}.cmd`));
+  }
   candidates.push(path.join(path.dirname(process.execPath), command));
-  return candidates.find((candidate) => existsSync(candidate)) ?? command;
+  candidates.push(path.join(path.dirname(process.execPath), `${base}.exe`));
+  candidates.push(path.join(path.dirname(process.execPath), `${base}.cmd`));
+  const candidate = candidates.find((cand) => existsSync(cand));
+  if (candidate) return candidate;
+  try {
+    const out = execFileSync("where.exe", [command, `${base}.exe`, `${base}.cmd`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const firstLine = out.trim().split(/\r?\n/).find(Boolean);
+    if (firstLine && existsSync(firstLine.trim())) return firstLine.trim();
+  } catch {}
+  return command;
 }
 
 function quoteWindowsArg(value) {

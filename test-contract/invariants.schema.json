@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "my-pi test-contract manifest schema",
+  "type": "object",
+  "required": ["version", "policy", "invariants"],
+  "properties": {
+    "version": { "type": "integer" },
+    "policy": {
+      "type": "object",
+      "required": ["levels", "gates"],
+      "properties": {
+        "levels": { "type": "array", "items": { "type": "string" } },
+        "gates": { "type": "object" }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "level", "gate", "proof", "ci"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$" },
+          "title": { "type": "string" },
+          "level": { "type": "string" },
+          "gate": { "type": "string" },
+          "proof": {
+            "type": "object",
+            "required": ["command", "files"],
+            "properties": {
+              "command": { "type": "string" },
+              "files": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+            }
+          },
+          "ci": {
+            "type": "object",
+            "required": ["workflow", "anchors"],
+            "properties": {
+              "workflow": { "type": "string" },
+              "anchors": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

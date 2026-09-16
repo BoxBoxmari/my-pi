@@ -118,7 +118,7 @@ jobs:
         node: [24]
         include:
           - os: ubuntu-latest
-            node: 22
+            node: 24.0.0
     env:
       RELEASE_COMMIT: ${{ github.sha }}
       RELEASE_QUALIFICATION: "true"
@@ -143,6 +143,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Runtime contract check (engines/types/CI parity)
+        run: node scripts/check-runtime-contract.mjs
 
       - name: Check public repository boundary
         run: node scripts/check-public-boundary.mjs

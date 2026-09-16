@@ -20,7 +20,7 @@ await build({
   bundle: true,
   platform: "node",
   format: "esm",
-  target: "node22.6.0",
+  target: "node24.0.0",
   outfile: APP_DIST,
   external: ["web-tree-sitter", "tree-sitter-wasms"],
   sourcemap: true,

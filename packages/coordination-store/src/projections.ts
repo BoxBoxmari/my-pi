@@ -219,6 +219,20 @@ export function applyCodeStateDelta(db: DatabaseSync, input: CodeStateDeltaInput
   }
 
   for (const entity of input.entities) {
+    const effectiveWorktreeId = entity.worktreeId ?? input.worktreeId;
+    if (effectiveWorktreeId !== input.worktreeId) {
+      throw err.coordinationStoreFailure(
+        `code-state ownership invariant: entity ${entity.id} targets worktree ${effectiveWorktreeId} but delta scope is worktree ${input.worktreeId}; refusing cross-worktree migration`,
+      );
+    }
+    const owner = db.prepare(
+      "SELECT project_id, worktree_id FROM code_entities WHERE id = ?",
+    ).get(entity.id) as { project_id?: unknown; worktree_id?: unknown } | undefined;
+    if (owner && (owner.project_id !== input.projectId || owner.worktree_id !== input.worktreeId)) {
+      throw err.coordinationStoreFailure(
+        `code-state ownership invariant: entity ${entity.id} is owned by project ${String(owner.project_id)}/worktree ${String(owner.worktree_id)}; refusing reassignment to project ${input.projectId}/worktree ${input.worktreeId}`,
+      );
+    }
     db.prepare(
       `INSERT INTO code_entities (id, project_id, repository_id, worktree_id, kind, stable_key, display_name, path, symbol_kind, fingerprint_json, observed_at, provider)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

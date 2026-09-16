@@ -27,7 +27,7 @@ jobs:
         node: [24]
         include:
           - os: ubuntu-latest
-            node: 22 # compatibility lane
+            node: 24.0.0 # exact-minimum runtime lane (engines.node floor)
 
     env:
       CI: "true"
@@ -61,6 +61,12 @@ jobs:
 
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+
+      - name: Runtime contract check (engines/types/CI parity)
+        run: node scripts/check-runtime-contract.mjs
+
+      - name: Test-contract check (invariant proofs bound to CI)
+        run: node scripts/verify-test-contract.mjs
 
       - name: Check public repository boundary
         run: node scripts/check-public-boundary.mjs
@@ -138,3 +144,24 @@ jobs:
           node benchmarks/local-reliability.mjs --evidence-out evidence/PN12.json
           node scripts/verify-production-next-evidence.mjs
           node scripts/verify-production-next.mjs
+
+  # Stable aggregate merge gate (Issue #30). Repository governance requires
+  # this single check instead of matrix-generated job names, so internal
+  # matrix edits do not silently drop merge protection. Fail-closed: any
+  # failed, cancelled, or skipped matrix result fails the gate.
+  ci-required:
+    name: ci-required
+    if: always()
+    needs: [quality-matrix]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all quality-matrix results
+        env:
+          MATRIX_RESULT: ${{ needs.quality-matrix.result }}
+        run: |
+          echo "quality-matrix result: $MATRIX_RESULT"
+          if [ "$MATRIX_RESULT" != "success" ]; then
+            echo "ci-required: refusing green wrapper over matrix result '$MATRIX_RESULT'" >&2
+            exit 1
+          fi
+          echo "ci-required: all release-blocking lanes green"

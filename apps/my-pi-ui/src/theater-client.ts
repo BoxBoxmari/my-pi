@@ -9,6 +9,34 @@ import {
   type TheaterFrame,
 } from "@my-pi/graph-model";
 import { buildInspectorObservation, escapeHtml } from "./inspector.js";
+import { computeLayoutPositions } from "./theater-layout.js";
+import {
+  INITIAL_THEATER_UI_STATE,
+  clampReplayIndex,
+  eventTypeOf,
+  isStructuralEvent,
+  reduce,
+  replayDisplayText,
+  streamStatusText,
+  type TheaterUiState,
+} from "./theater-state.js";
+import {
+  buildFilterOptions,
+  cursorText,
+  filterVisibleNodes,
+  freshnessText,
+  kindColorHex,
+  kindFillCss,
+  truncateLabel,
+} from "./theater-view-model.js";
+import {
+  buildStreamUrl,
+  buildGraphUrl,
+  parseStreamPayload,
+  persistCursor,
+  restorePersistedCursor,
+  sessionHeaders,
+} from "./theater-client-net.js";
 
 interface WindowWithConfig extends Window {
   __MY_PI_THEATER_CONFIG__?: {
@@ -27,17 +55,14 @@ interface WindowWithConfig extends Window {
 
   const { token, initialFrame, apiBase = "", isMcp = false } = config;
   try {
-    const persisted = window.sessionStorage.getItem("my-pi.theater.cursor");
-    if (persisted !== null && /^\d+$/.test(persisted) && Number(persisted) > Number(initialFrame.cursor.lastSequence ?? "0")) {
-      initialFrame.cursor.lastSequence = persisted;
-    }
+    const restored = restorePersistedCursor(window.sessionStorage, initialFrame.cursor.lastSequence);
+    if (restored !== undefined) initialFrame.cursor.lastSequence = restored;
   } catch {}
   let currentFrame: TheaterFrame = initialFrame;
-  let selectedNodeId: string | null = null;
-  let isReplayMode = false;
-  let replayIndex = 0;
+  // Canonical serializable UI state; transitions go through `reduce`.
+  // Ephemeral resources (timers, EventSource, THREE/DOM handles) stay separate.
+  let ui: TheaterUiState = { ...INITIAL_THEATER_UI_STATE };
   let replayTimer: number | null = null;
-  let is2DFallback = false;
 
   const prefersReducedMotion = config.reduceMotion === true;
 
@@ -87,18 +112,6 @@ interface WindowWithConfig extends Window {
   const btnStep = document.getElementById("btn-step") as HTMLButtonElement;
   const sliderSeq = document.getElementById("slider-sequence") as HTMLInputElement;
   const timelineSeqDisplay = document.getElementById("timeline-seq-display") as HTMLElement;
-
-  const colors = {
-    work: 0x00b8f5,          // KPMG Pacific
-    work_item: 0x00b8f5,     // KPMG Pacific
-    agent_session: 0x1e49e6, // KPMG Cobalt
-    intent: 0x7213ea,        // KPMG Purple
-    code: 0x1e49e6,          // KPMG Cobalt
-    file: 0x00338d,          // KPMG Blue
-    impact: 0xfd349c,        // KPMG Pink
-    lineage: 0xf1c44d,       // Warning amber
-    default: 0x00b8f5,
-  };
 
   // Node position map: nodeId -> { x, y, z }
   const nodePositions = new Map<string, { x: number; y: number; z: number }>();
@@ -167,7 +180,7 @@ interface WindowWithConfig extends Window {
   }
 
   function switchTo2D(reason?: string): void {
-    is2DFallback = true;
+    ui = reduce(ui, { type: "renderer-failed" });
     if (renderer) {
       renderer.dispose();
       renderer = null;
@@ -192,7 +205,7 @@ interface WindowWithConfig extends Window {
 
   function switchTo3D(): void {
     if (!initThree()) return;
-    is2DFallback = false;
+    ui = reduce(ui, { type: "renderer-restored" });
     canvas3d.style.display = "block";
     fallback2d.style.display = "none";
     btnToggleRender.textContent = "3D Active (Switch 2D)";
@@ -204,54 +217,7 @@ interface WindowWithConfig extends Window {
 
   function computeLayout(nodes: GraphNode[]): void {
     nodePositions.clear();
-    const workItems = nodes.filter((n) => n.kind === "work" || n.kind === "work_item");
-    const agents = nodes.filter((n) => n.kind === "agent_session");
-    const intents = nodes.filter((n) => n.kind === "intent");
-    const others = nodes.filter((n) => n.kind !== "work" && n.kind !== "work_item" && n.kind !== "agent_session" && n.kind !== "intent");
-
-    // Agents in elevated inner circle
-    const rAgent = Math.max(110, agents.length * 36);
-    agents.forEach((node, i) => {
-      const theta = (i / Math.max(agents.length, 1)) * Math.PI * 2;
-      nodePositions.set(node.id, {
-        x: Math.cos(theta) * rAgent,
-        y: 22,
-        z: Math.sin(theta) * rAgent,
-      });
-    });
-
-    // Work items on ground circle
-    const rWork = Math.max(240, workItems.length * 42);
-    workItems.forEach((node, i) => {
-      const theta = (i / Math.max(workItems.length, 1)) * Math.PI * 2;
-      nodePositions.set(node.id, {
-        x: Math.cos(theta) * rWork,
-        y: 4,
-        z: Math.sin(theta) * rWork,
-      });
-    });
-
-    // Intents between agent and work
-    const rIntent = (rAgent + rWork) / 2;
-    intents.forEach((node, i) => {
-      const theta = (i / Math.max(intents.length, 1)) * Math.PI * 2 + 0.25;
-      nodePositions.set(node.id, {
-        x: Math.cos(theta) * rIntent,
-        y: 12,
-        z: Math.sin(theta) * rIntent,
-      });
-    });
-
-    // Others in outer perimeter
-    const rOuter = rWork + 130;
-    others.forEach((node, i) => {
-      const theta = (i / Math.max(others.length, 1)) * Math.PI * 2 + 0.4;
-      nodePositions.set(node.id, {
-        x: Math.cos(theta) * rOuter,
-        y: 8,
-        z: Math.sin(theta) * rOuter,
-      });
-    });
+    for (const [id, pos] of computeLayoutPositions(nodes)) nodePositions.set(id, pos);
   }
 
   function createAgentTokenMesh(colorHex: number): THREE.Group {
@@ -404,12 +370,12 @@ interface WindowWithConfig extends Window {
     domOverlay.innerHTML = "";
     overlayLabels.clear();
 
-    const nodes = filterVisibleNodes();
+    const nodes = filterVisibleNodes(currentFrame.graph.nodes, filterSelect.value);
     computeLayout(nodes);
 
     nodes.forEach((node) => {
       const pos = nodePositions.get(node.id) ?? { x: 0, y: 0, z: 0 };
-      const colorHex = (colors as Record<string, number>)[node.kind] ?? colors.default;
+      const colorHex = kindColorHex(node.kind);
 
       let obj: THREE.Object3D;
       if (node.kind === "agent_session") {
@@ -430,11 +396,11 @@ interface WindowWithConfig extends Window {
 
       // DOM Overlay pill
       const labelElem = document.createElement("button");
-      labelElem.className = `dom-node-pill pill-${node.kind}${node.id === selectedNodeId ? " selected" : ""}`;
+      labelElem.className = `dom-node-pill pill-${node.kind}${node.id === ui.selectedNodeId ? " selected" : ""}`;
       labelElem.setAttribute("role", "button");
       labelElem.setAttribute("aria-label", `${node.label} (${node.kind})`);
       labelElem.tabIndex = 0;
-      labelElem.innerHTML = `<span class="pill-dot"></span><span class="pill-text">${escapeHtml(node.label).slice(0, 32)}</span>`;
+      labelElem.innerHTML = `<span class="pill-dot"></span><span class="pill-text">${escapeHtml(truncateLabel(node.label))}</span>`;
       labelElem.addEventListener("click", () => selectNode(node.id));
       labelElem.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -471,13 +437,8 @@ interface WindowWithConfig extends Window {
     requestRender();
   }
 
-  function filterVisibleNodes(): GraphNode[] {
-    const filter = filterSelect.value;
-    return currentFrame.graph.nodes.filter((node) => !filter || node.kind === filter);
-  }
-
   function render2D(): void {
-    const nodes = filterVisibleNodes();
+    const nodes = filterVisibleNodes(currentFrame.graph.nodes, filterSelect.value);
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const width = Math.max(stage.clientWidth, 480);
     const height = Math.max(stage.clientHeight, 360);
@@ -503,9 +464,9 @@ interface WindowWithConfig extends Window {
     const circles = nodes
       .map((n) => {
         const p = positions.get(n.id) ?? { x: cx, y: cy };
-        const sel = selectedNodeId === n.id ? ' stroke="var(--status-warning)" stroke-width="3"' : ' stroke="var(--kpmg-white)" stroke-width="1.2"';
-        const fill = (colors as Record<string, number>)[n.kind] ? `#${(colors as Record<string, number>)[n.kind]!.toString(16).padStart(6, "0")}` : "var(--kpmg-blue)";
-        return `<g data-id="${escapeHtml(n.id)}" style="cursor:pointer;"><circle cx="${p.x}" cy="${p.y}" r="18" fill="${fill}"${sel} /><text x="${p.x}" y="${p.y + 32}" text-anchor="middle" fill="#0c233c" font-size="11px" font-weight="600">${escapeHtml(n.label).slice(0, 32)}</text></g>`;
+        const sel = ui.selectedNodeId === n.id ? ' stroke="var(--status-warning)" stroke-width="3"' : ' stroke="var(--kpmg-white)" stroke-width="1.2"';
+        const fill = kindFillCss(n.kind);
+        return `<g data-id="${escapeHtml(n.id)}" style="cursor:pointer;"><circle cx="${p.x}" cy="${p.y}" r="18" fill="${fill}"${sel} /><text x="${p.x}" y="${p.y + 32}" text-anchor="middle" fill="#0c233c" font-size="11px" font-weight="600">${escapeHtml(truncateLabel(n.label))}</text></g>`;
       })
       .join("");
 
@@ -670,7 +631,7 @@ interface WindowWithConfig extends Window {
   }
 
   function selectNode(id: string): void {
-    selectedNodeId = id;
+    ui = reduce(ui, { type: "select-node", nodeId: id });
     overlayLabels.forEach((elem, nid) => {
       if (nid === id) elem.classList.add("selected");
       else elem.classList.remove("selected");
@@ -679,7 +640,7 @@ interface WindowWithConfig extends Window {
     const node = currentFrame.graph.nodes.find((n) => n.id === id);
     populateInspector(node);
 
-    if (is2DFallback) {
+    if (ui.renderer === "2d") {
       render2D();
     }
   }
@@ -773,8 +734,8 @@ interface WindowWithConfig extends Window {
     badgeEmpty.style.display = q.empty ? "inline-flex" : "none";
 
     const lastSeq = currentFrame.cursor.lastSequence ?? (currentFrame.events.at(-1)?.sequence || "0");
-    cursorInfo.textContent = `seq: ${lastSeq}`;
-    freshnessElem.textContent = q.generatedAt ? new Date(q.generatedAt).toLocaleTimeString() : "just now";
+    cursorInfo.textContent = cursorText(lastSeq, undefined);
+    freshnessElem.textContent = freshnessText(q.generatedAt);
   }
 
   function showBanner(text: string): void {
@@ -786,19 +747,14 @@ interface WindowWithConfig extends Window {
     stageBanner.style.display = "none";
   }
 
-  // Live event stream (SSE)
+  // Live event stream (SSE). Handles stay controller-owned; stream phase lives in ui.
   let liveSource: EventSource | null = null;
   let liveReconnectTimer: number | null = null;
-  let streamState: "connecting" | "live" | "reconnecting" | "offline" = "connecting";
 
   function updateStreamStatus(): void {
     const now = new Date().toLocaleTimeString();
-    if (isMcp || !apiBase || isReplayMode) {
-      streamStatusElem.textContent = now;
-      return;
-    }
-    const label = streamState === "live" ? "● live" : streamState === "connecting" ? "○ connecting" : streamState === "reconnecting" ? "○ reconnecting" : "● offline";
-    streamStatusElem.textContent = `${label} · ${now}`;
+    const label = streamStatusText({ stream: ui.stream, isMcp, hasApiBase: Boolean(apiBase), isReplay: ui.mode === "replay" });
+    streamStatusElem.textContent = label === null ? now : `${label} · ${now}`;
   }
 
   function disconnectLiveStream(): void {
@@ -813,35 +769,36 @@ interface WindowWithConfig extends Window {
   }
 
   function connectLiveStream(): void {
-    if (isReplayMode || !apiBase || isMcp || liveSource) return;
+    if (ui.mode === "replay" || !apiBase || isMcp || liveSource) return;
     const lastSeq = currentFrame.cursor.lastSequence ?? "0";
-    const url = `${apiBase}/stream?kind=${encodeURIComponent(currentFrame.scope.kind)}&afterSequence=${encodeURIComponent(lastSeq)}&session=${encodeURIComponent(token)}`;
+    const url = buildStreamUrl(apiBase, currentFrame.scope.kind, lastSeq, token);
     const source = new EventSource(url);
     liveSource = source;
-    streamState = "connecting";
+    ui = reduce(ui, { type: "stream-state", stream: "connecting" });
     updateStreamStatus();
 
     source.onopen = () => {
       if (source !== liveSource) return;
-      streamState = "live";
+      ui = reduce(ui, { type: "stream-state", stream: "live" });
       updateStreamStatus();
     };
 
     source.onmessage = (event) => {
       if (source !== liveSource) return;
-      let data: { events?: TheaterEvent[]; throughSequence?: string; error?: string };
+      let data: unknown;
       try {
         data = JSON.parse(event.data);
       } catch {
         return;
       }
-      if (data.error || !Array.isArray(data.events) || data.events.length === 0) return;
-      processLiveEvents({ events: data.events, throughSequence: data.throughSequence });
+      const payload = parseStreamPayload(data);
+      if (!payload) return;
+      processLiveEvents(payload);
     };
 
     source.onerror = () => {
       if (source !== liveSource) return;
-      streamState = "reconnecting";
+      ui = reduce(ui, { type: "stream-state", stream: "reconnecting" });
       updateStreamStatus();
       disconnectLiveStream();
       liveReconnectTimer = window.setTimeout(() => {
@@ -852,27 +809,11 @@ interface WindowWithConfig extends Window {
   }
 
   function processLiveEvents(data: { events: TheaterEvent[]; throughSequence?: string }): void {
-    const structuralTypes = [
-      "WorkItemCreated",
-      "WorkItemClaimed",
-      "WorkItemCompleted",
-      "Completed",
-      "WorkItemBlocked",
-      "Blocked",
-      "WorkItemUnblocked",
-      "AgentJoined",
-      "AgentDeparted",
-      "IntentDeclared",
-      "WorkItemEvaluationRequested",
-      "WorkItemEvaluationAccepted",
-      "EvaluationAccepted",
-    ];
     let hasStructural = false;
 
     data.events.forEach((ev: TheaterEvent) => {
       currentFrame.events.push(ev);
-      const eType = ev.eventType || (ev as unknown as { type?: string }).type || "";
-      if (structuralTypes.includes(eType)) {
+      if (isStructuralEvent(eventTypeOf(ev))) {
         hasStructural = true;
       }
       const cue = eventToMotionCue(ev, currentFrame.graph);
@@ -880,9 +821,7 @@ interface WindowWithConfig extends Window {
     });
     currentFrame.cursor.lastSequence = data.throughSequence || data.events.at(-1)?.sequence;
     try {
-      if (currentFrame.cursor.lastSequence !== undefined) {
-        window.sessionStorage.setItem("my-pi.theater.cursor", String(currentFrame.cursor.lastSequence));
-      }
+      persistCursor(window.sessionStorage, currentFrame.cursor.lastSequence);
     } catch {}
     updateQualityBadges();
 
@@ -892,8 +831,8 @@ interface WindowWithConfig extends Window {
   async function refreshGraph(): Promise<void> {
     if (!apiBase) return;
     try {
-      const graphRes = await fetch(`${apiBase}?kind=${encodeURIComponent(currentFrame.scope.kind)}`, {
-        headers: { "x-my-pi-session": token },
+      const graphRes = await fetch(buildGraphUrl(apiBase, currentFrame.scope.kind), {
+        headers: sessionHeaders(token),
       });
       if (!graphRes.ok) return;
       currentFrame.graph = await graphRes.json();
@@ -901,20 +840,20 @@ interface WindowWithConfig extends Window {
       currentFrame.quality.truncated = currentFrame.graph.truncated;
       currentFrame.quality.degraded = Boolean(currentFrame.graph.degraded);
       populateFilterOptions();
-      if (is2DFallback) render2D();
+      if (ui.renderer === "2d") render2D();
       else buildScene();
-      if (selectedNodeId) {
-        populateInspector(currentFrame.graph.nodes.find((n) => n.id === selectedNodeId));
+      if (ui.selectedNodeId) {
+        populateInspector(currentFrame.graph.nodes.find((n) => n.id === ui.selectedNodeId));
       }
     } catch {
       // ignore graph refresh failure
     }
   }
 
-  // Replay logic
+  // Replay logic: mode/replayIndex transition through explicit actions.
   function setReplayMode(enable: boolean): void {
-    isReplayMode = enable;
-    if (isReplayMode) {
+    ui = reduce(ui, { type: enable ? "enter-replay" : "exit-replay" });
+    if (ui.mode === "replay") {
       disconnectLiveStream();
       modeToggle.classList.remove("mode-live");
       modeToggle.classList.add("mode-replay");
@@ -923,7 +862,7 @@ interface WindowWithConfig extends Window {
       timelineBar.style.display = "flex";
       sliderSeq.max = String(Math.max(currentFrame.events.length - 1, 0));
       sliderSeq.value = "0";
-      replayIndex = 0;
+      ui = reduce(ui, { type: "replay-seek", index: 0, eventCount: currentFrame.events.length });
       updateReplayStep();
     } else {
       modeToggle.classList.add("mode-live");
@@ -942,16 +881,16 @@ interface WindowWithConfig extends Window {
 
   function updateReplayStep(): void {
     const total = currentFrame.events.length;
-    timelineSeqDisplay.textContent = `Event ${replayIndex + 1} of ${total}`;
-    sliderSeq.value = String(replayIndex);
+    timelineSeqDisplay.textContent = replayDisplayText(ui.replayIndex, total);
+    sliderSeq.value = String(ui.replayIndex);
 
-    const ev = currentFrame.events[replayIndex];
+    const ev = currentFrame.events[ui.replayIndex];
     if (ev) {
-      cursorInfo.textContent = `seq: ${ev.sequence}`;
+      cursorInfo.textContent = cursorText(ev.sequence, undefined);
       const cue = eventToMotionCue(ev, currentFrame.graph);
       if (cue) applyCue(cue);
-      if (selectedNodeId) {
-        populateInspector(currentFrame.graph.nodes.find((n) => n.id === selectedNodeId));
+      if (ui.selectedNodeId) {
+        populateInspector(currentFrame.graph.nodes.find((n) => n.id === ui.selectedNodeId));
       }
     }
   }
@@ -965,8 +904,9 @@ interface WindowWithConfig extends Window {
     } else {
       btnPlayPause.textContent = "⏸ Pause";
       replayTimer = window.setInterval(() => {
-        if (replayIndex < currentFrame.events.length - 1) {
-          replayIndex++;
+        const next = clampReplayIndex(ui.replayIndex + 1, currentFrame.events.length);
+        if (next !== ui.replayIndex) {
+          ui = reduce(ui, { type: "replay-advance", eventCount: currentFrame.events.length });
           updateReplayStep();
         } else {
           clearInterval(replayTimer!);
@@ -978,23 +918,24 @@ interface WindowWithConfig extends Window {
   });
 
   btnStep.addEventListener("click", () => {
-    if (replayIndex < currentFrame.events.length - 1) {
-      replayIndex++;
+    const next = clampReplayIndex(ui.replayIndex + 1, currentFrame.events.length);
+    if (next !== ui.replayIndex) {
+      ui = reduce(ui, { type: "replay-advance", eventCount: currentFrame.events.length });
       updateReplayStep();
     }
   });
 
   sliderSeq.addEventListener("input", () => {
-    replayIndex = Number(sliderSeq.value);
+    ui = reduce(ui, { type: "replay-seek", index: Number(sliderSeq.value), eventCount: currentFrame.events.length });
     updateReplayStep();
   });
 
   modeToggle.addEventListener("click", () => {
-    setReplayMode(!isReplayMode);
+    setReplayMode(ui.mode === "live");
   });
 
   btnToggleRender.addEventListener("click", () => {
-    if (is2DFallback) switchTo3D();
+    if (ui.renderer === "2d") switchTo3D();
     else switchTo2D("Manual 2D mode toggled by operator");
   });
 
@@ -1072,7 +1013,7 @@ interface WindowWithConfig extends Window {
   // Escape key deselects
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      selectedNodeId = null;
+      ui = reduce(ui, { type: "deselect" });
       overlayLabels.forEach((el) => el.classList.remove("selected"));
       populateInspector(undefined);
     }
@@ -1086,14 +1027,14 @@ interface WindowWithConfig extends Window {
     btn.className = `kind-tab${kind === currentFrame.scope.kind ? " active" : ""}`;
     btn.textContent = kind;
     btn.setAttribute("role", "tab");
-    btn.addEventListener("click", async () => {
-      document.querySelectorAll(".kind-tab").forEach((t) => t.classList.remove("active"));
-      btn.classList.add("active");
-      if (apiBase) {
-        try {
-          const res = await fetch(`${apiBase}?kind=${encodeURIComponent(kind)}`, {
-            headers: { "x-my-pi-session": token },
-          });
+      btn.addEventListener("click", async () => {
+        document.querySelectorAll(".kind-tab").forEach((t) => t.classList.remove("active"));
+        btn.classList.add("active");
+        if (apiBase) {
+          try {
+            const res = await fetch(buildGraphUrl(apiBase, kind), {
+              headers: sessionHeaders(token),
+            });
           if (res.ok) {
             currentFrame.graph = await res.json();
             currentFrame.scope.kind = kind;
@@ -1115,11 +1056,10 @@ interface WindowWithConfig extends Window {
 
   // Filter dropdown
   function populateFilterOptions(): void {
-    const kinds = [...new Set(currentFrame.graph.nodes.map((n) => n.kind))].sort();
-    filterSelect.innerHTML = '<option value="">all kinds</option>' + kinds.map((k) => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join("");
+    filterSelect.innerHTML = '<option value="">all kinds</option>' + buildFilterOptions(currentFrame.graph.nodes).map((k) => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join("");
   }
   filterSelect.addEventListener("change", () => {
-    if (is2DFallback) render2D();
+    if (ui.renderer === "2d") render2D();
     else buildScene();
   });
 
