@@ -27,8 +27,8 @@ importers:
         specifier: 0.28.2
         version: 0.28.2
       pyright:
-        specifier: ^1.1.413
-        version: 1.1.413
+        specifier: ^1.1.414
+        version: 1.1.414
       three:
         specifier: ^0.186.0
         version: 0.186.0
@@ -686,8 +686,8 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
-  pyright@1.1.413:
-    resolution: {integrity: sha512-1lpxKrh0DHHpfAQOfciZo2ojua2jase3wwO9at8kldc+F/p1PBscxA5CQ3G1qg5lMOMhXo6ZaiMLMXEAqADIAg==}
+  pyright@1.1.414:
+    resolution: {integrity: sha512-FPZZb51jepDX4eP7TEYDeNFtmE3WgwkkEcJpvH3/QmUSsj0EAy3LXu+xB4T/FWDejtsXlCfFr/rbWFjwuwuXww==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -935,7 +935,7 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
-  pyright@1.1.413:
+  pyright@1.1.414:
     optionalDependencies:
       fsevents: 2.3.3
 
