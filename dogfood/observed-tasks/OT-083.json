@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "2",
+  "recordType": "observed-task-v2",
+  "taskId": "OT-083",
+  "taskDefinitionPath": "dogfood/observed-tasks/OT-083.json",
+  "taskDefinitionCommit": "846aa9b50acca1925f96f7478d61bdfb9dfff02d",
+  "registeredAt": "2026-09-19T05:18:23.450Z",
+  "title": "Measure host-profile source repair after duplicate workspace binding detection",
+  "taskClass": "PN6",
+  "primaryHypothesis": "PN6",
+  "baseCommit": "846aa9b50acca1925f96f7478d61bdfb9dfff02d",
+  "targetScope": {
+    "include": [
+      "packages/host-profiles/src/render.ts",
+      "packages/host-profiles/test/host-profiles.test.ts"
+    ],
+    "exclude": [
+      ".my-pi/**",
+      "node_modules/**"
+    ]
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "implementation",
+      "condition": "A host configuration with an existing workspace argument does not receive a duplicate workspace flag."
+    },
+    {
+      "id": "downstream",
+      "condition": "The independent evaluator and predeclared downstream build/test command pass in both isolated arms."
+    },
+    {
+      "id": "measured-repair",
+      "condition": "The independent evaluator records the initial acceptance check and any predeclared official my-pi repair attempt from command output."
+    }
+  ],
+  "primaryVariable": {
+    "name": "impact-aware routing context",
+    "control": "impact-aware routing disabled; route only current work item",
+    "treatment": "impact-aware routing enabled; route current and impacted dependent work items"
+  },
+  "arms": {
+    "control": {
+      "profileId": "my-pi-control-impact-off",
+      "description": "Stable my-pi environment with impact-aware routing disabled.",
+      "baseCommit": "846aa9b50acca1925f96f7478d61bdfb9dfff02d",
+      "worktreeKey": "OT-083-control",
+      "sessionKey": "OT-083-control",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-083.json",
+            "--arm",
+            "control"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    },
+    "treatment": {
+      "profileId": "my-pi-treatment-impact-on",
+      "description": "Same stable my-pi environment with impact-aware routing enabled.",
+      "baseCommit": "846aa9b50acca1925f96f7478d61bdfb9dfff02d",
+      "worktreeKey": "OT-083-treatment",
+      "sessionKey": "OT-083-treatment",
+      "freshWorktree": true,
+      "freshSession": true,
+      "setupCommands": [
+        {
+          "id": "build-before",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "arm-setup",
+          "argv": [
+            "node",
+            "scripts/real-track-a-arm.mjs",
+            "--task",
+            "dogfood/observed-tasks/OT-083.json",
+            "--arm",
+            "treatment"
+          ],
+          "timeoutMs": 900000
+        },
+        {
+          "id": "build-after",
+          "argv": [
+            "pnpm",
+            "build"
+          ],
+          "timeoutMs": 900000
+        }
+      ]
+    }
+  },
+  "requiredTests": [
+    {
+      "id": "independent-evaluator",
+      "argv": [
+        "node",
+        "scripts/evaluate-track-a-arm.mjs",
+        "--task",
+        "dogfood/observed-tasks/OT-083.json"
+      ],
+      "timeoutMs": 900000
+    }
+  ],
+  "environment": {
+    "hostFamily": "windows-node",
+    "modelFamily": "single-primary-agent",
+    "sameHostFamily": true,
+    "sameModelFamily": true
+  },
+  "adjudication": {
+    "independent": true,
+    "evaluator": "separate node evaluator process with official my-pi repair patches",
+    "groundTruth": "predeclared acceptance behavior plus evaluator assertions",
+    "requiredEvidence": [
+      "arm command exit codes",
+      "independent evaluator stdout",
+      "source mutation hashes",
+      "independent initial/final repair command output",
+      "official my-pi repair patch CAS history"
+    ]
+  },
+  "metrics": [
+    {
+      "id": "routing_recall",
+      "definition": "Fraction of predeclared relevant work items selected by the arm route.",
+      "role": "primary"
+    },
+    {
+      "id": "routing_precision",
+      "definition": "Fraction of selected work items that are predeclared relevant.",
+      "role": "secondary"
+    },
+    {
+      "id": "selected_items",
+      "definition": "Count of work items in the arm route.",
+      "role": "secondary"
+    },
+    {
+      "id": "downstream_pass",
+      "definition": "Independent evaluator acceptance as 1 or 0.",
+      "role": "secondary"
+    },
+    {
+      "id": "repair_iterations",
+      "definition": "Independent evaluator iterations required for accepted result.",
+      "role": "secondary"
+    }
+  ],
+  "contaminationControls": {
+    "freshWorktree": true,
+    "freshSession": true,
+    "noSharedContext": true,
+    "noCrossArmArtifacts": true,
+    "stableAuthorityRequired": false,
+    "forbiddenPaths": [
+      ".env",
+      ".my-pi/provenance/**",
+      "dogfood/observed-tasks/*.result.json"
+    ]
+  },
+  "workload": {
+    "targetPath": "packages/host-profiles/src/render.ts",
+    "patch": {
+      "old": "  if (opts.workspace !== undefined) args.push(\"--workspace\", opts.workspace);\r\n",
+      "new": "  if (opts.workspace !== undefined && !args.includes(\"--workspace\")) args.push(\"--workspace\", opts.workspace);\r\n"
+    },
+    "groundTruth": [
+      "host-profile",
+      "config-consumer"
+    ],
+    "controlRoute": [
+      "host-profile"
+    ],
+    "treatmentRoute": [
+      "host-profile",
+      "config-consumer"
+    ],
+    "mutationMode": "shared_source_change",
+    "heterogeneityKey": "host-profile-workspace-binding",
+    "evaluator": {
+      "kind": "measured_source_repair",
+      "routeRequirements": {
+        "control": [
+          "host-profile"
+        ],
+        "treatment": [
+          "host-profile",
+          "config-consumer"
+        ]
+      },
+      "sourceChecks": {
+        "control": {
+          "path": "packages/host-profiles/test/host-profiles.test.ts",
+          "includes": [
+            "// PN6 measured repair marker OT-083"
+          ]
+        },
+        "treatment": {
+          "path": "packages/host-profiles/src/render.ts",
+          "includes": [
+            "!args.includes(\"--workspace\")"
+          ]
+        }
+      },
+      "repairPatches": {
+        "control": [
+          {
+            "id": "repair-source-change-OT-083",
+            "path": "packages/host-profiles/test/host-profiles.test.ts",
+            "old": "test(\"renderProfile: opencode and cursor JSON shapes (my-pi primary + ccr alias)\", () => {",
+            "new": "test(\"renderProfile: opencode and cursor JSON shapes (my-pi primary + ccr alias)\", () => {\n// PN6 measured repair marker OT-083"
+          }
+        ],
+        "treatment": []
+      }
+    },
+    "evidenceKind": "observed_source_change"
+  },
+  "registration": {
+    "receiptPath": "dogfood/observed-registrations/OT-083.json"
+  }
+}
