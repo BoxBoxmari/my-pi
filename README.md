@@ -71,6 +71,10 @@ my-pi-mcp host-config opencode-current-local
 
 Starting without `--workspace` or `MY_PI_WORKSPACE_ROOT` fails closed. Use `--allow-cwd` only when granting the current directory is intentional.
 
+The published npm package is the stable MCP server. The coordination daemon and
+local UI are private workspace packages used by the experimental source build;
+build the repository before using those components.
+
 ## 13-tool MCP surface
 
 | Area | Tools | Purpose |
@@ -163,6 +167,37 @@ The configured CI matrix covers Ubuntu, Windows, and macOS lanes. See the live w
 ## Benchmarks
 
 The repository contains deterministic synthetic benchmarks for MCP stdio overhead, search/traversal throughput, memory sampling, runtime boundaries, coordination behavior, impact routing, evaluation feedback, and local reliability. Benchmark outputs are candidate evidence; performance claims should be interpreted alongside their qualification criteria and runner variance.
+
+### Self-hosted tracks and promotion
+
+The self-hosted program keeps implementation, measurement, and promotion as
+separate decisions:
+
+- **Track A — evidence harness:** ObservedTask v2 tasks are committed and
+  receipt-bound before a run. Control and treatment arms use isolated worktrees,
+  independent downstream adjudication, and fail-closed aggregation.
+- **Track B — enforcement:** mutation provenance, local admission, portable
+  attestation, and host policy bundles distinguish managed changes from
+  unmanaged or review-required changes. Report-mode results do not imply strict
+  host enforcement.
+- **Track C — visual plane:** the graph and theater views project authoritative
+  local state through the daemon, loopback portal, or opt-in MCP Apps resources.
+  These views do not change the default 13-tool catalog.
+
+The current evidence files under `evidence/` are candidate-bound records, not a
+release or promotion claim. A passing test, a qualified sample, or an accepted
+individual evidence record does not by itself open PN11. Use the read-only
+promotion verifier as the authority:
+
+```bash
+pnpm verify:observed-v2
+pnpm verify:production-next-evidence
+pnpm verify:production-next-promotion
+```
+
+Keep PN11 withheld unless the final command reports
+`promotionEligible: true`. Do not reclassify legacy or missing-result records by
+editing their metadata after a run.
 
 ## Production Next (experimental)
 
