@@ -84,8 +84,8 @@ importers:
   apps/my-pi-mcp:
     dependencies:
       '@modelcontextprotocol/core':
-        specifier: 2.1.0
-        version: 2.1.0
+        specifier: 2.3.1
+        version: 2.3.1
       '@modelcontextprotocol/server':
         specifier: 2.0.0
         version: 2.0.0
@@ -303,11 +303,11 @@ importers:
   packages/mcp-adapter:
     dependencies:
       '@modelcontextprotocol/core':
-        specifier: 2.1.0
-        version: 2.1.0
+        specifier: 2.3.1
+        version: 2.3.1
       '@modelcontextprotocol/ext-apps':
         specifier: 2.0.3
-        version: 2.0.3(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/core@2.1.0)(@modelcontextprotocol/server@2.0.0)(zod@4.6.5)
+        version: 2.0.3(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/core@2.3.1)(@modelcontextprotocol/server@2.0.0)(zod@4.6.5)
       '@modelcontextprotocol/server':
         specifier: 2.0.0
         version: 2.0.0
@@ -604,8 +604,8 @@ packages:
     resolution: {integrity: sha512-pJCEwGG7Lfr/+PQp9ZTwKXNeO5wzbfKL7H3MYpCorM4oFBoQrdjnBgEoqG+RjhsvS1FKrDbKux+M1HhlnGWqcA==}
     engines: {node: '>=20'}
 
-  '@modelcontextprotocol/core@2.1.0':
-    resolution: {integrity: sha512-YdFj5gMRHr0gYNAhTbQDgjLHiEJdIAUYxomhKseUNye7ZGlISQmUoLh2sveFFCiQ7j2YMffT1kgSND0FSfIFjQ==}
+  '@modelcontextprotocol/core@2.3.1':
+    resolution: {integrity: sha512-laVmIhPGpWi7rG9q+0UigblRN0Hws/Yjlb6qLFtVqryXVLkc4h+yN8z731POD2LnAGQlFe7/tXhUm7Bi0YB91g==}
     engines: {node: '>=20'}
 
   '@modelcontextprotocol/ext-apps@2.0.3':
@@ -851,14 +851,14 @@ snapshots:
     dependencies:
       zod: 4.6.5
 
-  '@modelcontextprotocol/core@2.1.0':
+  '@modelcontextprotocol/core@2.3.1':
     dependencies:
       zod: 4.6.5
 
-  '@modelcontextprotocol/ext-apps@2.0.3(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/core@2.1.0)(@modelcontextprotocol/server@2.0.0)(zod@4.6.5)':
+  '@modelcontextprotocol/ext-apps@2.0.3(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/core@2.3.1)(@modelcontextprotocol/server@2.0.0)(zod@4.6.5)':
     dependencies:
       '@modelcontextprotocol/client': 2.0.0
-      '@modelcontextprotocol/core': 2.1.0
+      '@modelcontextprotocol/core': 2.3.1
       '@standard-schema/spec': 1.1.0
       zod: 4.6.5
     optionalDependencies:
