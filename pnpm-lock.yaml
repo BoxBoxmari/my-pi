@@ -93,8 +93,8 @@ importers:
         specifier: 0.1.13
         version: 0.1.13
       web-tree-sitter:
-        specifier: 0.22.6
-        version: 0.22.6
+        specifier: 0.27.1
+        version: 0.27.1
       zod:
         specifier: 4.6.5
         version: 4.6.5
@@ -164,8 +164,8 @@ importers:
         specifier: 0.1.13
         version: 0.1.13
       web-tree-sitter:
-        specifier: 0.22.6
-        version: 0.22.6
+        specifier: 0.27.1
+        version: 0.27.1
 
   packages/change-runtime:
     dependencies:
@@ -736,8 +736,8 @@ packages:
   vscode-languageserver-types@3.18.4:
     resolution: {integrity: sha512-nQsacoiijvl0fRf2q28uFDrAVwRhdCa3QveiF7/CX0r18mLR5FU/1WskSsCKOjmEbtteKUnY8x8Yzxop+k0zwg==}
 
-  web-tree-sitter@0.22.6:
-    resolution: {integrity: sha512-hS87TH71Zd6mGAmYCvlgxeGDjqd9GTeqXNqTT+u0Gs51uIozNIaaq/kUAbV/Zf56jb2ZOyG8BxZs2GG9wbLi6Q==}
+  web-tree-sitter@0.27.1:
+    resolution: {integrity: sha512-qtx0VyUyNRHtL3ze7+v0hCKB/sLcAmY7ZAVp/ZK/bCj0yED8ptvNrr7Vd7DwDyKDWN9baqcUx4uaD2r2ql+6IA==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -980,7 +980,7 @@ snapshots:
 
   vscode-languageserver-types@3.18.4: {}
 
-  web-tree-sitter@0.22.6: {}
+  web-tree-sitter@0.27.1: {}
 
   which@2.0.2:
     dependencies:
