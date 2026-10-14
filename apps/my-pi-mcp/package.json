@@ -46,7 +46,7 @@
     "THIRD-PARTY-NOTICES.txt"
   ],
   "dependencies": {
-    "@modelcontextprotocol/core": "2.1.0",
+    "@modelcontextprotocol/core": "2.3.1",
     "@modelcontextprotocol/server": "2.0.0",
     "tree-sitter-wasms": "0.1.13",
     "web-tree-sitter": "0.22.6",
