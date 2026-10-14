@@ -36,8 +36,8 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
       typescript-language-server:
-        specifier: 6.0.1
-        version: 6.0.1
+        specifier: 6.0.2
+        version: 6.0.2
       yaml:
         specifier: 2.9.1
         version: 2.9.1
@@ -709,8 +709,8 @@ packages:
   tree-sitter-wasms@0.1.13:
     resolution: {integrity: sha512-wT+cR6DwaIz80/vho3AvSF0N4txuNx/5bcRKoXouOfClpxh/qqrF4URNLQXbbt8MaAxeksZcZd1j8gcGjc+QxQ==}
 
-  typescript-language-server@6.0.1:
-    resolution: {integrity: sha512-c5hEHM/7rdFRbQWoHXuddyJ53oF0M2dKeXQOYdwUek556oarltKeumKJGLp/ZMcGV7gW30mGn1MR3V5GDiLiKg==}
+  typescript-language-server@6.0.2:
+    resolution: {integrity: sha512-Ph7Ql+xkUJvMamnkh1h+aKP6HxLR7lrWIYkPn9/LZBkJdJZgtIj7OoVhkDYtQ7zFPTPmqZHOVXaUKGyz9M2q1Q==}
     engines: {node: '>=22.22.2'}
     hasBin: true
 
@@ -960,7 +960,7 @@ snapshots:
 
   tree-sitter-wasms@0.1.13: {}
 
-  typescript-language-server@6.0.1:
+  typescript-language-server@6.0.2:
     dependencies:
       vscode-jsonrpc: 5.0.1
       vscode-languageserver-protocol: 3.18.4
